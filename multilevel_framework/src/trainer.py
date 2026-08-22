@@ -230,7 +230,7 @@ def _write_log(message, log_handle=None):
         log_handle.flush()
 
 
-def _write_run_header(log_handle, episodes, use_shaping, goal_reward, abstract_mdp, automaton_states, gamma_shaping):
+def _write_run_header(log_handle, episodes, use_shaping, goal_reward, abstract_mdp, automaton_states, gamma_shaping, eval_interval, eval_episodes, eval_seed):
     """Write the configuration and DFA metadata at the beginning of a training run."""
     if not log_handle:
         return
@@ -240,6 +240,7 @@ def _write_run_header(log_handle, episodes, use_shaping, goal_reward, abstract_m
         "\n=== NEW RUN ===\n"
         f"episodes={episodes}, shaping={use_shaping}, goal_reward={goal_reward}, gamma={abstract_mdp.gamma}\n"
         f"gamma_shaping={gamma_shaping}, shaping_formula={shaping_formula}\n"
+        f"eval_interval={eval_interval}, eval_episodes={eval_episodes}, eval_seed={eval_seed}\n"
         f"inter_level_shaping={abstract_mdp.upper_level_mdp is not None}, "
         "inter_level_formula=gamma*Phi(next)-Phi(state)\n"
         f"formula={automaton.formula_str}\n"
@@ -253,6 +254,11 @@ def _write_run_header(log_handle, episodes, use_shaping, goal_reward, abstract_m
 def _should_log(episode, episodes, log_interval):
     """Return whether the current episode requires a periodic training report."""
     return episode == 0 or episode + 1 == episodes or (episode + 1) % log_interval == 0
+
+
+def _is_evaluation_due(episode, episodes, eval_interval):
+    """Return whether greedy evaluation is due for the current episode."""
+    return episode + 1 == episodes or (episode + 1) % eval_interval == 0
 
 
 def _build_training_log(episode, episodes, log_interval, automaton_states, agent, histories, cumulative_counters):
@@ -316,7 +322,75 @@ def _monitoring_average(values, episode, log_interval):
     return float(np.mean(values[-window:]))
 
 
-def _validate_training_setup(automaton, state_to_index, episodes, log_interval):
+def _greedy_action(agent, augmented_state, return_known=False):
+    """Select a greedy action without changing the learner exploration state."""
+    if isinstance(agent, TabularQLearner):
+        return agent.greedy_action(augmented_state, return_known=return_known)
+    with torch.inference_mode():
+        state_tensor = torch.as_tensor(augmented_state, dtype=torch.float32, device=agent.device).unsqueeze(0)
+        action = agent.policy_net(state_tensor).argmax(dim=1).item()
+    return (action, True) if return_known else action
+
+
+def _evaluate_agent_greedily(agent, abstract_mdp, episodes, goal_reward, seed):
+    """Evaluate one learner without exploration, replay writes, or updates."""
+    automaton = abstract_mdp.automaton
+    automaton_states = list(automaton.states)
+    state_to_index = {q: index for index, q in enumerate(automaton_states)}
+    successes = 0
+    task_rewards = []
+    episode_lengths = []
+    transition_counts = Counter()
+    evaluation_env = gym.make("LunarLander-v3", continuous=False)
+    is_neural = hasattr(agent, "policy_net")
+    tabular_rng_state = agent.random_rng.getstate() if isinstance(agent, TabularQLearner) else None
+    if isinstance(agent, TabularQLearner):
+        agent.random_rng.seed(seed)
+    was_training = agent.policy_net.training if is_neural else False
+    if is_neural:
+        agent.policy_net.eval()
+    known_states = 0
+    evaluated_states = 0
+    try:
+        for evaluation_episode in range(episodes):
+            raw_state, _ = evaluation_env.reset(seed=seed + evaluation_episode)
+            q = _evaluate_initial_automaton_state(raw_state, abstract_mdp)
+            succeeded = automaton.is_goal_reached(q)
+            terminated = truncated = False
+            steps = 0
+            while not (succeeded or terminated or truncated):
+                augmented_state = _augment_state(raw_state, q, state_to_index)
+                action, known = _greedy_action(agent, augmented_state, return_known=True)
+                known_states += int(known)
+                evaluated_states += 1
+                next_raw_state, _ignored_reward, terminated, truncated, _ = evaluation_env.step(action)
+                previous_q = q
+                q = automaton.get_next_q(previous_q, abstract_mdp.get_environment_truth_assignment(next_raw_state))
+                if q not in state_to_index:
+                    raise RuntimeError(f"DFA returned unknown evaluation state {q!r}")
+                if q != previous_q:
+                    transition_counts[(previous_q, q)] += 1
+                succeeded = automaton.is_goal_reached(q)
+                raw_state = next_raw_state
+                steps += 1
+            successes += int(succeeded)
+            task_rewards.append(float(goal_reward) if succeeded else 0.0)
+            episode_lengths.append(steps)
+    finally:
+        if is_neural and was_training:
+            agent.policy_net.train()
+        if tabular_rng_state is not None:
+            agent.random_rng.setstate(tabular_rng_state)
+        evaluation_env.close()
+    return {"success_rate": successes / episodes, "mean_task_reward": float(np.mean(task_rewards)), "mean_episode_length": float(np.mean(episode_lengths)), "transition_counts": transition_counts, "known_state_fraction": known_states / evaluated_states if evaluated_states else 1.0}
+
+
+def _evaluation_score(metrics):
+    """Order evaluations by success, task reward, then shorter episodes."""
+    return (metrics["success_rate"], metrics["mean_task_reward"], -metrics["mean_episode_length"])
+
+
+def _validate_training_setup(automaton, state_to_index, episodes, log_interval, eval_interval, eval_episodes):
     """Validate DFA consistency and the numeric parameters required by training."""
     if automaton.get_initial_q() not in state_to_index:
         raise ValueError("The DFA initial state is missing from automaton.states")
@@ -326,6 +400,10 @@ def _validate_training_setup(automaton, state_to_index, episodes, log_interval):
         raise ValueError("episodes must be greater than zero")
     if log_interval <= 0:
         raise ValueError("log_interval must be greater than zero")
+    if eval_interval <= 0:
+        raise ValueError("eval_interval must be greater than zero")
+    if eval_episodes <= 0:
+        raise ValueError("eval_episodes must be greater than zero")
 
 
 def _build_training_results(histories, initial_acceptance_history, buffer_histories, automaton_states, best_mean_reward, best_policy_episode, gamma_shaping):
@@ -345,8 +423,14 @@ def _build_training_results(histories, initial_acceptance_history, buffer_histor
         "dfa_transitions": histories["dfa_transitions"],
         "automaton_states": automaton_states,
         "best_mean_learning_reward": best_mean_reward,
+        "best_mean_eval_task_reward": best_mean_reward,
         "best_policy_episode": best_policy_episode,
         "gamma_shaping": gamma_shaping,
+        "evaluation_steps": histories["evaluation_steps"],
+        "eval_success_rates": histories["eval_success_rates"],
+        "eval_task_rewards": histories["eval_task_rewards"],
+        "eval_episode_lengths": histories["eval_episode_lengths"],
+        "eval_known_state_fractions": histories["eval_known_state_fractions"],
         "tabular_table_sizes": histories["tabular_table_sizes"],
         "tabular_visited_states": histories["tabular_visited_states"],
         "tabular_updated_state_actions": histories["tabular_updated_state_actions"],
@@ -359,7 +443,7 @@ def _build_training_results(histories, initial_acceptance_history, buffer_histor
 # Training loop
 # ==============================
 
-def run_sequential_training(env, agent, abstract_mdp, episodes, goal_reward=10000, save_policy=True, use_shaping=True, gamma_shaping=1.0, log_file=None, log_interval=100, seed=None, policy_suffix=""):
+def run_sequential_training(env, agent, abstract_mdp, episodes, goal_reward=10000, save_policy=True, use_shaping=True, gamma_shaping=1.0, log_file=None, log_interval=100, eval_interval=1000, eval_episodes=50, eval_seed=100000, seed=None, policy_suffix=""):
     """
     Train one DDQN or tabular agent with the LTLf automaton and one epsilon.
 
@@ -374,7 +458,7 @@ def run_sequential_training(env, agent, abstract_mdp, episodes, goal_reward=1000
     num_states = len(automaton_states)
 
     # Fail early if the DFA or training parameters are inconsistent.
-    _validate_training_setup(automaton, state_to_index, episodes, log_interval)
+    _validate_training_setup(automaton, state_to_index, episodes, log_interval, eval_interval, eval_episodes)
     if not 0.0 < gamma_shaping <= 1.0:
         raise ValueError("gamma_shaping must be in the interval (0, 1]")
 
@@ -409,6 +493,11 @@ def run_sequential_training(env, agent, abstract_mdp, episodes, goal_reward=1000
         "tabular_updated_state_actions": [],
         "tabular_state_action_coverage": [],
         "tabular_positive_updates": [],
+        "evaluation_steps": [],
+        "eval_success_rates": [],
+        "eval_task_rewards": [],
+        "eval_episode_lengths": [],
+        "eval_known_state_fractions": [],
     }
 
     # Keep cumulative counters for diagnostics shown during training.
@@ -420,13 +509,15 @@ def run_sequential_training(env, agent, abstract_mdp, episodes, goal_reward=1000
     cumulative_initial_acceptances = 0
     best_mean_reward = -np.inf
     best_policy_episode = 0
+    best_evaluation_score = None
 
     # Open one append-only log file for the complete run.
     log_handle = open(log_file, "a", encoding="utf-8") if log_file else None
-    _write_run_header(log_handle, episodes, use_shaping, goal_reward, abstract_mdp, automaton_states, gamma_shaping)
+    _write_run_header(log_handle, episodes, use_shaping, goal_reward, abstract_mdp, automaton_states, gamma_shaping, eval_interval, eval_episodes, eval_seed)
 
     try:
         for episode in range(episodes):
+            evaluation_due = _is_evaluation_due(episode, episodes, eval_interval)
             # Reset the environment and consume s0 before selecting the first action.
             raw_state, _ = env.reset(seed=seed if episode == 0 else None)
             q = _evaluate_initial_automaton_state(raw_state, abstract_mdp)
@@ -566,23 +657,33 @@ def run_sequential_training(env, agent, abstract_mdp, episodes, goal_reward=1000
                 state_entry_histories[index].append(episode_state_entries[index])
 
             # Print recent and cumulative diagnostics at the requested interval.
-            if _should_log(episode, episodes, log_interval):
+            if _should_log(episode, episodes, log_interval) or evaluation_due:
                 cumulative_counters = {"state_visits": cumulative_state_visits, "state_entries": cumulative_state_entries, "transitions": cumulative_transitions, "initial_acceptances": cumulative_initial_acceptances, "env_terminated": cumulative_env_terminated, "env_truncated": cumulative_env_truncated}
                 _write_log(_build_training_log(episode, episodes, log_interval, automaton_states, agent, histories, cumulative_counters), log_handle)
 
-                # Replace the best policy when the monitored mean reward improves.
-                monitored_mean_reward = _monitoring_average(learning_reward_history, episode, log_interval)
-                if monitored_mean_reward > best_mean_reward:
-                    best_mean_reward = monitored_mean_reward
+            if evaluation_due:
+                _write_log(f"\nStarting autonomous greedy evaluation at episode {episode + 1} ({eval_episodes} fixed-seed episodes)...\n", log_handle)
+                evaluation = _evaluate_agent_greedily(agent, abstract_mdp, eval_episodes, goal_reward, eval_seed)
+                histories["evaluation_steps"].append(episode + 1)
+                histories["eval_success_rates"].append(evaluation["success_rate"])
+                histories["eval_task_rewards"].append(evaluation["mean_task_reward"])
+                histories["eval_episode_lengths"].append(evaluation["mean_episode_length"])
+                histories["eval_known_state_fractions"].append(evaluation["known_state_fraction"])
+                known_line = f", known states={evaluation['known_state_fraction']:.1%}" if isinstance(agent, TabularQLearner) else ""
+                _write_log(f"[Greedy evaluation at episode {episode + 1} | {eval_episodes} fixed-seed episodes]\nsuccess={evaluation['success_rate']:.1%}, task reward={evaluation['mean_task_reward']:.3f}, length={evaluation['mean_episode_length']:.1f}{known_line}\nDFA transitions: {_format_counter(evaluation['transition_counts'])}\n", log_handle)
+                score = _evaluation_score(evaluation)
+                if best_evaluation_score is None or score > best_evaluation_score:
+                    best_evaluation_score = score
+                    best_mean_reward = evaluation["mean_task_reward"]
                     best_policy_episode = episode + 1
                     if save_policy:
                         _save_named_policy(agent, f"best_policy{policy_suffix}.{_policy_extension(agent)}")
-                        _write_log(f"Best policy updated at episode {best_policy_episode}: mean learning reward={best_mean_reward:.3f}\n", log_handle)
+                    _write_log(f"Best policy updated from autonomous greedy evaluation at episode {best_policy_episode}.\n", log_handle)
 
         # Save the final policy independently from its monitored performance.
         if save_policy:
             _save_named_policy(agent, f"last_policy{policy_suffix}.{_policy_extension(agent)}")
-            _write_log(f"Last policy saved after episode {episodes}. Best policy: episode {best_policy_episode}, mean learning reward={best_mean_reward:.3f}\n", log_handle)
+            _write_log(f"Last policy saved after episode {episodes}. Best greedy evaluation: episode {best_policy_episode}, mean task reward={best_mean_reward:.3f}\n", log_handle)
     finally:
         # Always close the log, including when training raises an exception.
         if log_handle:
@@ -674,7 +775,7 @@ def main(args):
                 else:
                     agent = HierarchicalDQNLearner(env=env, max_episodes=args.episodes, eps_decay=args.eps_decay, gamma=gamma, extra_state_dims=len(automaton.states), use_polyak=args.polyak, tau=args.polyak_tau, target_update_freq=args.target_update_freq, network_type=args.network_type, policy_dir=policy_dir, stochastic_bellman_update=args.stochastic_bellman_update, bellman_alpha=args.bellman_alpha)
                 policy_suffix = "" if args.num_seeds == 1 else f"_seed_{run_seed}"
-                metrics = run_sequential_training(env=env, agent=agent, abstract_mdp=abstract_mdp, episodes=args.episodes, goal_reward=goal_reward, use_shaping=not args.no_shaping, gamma_shaping=args.gamma_shaping, log_file=f"{log_dir}/single_epsilon_training_seed_{run_seed}.log", log_interval=args.log_interval, seed=run_seed, policy_suffix=policy_suffix)
+                metrics = run_sequential_training(env=env, agent=agent, abstract_mdp=abstract_mdp, episodes=args.episodes, goal_reward=goal_reward, use_shaping=not args.no_shaping, gamma_shaping=args.gamma_shaping, log_file=f"{log_dir}/single_epsilon_training_seed_{run_seed}.log", log_interval=args.log_interval, eval_interval=args.eval_interval, eval_episodes=args.eval_episodes, eval_seed=args.eval_seed, seed=run_seed, policy_suffix=policy_suffix)
                 seed_metrics.append(metrics)
                 save_training_data(f"{data_dir}/single_epsilon_data_seed_{run_seed}.npz", **metrics)
             finally:
@@ -730,6 +831,9 @@ if __name__ == "__main__":
     parser.add_argument("--learner", choices=["ddqn", "tabular"], default="ddqn", help="Ground learner used for action selection and updates.")
     parser.add_argument("--tabular-alpha", type=_learning_rate, default=0.1, help="Learning rate used when --learner tabular is selected.")
     parser.add_argument("--log-interval", type=int, default=100)
+    parser.add_argument("--eval-interval", type=_positive_int, default=1000, help="Run autonomous greedy evaluation every N training episodes.")
+    parser.add_argument("--eval-episodes", type=_positive_int, default=50, help="Number of fixed-seed episodes used at each greedy evaluation.")
+    parser.add_argument("--eval-seed", type=int, default=100000, help="First held-out seed reused at every greedy evaluation.")
     parser.add_argument("--plot-window", type=int, default=500)
     parser.add_argument( "--polyak", action=argparse.BooleanOptionalAction, default=True, help="Use Polyak target updates (disable with --no-polyak).", )
     parser.add_argument("--polyak-tau", type=float, default=0.005)

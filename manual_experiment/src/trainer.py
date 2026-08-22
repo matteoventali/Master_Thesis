@@ -49,9 +49,7 @@ def _experiment_name(value):
     """Validate a safe single-directory experiment name."""
     name = str(value).strip()
     if len(name) > 100 or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]*", name):
-        raise argparse.ArgumentTypeError(
-            "must start with a letter or digit and contain only letters, digits, '.', '_' or '-'"
-        )
+        raise argparse.ArgumentTypeError("must start with a letter or digit and contain only letters, digits, '.', '_' or '-'")
     return name
 
 
@@ -65,12 +63,7 @@ def _resolve_config_path(requested_path, default_filename, experiment_dir, post_
     )
     candidates = []
     if post_process and uses_default:
-        candidates.extend(
-            [
-                Path(experiment_dir) / default_filename,
-                Path(experiment_dir) / "results" / default_filename,
-            ]
-        )
+        candidates.extend([Path(experiment_dir) / default_filename, Path(experiment_dir) / "results" / default_filename])
     candidates.append(requested)
     if not requested.is_absolute():
         candidates.append(Path(SCRIPT_DIR) / requested)
@@ -164,9 +157,7 @@ def _aggregate_seed_metrics(seed_metrics, seeds):
         if key == "automaton_states":
             continue
         try:
-            aggregated[f"{key}_runs"] = np.stack(
-                [np.asarray(metrics[key]) for metrics in seed_metrics]
-            )
+            aggregated[f"{key}_runs"] = np.stack([np.asarray(metrics[key]) for metrics in seed_metrics])
         except ValueError as error:
             raise ValueError(f"Metric {key!r} has inconsistent shapes across seeds") from error
     for key in ("task_rewards", "learning_rewards", "shaping_rewards"):
@@ -178,9 +169,7 @@ def _aggregate_seed_metrics(seed_metrics, seeds):
 
 def _abstract_position(observation, abstract_mdp):
     """Map a raw environment observation to its abstract spatial coordinates."""
-    x, y, _ = phi_mapping_sequential(
-        observation, 0, abstract_mdp.width, abstract_mdp.height
-    )
+    x, y, _ = phi_mapping_sequential(observation, 0, abstract_mdp.width, abstract_mdp.height)
     return x, y
 
 
@@ -195,9 +184,7 @@ def _evaluate_initial_automaton_state(observation, abstract_mdp):
     """Consume the initial observation and return the first active automaton state."""
     initial_truth_assignment = abstract_mdp.get_environment_truth_assignment(observation)
     pre_trace_q = abstract_mdp.automaton.get_initial_q()
-    return abstract_mdp.automaton.advance(
-        pre_trace_q, initial_truth_assignment
-    ).next_state
+    return abstract_mdp.automaton.advance(pre_trace_q, initial_truth_assignment).next_state
 
 
 def _format_counter(counter):
@@ -219,7 +206,7 @@ def _write_log(message, log_handle=None):
         log_handle.flush()
 
 
-def _write_run_header(log_handle, episodes, use_shaping, goal_reward, abstract_mdp, automaton_states, training_shaping_gamma):
+def _write_run_header(log_handle, episodes, use_shaping, goal_reward, abstract_mdp, automaton_states, training_shaping_gamma, eval_interval, eval_episodes, eval_seed):
     """Write the configuration and automaton metadata for a training run."""
     if not log_handle:
         return
@@ -233,6 +220,7 @@ def _write_run_header(log_handle, episodes, use_shaping, goal_reward, abstract_m
         "\n=== NEW RUN ===\n"
         f"episodes={episodes}, shaping={use_shaping}, goal_reward={goal_reward}, gamma={abstract_mdp.gamma}\n"
         f"training_shaping_gamma={training_shaping_gamma}, shaping_formula={shaping_formula}\n"
+        f"eval_interval={eval_interval}, eval_episodes={eval_episodes}, eval_seed={eval_seed}\n"
         f"regions={{{', '.join(f'{name}: {region.as_dict()}' for name, region in abstract_mdp.regions.items())}}}\n"
         f"automaton_states={automaton_states}, initial={automaton.get_initial_q()}, accepting={sorted(automaton.accepting_states)}\n"
     )
@@ -243,6 +231,11 @@ def _write_run_header(log_handle, episodes, use_shaping, goal_reward, abstract_m
 def _should_log(episode, episodes, log_interval):
     """Return whether the current episode requires a periodic training report."""
     return episode == 0 or episode + 1 == episodes or (episode + 1) % log_interval == 0
+
+
+def _is_evaluation_due(episode, episodes, eval_interval):
+    """Return whether greedy evaluation is due for the current episode."""
+    return episode + 1 == episodes or (episode + 1) % eval_interval == 0
 
 
 def _build_training_log(episode, episodes, log_interval, automaton_states, agent, histories, cumulative_counters):
@@ -298,7 +291,64 @@ def _monitoring_average(values, episode, log_interval):
     return float(np.mean(values[-window:]))
 
 
-def _validate_training_setup(automaton, state_to_index, episodes, log_interval):
+def _greedy_action(agent, augmented_state):
+    """Select an action from the policy network without exploration."""
+    with torch.inference_mode():
+        state_tensor = torch.as_tensor(augmented_state, dtype=torch.float32, device=agent.device).unsqueeze(0)
+        return agent.policy_net(state_tensor).argmax(dim=1).item()
+
+
+def _evaluate_agent_greedily(agent, abstract_mdp, episodes, goal_reward, seed):
+    """Evaluate the policy without exploration, replay writes, or updates."""
+    automaton = abstract_mdp.automaton
+    automaton_states = list(automaton.active_states)
+    state_to_index = {q: index for index, q in enumerate(automaton_states)}
+    successful_episodes = 0
+    task_rewards = []
+    episode_lengths = []
+    completed_cycles = []
+    transition_counts = Counter()
+    evaluation_env = gym.make("LunarLander-v3", continuous=False)
+    was_training = agent.policy_net.training
+    agent.policy_net.eval()
+    try:
+        for evaluation_episode in range(episodes):
+            raw_state, _ = evaluation_env.reset(seed=seed + evaluation_episode)
+            q = _evaluate_initial_automaton_state(raw_state, abstract_mdp)
+            terminated = truncated = False
+            steps = 0
+            cycles = 0
+            while not (terminated or truncated):
+                augmented_state = _augment_state(raw_state, q, state_to_index)
+                action = _greedy_action(agent, augmented_state)
+                next_raw_state, _ignored_reward, terminated, truncated, _ = evaluation_env.step(action)
+                previous_q = q
+                automaton_step = automaton.advance(previous_q, abstract_mdp.get_environment_truth_assignment(next_raw_state))
+                q = automaton_step.next_state
+                if q not in state_to_index:
+                    raise RuntimeError(f"Automaton returned unknown evaluation state {q!r}")
+                if q != previous_q:
+                    transition_counts[(previous_q, q)] += 1
+                cycles += int(automaton_step.completed_cycle)
+                raw_state = next_raw_state
+                steps += 1
+            successful_episodes += int(cycles > 0)
+            task_rewards.append(float(goal_reward) * cycles)
+            episode_lengths.append(steps)
+            completed_cycles.append(cycles)
+    finally:
+        if was_training:
+            agent.policy_net.train()
+        evaluation_env.close()
+    return {"success_rate": successful_episodes / episodes, "mean_task_reward": float(np.mean(task_rewards)), "mean_episode_length": float(np.mean(episode_lengths)), "mean_completed_cycles": float(np.mean(completed_cycles)), "transition_counts": transition_counts}
+
+
+def _evaluation_score(metrics):
+    """Order evaluations by success, task reward, then shorter episodes."""
+    return (metrics["success_rate"], metrics["mean_task_reward"], -metrics["mean_episode_length"])
+
+
+def _validate_training_setup(automaton, state_to_index, episodes, log_interval, eval_interval, eval_episodes):
     """Validate automaton consistency and numeric training parameters."""
     if automaton.get_initial_q() not in state_to_index:
         raise ValueError("The initial state is missing from automaton.states")
@@ -308,6 +358,10 @@ def _validate_training_setup(automaton, state_to_index, episodes, log_interval):
         raise ValueError("episodes must be greater than zero")
     if log_interval <= 0:
         raise ValueError("log_interval must be greater than zero")
+    if eval_interval <= 0:
+        raise ValueError("eval_interval must be greater than zero")
+    if eval_episodes <= 0:
+        raise ValueError("eval_episodes must be greater than zero")
 
 
 def _build_training_results(histories, buffer_histories, automaton_states, best_mean_reward, best_policy_episode):
@@ -327,7 +381,13 @@ def _build_training_results(histories, buffer_histories, automaton_states, best_
         "automaton_transitions": histories["automaton_transitions"],
         "automaton_states": automaton_states,
         "best_mean_learning_reward": best_mean_reward,
+        "best_mean_eval_task_reward": best_mean_reward,
         "best_policy_episode": best_policy_episode,
+        "evaluation_steps": histories["evaluation_steps"],
+        "eval_success_rates": histories["eval_success_rates"],
+        "eval_task_rewards": histories["eval_task_rewards"],
+        "eval_episode_lengths": histories["eval_episode_lengths"],
+        "eval_completed_cycles": histories["eval_completed_cycles"],
     }
 
 
@@ -335,7 +395,7 @@ def _build_training_results(histories, buffer_histories, automaton_states, best_
 # Training loop
 # ==============================
 
-def run_sequential_training(env, agent, abstract_mdp, episodes, goal_reward=10000, save_policy=True, use_shaping=True, log_file=None, log_interval=100, training_shaping_gamma=True, seed=None, policy_suffix=""):
+def run_sequential_training(env, agent, abstract_mdp, episodes, goal_reward=10000, save_policy=True, use_shaping=True, log_file=None, log_interval=100, eval_interval=1000, eval_episodes=50, eval_seed=100000, training_shaping_gamma=True, seed=None, policy_suffix=""):
     """
     Train the DDQN agent with the manual automaton and one global epsilon.
 
@@ -350,7 +410,7 @@ def run_sequential_training(env, agent, abstract_mdp, episodes, goal_reward=1000
     num_states = len(automaton_states)
 
     # Fail early if the automaton or training parameters are inconsistent.
-    _validate_training_setup(automaton, state_to_index, episodes, log_interval)
+    _validate_training_setup(automaton, state_to_index, episodes, log_interval, eval_interval, eval_episodes)
 
     # Store episode-level metrics for plots and post-processing.
     task_reward_history = []
@@ -379,6 +439,11 @@ def run_sequential_training(env, agent, abstract_mdp, episodes, goal_reward=1000
         "transition_counters": transition_counter_history,
         "state_visits": state_visit_histories,
         "state_entries": state_entry_histories,
+        "evaluation_steps": [],
+        "eval_success_rates": [],
+        "eval_task_rewards": [],
+        "eval_episode_lengths": [],
+        "eval_completed_cycles": [],
     }
 
     # Keep cumulative counters for diagnostics shown during training.
@@ -389,13 +454,15 @@ def run_sequential_training(env, agent, abstract_mdp, episodes, goal_reward=1000
     cumulative_env_truncated = 0
     best_mean_reward = -np.inf
     best_policy_episode = 0
+    best_evaluation_score = None
 
     # Open one append-only log file for the complete run.
     log_handle = open(log_file, "a", encoding="utf-8") if log_file else None
-    _write_run_header(log_handle, episodes, use_shaping, goal_reward, abstract_mdp, automaton_states, training_shaping_gamma)
+    _write_run_header(log_handle, episodes, use_shaping, goal_reward, abstract_mdp, automaton_states, training_shaping_gamma, eval_interval, eval_episodes, eval_seed)
 
     try:
         for episode in range(episodes):
+            evaluation_due = _is_evaluation_due(episode, episodes, eval_interval)
             # Reset the environment and consume s0 before selecting an action.
             raw_state, _ = env.reset(seed=seed if episode == 0 else None)
             q = _evaluate_initial_automaton_state(raw_state, abstract_mdp)
@@ -487,13 +554,7 @@ def run_sequential_training(env, agent, abstract_mdp, episodes, goal_reward=1000
 
                 # Store the transition and perform one DDQN optimization step.
                 learning_reward = synthetic_goal_reward + shaping_signal
-                agent.memory.push(
-                    augmented_state,
-                    action,
-                    learning_reward,
-                    next_augmented_state,
-                    bootstrap_terminal,
-                )
+                agent.memory.push(augmented_state, action, learning_reward, next_augmented_state, bootstrap_terminal)
                 agent.optimize_model()
 
                 # Update the episode totals and move to the next state.
@@ -534,23 +595,32 @@ def run_sequential_training(env, agent, abstract_mdp, episodes, goal_reward=1000
                 state_entry_histories[index].append(episode_state_entries[index])
 
             # Print recent and cumulative diagnostics at the requested interval.
-            if _should_log(episode, episodes, log_interval):
+            if _should_log(episode, episodes, log_interval) or evaluation_due:
                 cumulative_counters = {"state_visits": cumulative_state_visits, "state_entries": cumulative_state_entries, "transitions": cumulative_transitions, "env_terminated": cumulative_env_terminated, "env_truncated": cumulative_env_truncated}
                 _write_log(_build_training_log(episode, episodes, log_interval, automaton_states, agent, histories, cumulative_counters), log_handle)
 
-                # Replace the best policy when the monitored mean reward improves.
-                monitored_mean_reward = _monitoring_average(learning_reward_history, episode, log_interval)
-                if monitored_mean_reward > best_mean_reward:
-                    best_mean_reward = monitored_mean_reward
+            if evaluation_due:
+                _write_log(f"\nStarting autonomous greedy evaluation at episode {episode + 1} ({eval_episodes} fixed-seed episodes)...\n", log_handle)
+                evaluation = _evaluate_agent_greedily(agent, abstract_mdp, eval_episodes, goal_reward, eval_seed)
+                histories["evaluation_steps"].append(episode + 1)
+                histories["eval_success_rates"].append(evaluation["success_rate"])
+                histories["eval_task_rewards"].append(evaluation["mean_task_reward"])
+                histories["eval_episode_lengths"].append(evaluation["mean_episode_length"])
+                histories["eval_completed_cycles"].append(evaluation["mean_completed_cycles"])
+                _write_log(f"[Greedy evaluation at episode {episode + 1} | {eval_episodes} fixed-seed episodes]\nsuccess={evaluation['success_rate']:.1%}, task reward={evaluation['mean_task_reward']:.3f}, cycles={evaluation['mean_completed_cycles']:.3f}, length={evaluation['mean_episode_length']:.1f}\nautomaton transitions: {_format_counter(evaluation['transition_counts'])}\n", log_handle)
+                score = _evaluation_score(evaluation)
+                if best_evaluation_score is None or score > best_evaluation_score:
+                    best_evaluation_score = score
+                    best_mean_reward = evaluation["mean_task_reward"]
                     best_policy_episode = episode + 1
                     if save_policy:
                         _save_named_policy(agent, f"best_policy{policy_suffix}.pth")
-                        _write_log(f"Best policy updated at episode {best_policy_episode}: mean learning reward={best_mean_reward:.3f}\n", log_handle)
+                    _write_log(f"Best policy updated from autonomous greedy evaluation at episode {best_policy_episode}.\n", log_handle)
 
         # Save the final policy independently from its monitored performance.
         if save_policy:
             _save_named_policy(agent, f"last_policy{policy_suffix}.pth")
-            _write_log(f"Last policy saved after episode {episodes}. Best policy: episode {best_policy_episode}, mean learning reward={best_mean_reward:.3f}\n", log_handle)
+            _write_log(f"Last policy saved after episode {episodes}. Best greedy evaluation: episode {best_policy_episode}, mean task reward={best_mean_reward:.3f}\n", log_handle)
     finally:
         # Always close the log, including when training raises an exception.
         if log_handle:
@@ -592,9 +662,7 @@ def main(args):
     print(f"Experiment outputs: {experiment_dir}")
 
     # Load the manual task and optional training parameters.
-    config_path = _resolve_config_path(
-        args.config, "trajectory.json", experiment_dir, args.post_process
-    )
+    config_path = _resolve_config_path(args.config, "trajectory.json", experiment_dir, args.post_process)
     print(f"Configuration: {config_path}")
     with config_path.open(encoding="utf-8") as config_file:
         config = json.load(config_file)
@@ -612,34 +680,15 @@ def main(args):
     waypoint_cycle = config.get("waypoint_cycle", list(regions))
     automaton = CyclicWaypointsAutomaton(waypoint_cycle)
     automaton.validate_regions(regions)
-    print(
-        "=== MANUAL AUTOMATON TRAINING (single epsilon) ===\n"
-        f"Regions: { {name: region.as_dict() for name, region in regions.items()} }\n"
-        f"Automaton: states={automaton.states}, stable={automaton.active_states}, "
-        f"initial={automaton.initial_state}, "
-        f"accepting={sorted(automaton.accepting_states)}\n"
-        f"Cycle: {automaton.describe_cycle()}\n"
-        "Gym reward is ignored; acceptance does not end an episode."
-    )
+    print("=== MANUAL AUTOMATON TRAINING (single epsilon) ===\n" f"Regions: { {name: region.as_dict() for name, region in regions.items()} }\n" f"Automaton: states={automaton.states}, stable={automaton.active_states}, " f"initial={automaton.initial_state}, " f"accepting={sorted(automaton.accepting_states)}\n" f"Cycle: {automaton.describe_cycle()}\n" "Gym reward is ignored; acceptance does not end an episode.")
 
     if not args.post_process:
         automaton.render_graph(directory=image_dir)
 
     # Heatmaps depend only on the saved task configuration, not on agent training.
-    abstract_mdp = ManualWaypointMDP(
-        regions=regions,
-        automaton=automaton,
-        width=grid_w,
-        height=grid_h,
-        gamma=gamma,
-        goal_reward=goal_reward,
-    )
+    abstract_mdp = ManualWaypointMDP(regions=regions, automaton=automaton, width=grid_w, height=grid_h, gamma=gamma, goal_reward=goal_reward)
     abstract_mdp.value_iteration()
-    save_sequential_heatmaps(
-        abstract_mdp,
-        filename_prefix="single_epsilon_exp",
-        output_dir=os.path.join(image_dir, "heatmaps"),
-    )
+    save_sequential_heatmaps(abstract_mdp, filename_prefix="single_epsilon_exp", output_dir=os.path.join(image_dir, "heatmaps"))
 
     if not args.post_process:
         # Create LunarLander only when agent training is requested.
@@ -651,28 +700,14 @@ def main(args):
             env = gym.make("LunarLander-v3", continuous=False)
             try:
                 _set_training_seed(run_seed, env)
-                agent = HierarchicalDQNLearner(
-                    env=env,
-                    max_episodes=args.episodes,
-                    eps_decay=args.eps_decay,
-                    gamma=gamma,
-                    extra_state_dims=len(automaton.active_states),
-                    use_polyak=args.polyak,
-                    tau=args.polyak_tau,
-                    target_update_freq=args.target_update_freq,
-                    network_type=args.network_type,
-                    policy_dir=policy_dir,
-                )
+                agent = HierarchicalDQNLearner(env=env, max_episodes=args.episodes, eps_decay=args.eps_decay, gamma=gamma, extra_state_dims=len(automaton.active_states), use_polyak=args.polyak, tau=args.polyak_tau, target_update_freq=args.target_update_freq, network_type=args.network_type, policy_dir=policy_dir)
                 policy_suffix = "" if args.num_seeds == 1 else f"_seed_{run_seed}"
-                metrics = run_sequential_training(env=env, agent=agent, abstract_mdp=abstract_mdp, episodes=args.episodes, goal_reward=goal_reward, use_shaping=not args.no_shaping, log_file=f"{log_dir}/single_epsilon_training_seed_{run_seed}.log", log_interval=args.log_interval, training_shaping_gamma=args.training_shaping_gamma, seed=run_seed, policy_suffix=policy_suffix)
+                metrics = run_sequential_training(env=env, agent=agent, abstract_mdp=abstract_mdp, episodes=args.episodes, goal_reward=goal_reward, use_shaping=not args.no_shaping, log_file=f"{log_dir}/single_epsilon_training_seed_{run_seed}.log", log_interval=args.log_interval, eval_interval=args.eval_interval, eval_episodes=args.eval_episodes, eval_seed=args.eval_seed, training_shaping_gamma=args.training_shaping_gamma, seed=run_seed, policy_suffix=policy_suffix)
                 seed_metrics.append(metrics)
                 save_training_data(f"{data_dir}/single_epsilon_data_seed_{run_seed}.npz", **metrics)
             finally:
                 env.close()
-        save_training_data(
-            f"{data_dir}/single_epsilon_data.npz",
-            **_aggregate_seed_metrics(seed_metrics, seeds),
-        )
+        save_training_data(f"{data_dir}/single_epsilon_data.npz", **_aggregate_seed_metrics(seed_metrics, seeds))
 
     # Load saved metrics and generate the final diagnostic plots.
     data_path = (
@@ -695,12 +730,7 @@ def main(args):
         plot_shaping_reward_breakdown(task_rewards, learning_rewards, epsilon_history, window_size=args.plot_window, filename=f"{seed_plot_dir}/reward_breakdown_single_epsilon.png", title=f"Reward Breakdown — Seed {int(run_seed)}")
         if run_index < len(buffer_runs):
             plot_buffer_fractions(buffer_runs[run_index], filename=f"{seed_plot_dir}/buffer_fractions_single_epsilon.png", window_size=args.plot_window, state_labels=data["automaton_states"], title=f"Replay Buffer Composition — Seed {int(run_seed)}")
-    plot_training_variance(
-        learning_reward_runs,
-        window_size=args.plot_window,
-        filename=f"{plot_dir}/training_variance_single_epsilon.png",
-        epsilon_histories=epsilon_runs,
-    )
+    plot_training_variance(learning_reward_runs, window_size=args.plot_window, filename=f"{plot_dir}/training_variance_single_epsilon.png", epsilon_histories=epsilon_runs)
     plot_buffer_variance(buffer_runs, window_size=args.plot_window, filename=f"{plot_dir}/buffer_variance_single_epsilon.png", state_labels=data["automaton_states"])
     print("\nFinished.")
 
@@ -719,32 +749,15 @@ if __name__ == "__main__":
     parser.add_argument("--config", default="trajectory.json")
     parser.add_argument("--eps-decay", type=float, default=0.9996)
     parser.add_argument("--log-interval", type=int, default=100)
+    parser.add_argument("--eval-interval", type=_positive_int, default=1000, help="Run autonomous greedy evaluation every N training episodes.")
+    parser.add_argument("--eval-episodes", type=_positive_int, default=50, help="Number of fixed-seed episodes used at each greedy evaluation.")
+    parser.add_argument("--eval-seed", type=int, default=100000, help="First held-out seed reused at every greedy evaluation.")
     parser.add_argument("--plot-window", type=int, default=500)
-    parser.add_argument(
-        "--polyak",
-        action=argparse.BooleanOptionalAction,
-        default=True,
-        help="Use Polyak target updates (disable with --no-polyak).",
-    )
+    parser.add_argument("--polyak", action=argparse.BooleanOptionalAction, default=True, help="Use Polyak target updates (disable with --no-polyak).")
     parser.add_argument("--polyak-tau", type=float, default=0.005)
-    parser.add_argument(
-        "--target-update-freq",
-        type=int,
-        default=1000,
-        help="Hard target-network update interval used with --no-polyak.",
-    )
-    parser.add_argument(
-        "--network-type",
-        choices=["standard", "dueling"],
-        default="standard",
-        help="Q-network architecture: standard MLP or dueling value/advantage streams.",
-    )
-    parser.add_argument(
-        "--training-shaping-gamma",
-        action=argparse.BooleanOptionalAction,
-        default=True,
-        help="Use gamma*Phi(next)-Phi(state) during training; disable to use Phi(next)-Phi(state).",
-    )
+    parser.add_argument("--target-update-freq", type=int, default=1000, help="Hard target-network update interval used with --no-polyak.")
+    parser.add_argument("--network-type", choices=["standard", "dueling"], default="standard", help="Q-network architecture: standard MLP or dueling value/advantage streams.")
+    parser.add_argument("--training-shaping-gamma", action=argparse.BooleanOptionalAction, default=True, help="Use gamma*Phi(next)-Phi(state) during training; disable to use Phi(next)-Phi(state).")
     parser.add_argument("--no-shaping", action="store_true")
     parser.add_argument("--post-process", action="store_true")
     main(parser.parse_args())
