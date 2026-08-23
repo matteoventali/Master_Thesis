@@ -16,7 +16,7 @@ if [[ ! "$experiment_name" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$ ]]; then
   printf 'Errore: specifica --experiment-name con un nome sicuro (lettere, numeri, punto, trattino o underscore).\n' >&2
   exit 2
 fi
-container_name="${CONTAINER_NAME:-tesi-multilevel-dual-$experiment_name-$(date +%Y%m%d-%H%M%S)-$$}"
+container_name="${CONTAINER_NAME:-$experiment_name}"
 
 docker build -f "$dockerfile" -t "$image_name" "$framework_dir"
 docker run --rm --gpus all --entrypoint python "$image_name" -c \
