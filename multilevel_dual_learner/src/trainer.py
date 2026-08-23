@@ -80,6 +80,14 @@ def _learning_rate(value):
     return number
 
 
+def _probability(value):
+    """Parse a probability including the interval endpoints."""
+    number = float(value)
+    if not 0.0 <= number <= 1.0:
+        raise argparse.ArgumentTypeError("must be in the interval [0, 1]")
+    return number
+
+
 def _experiment_name(value):
     """Validate a safe single-directory experiment name."""
     name = str(value).strip()
@@ -117,6 +125,13 @@ def _archive_config(config_path, experiment_dir, filename):
         shutil.copy2(config_path, destination)
 
 
+def _save_fine_tuning_config(experiment_dir, checkpoint_path, args, unbiased_gamma, goal_reward):
+    """Persist the complete fine-tuning configuration beside the experiment."""
+    configuration = {"source_biased_policy": str(checkpoint_path), "episodes": args.episodes, "network_type": args.network_type, "unbiased_gamma": unbiased_gamma, "base_goal_reward": goal_reward, "unbiased_reward_scale": args.unbiased_reward_scale, "effective_goal_reward": goal_reward * args.unbiased_reward_scale, "epsilon_start": args.fine_tune_eps_start, "epsilon_min": args.fine_tune_eps_min, "epsilon_decay": args.fine_tune_eps_decay, "learning_rate": args.fine_tune_learning_rate, "batch_size": args.fine_tune_batch_size, "replay_capacity": args.fine_tune_replay_capacity, "polyak": args.polyak, "polyak_tau": args.polyak_tau, "target_update_freq": args.target_update_freq, "eval_interval": args.eval_interval, "eval_episodes": args.eval_episodes, "eval_seed": args.eval_seed, "training_seed": args.seed, "num_seeds": args.num_seeds}
+    destination = Path(experiment_dir) / "fine_tuning.json"
+    destination.write_text(json.dumps(configuration, indent=2) + "\n", encoding="utf-8")
+
+
 def _resolve_metrics_path(experiment_dir, filename):
     """Find metrics in the results subfolder or the legacy experiment root."""
     candidates = [
@@ -128,6 +143,17 @@ def _resolve_metrics_path(experiment_dir, filename):
             return candidate
     checked = "\n  - ".join(str(candidate) for candidate in candidates)
     raise FileNotFoundError(f"Training data not found. Checked:\n  - {checked}")
+
+
+def _resolve_policy_path(requested_path):
+    """Resolve and validate a fine-tuning source checkpoint."""
+    requested = Path(requested_path).expanduser()
+    candidates = [requested, Path(FRAMEWORK_DIR) / requested] if not requested.is_absolute() else [requested]
+    for candidate in candidates:
+        if candidate.is_file():
+            return candidate.resolve()
+    checked = "\n  - ".join(str(candidate) for candidate in candidates)
+    raise FileNotFoundError(f"Biased policy checkpoint not found. Checked:\n  - {checked}")
 
 
 def _organize_policy_files(policy_dir):
@@ -190,6 +216,19 @@ def _create_seeded_learner(*, initialization_seed, random_seed, **learner_kwargs
         if torch.cuda.is_available():
             torch.cuda.manual_seed_all(initialization_seed)
         return HierarchicalDQNLearner( random_seed=random_seed, **learner_kwargs, )
+
+
+def _load_neural_policy(agent, checkpoint_path, learning_rate=None):
+    """Load a policy unchanged and reset its target network and optimizer."""
+    state_dict = torch.load(checkpoint_path, map_location=agent.device, weights_only=True)
+    agent.policy_net.load_state_dict(state_dict)
+    agent.target_net.load_state_dict(agent.policy_net.state_dict())
+    agent.target_net.eval()
+    if learning_rate is not None:
+        agent.lr = learning_rate
+    agent.optimizer = torch.optim.Adam(agent.policy_net.parameters(), lr=agent.lr)
+    agent.optimization_steps = 0
+    agent.reset_diagnostics()
 
 
 def _aggregate_seed_metrics(seed_metrics, seeds):
@@ -257,7 +296,7 @@ def _write_log(message, log_handle=None):
         log_handle.flush()
 
 
-def _write_run_header(log_handle, episodes, use_shaping, goal_reward, abstract_mdp, automaton_states, gamma_shaping, eval_interval, eval_episodes, eval_seed, biased_gamma, unbiased_gamma, unbiased_reward_scale, zero_init_unbiased_output):
+def _write_run_header(log_handle, episodes, use_shaping, goal_reward, abstract_mdp, automaton_states, gamma_shaping, eval_interval, eval_episodes, eval_seed, biased_gamma, unbiased_gamma, unbiased_reward_scale, zero_init_unbiased_output, fine_tune_unbiased):
     """Write the configuration and DFA metadata at the beginning of a training run."""
     if not log_handle:
         return
@@ -271,6 +310,7 @@ def _write_run_header(log_handle, episodes, use_shaping, goal_reward, abstract_m
         f"abstract_gamma={abstract_mdp.gamma}, biased_gamma={biased_gamma}, unbiased_gamma={unbiased_gamma}\n"
         f"unbiased_reward_scale={unbiased_reward_scale}\n"
         f"zero_init_unbiased_output={zero_init_unbiased_output}\n"
+        f"fine_tune_unbiased={fine_tune_unbiased}\n"
         f"eval_interval={eval_interval}, eval_episodes={eval_episodes}, eval_seed={eval_seed}\n"
         f"heavy_diagnostics_interval={HEAVY_DIAGNOSTICS_INTERVAL}\n"
         f"gamma_shaping={gamma_shaping}, shaping_formula={shaping_formula}\n"
@@ -389,7 +429,7 @@ def _build_training_log( episode, episodes, log_interval, automaton_states, bias
         f"abstract changes / episode  : {np.mean(histories['abstract_changes'][recent_slice]):.1f}\n"
         f"DFA transitions / episode   : {np.mean(histories['dfa_transitions'][recent_slice]):.2f}\n"
         f"DFA transitions in window   : {_format_counter(recent_transitions)}\n"
-        f"biased epsilon (next episode): {histories['epsilons'][-1]:.5f}\n"
+        f"behavior epsilon (next ep.)   : {histories['epsilons'][-1]:.5f}\n"
         f"shared dual replay buffer    : {len(biased_agent.memory)} samples [{buffer_details}]\n"
         f"{tabular_line}"
         f"{agreement_line}"
@@ -571,7 +611,7 @@ def _build_training_results(histories, initial_acceptance_history, buffer_histor
 # Training loop
 # ==============================
 
-def run_sequential_training(env, biased_agent, unbiased_agent, abstract_mdp, episodes, goal_reward=10000, save_policy=True, use_shaping=True, gamma_shaping=None, unbiased_reward_scale=1.0, log_file=None, log_interval=100, eval_interval=1000, eval_episodes=50, eval_seed=100000, seed=None, policy_suffix=""):
+def run_sequential_training(env, biased_agent, unbiased_agent, abstract_mdp, episodes, goal_reward=10000, save_policy=True, use_shaping=True, gamma_shaping=None, unbiased_reward_scale=1.0, log_file=None, log_interval=100, eval_interval=1000, eval_episodes=50, eval_seed=100000, seed=None, policy_suffix="", fine_tune_unbiased=False, fine_tune_replay_capacity=300000):
     """
     Train paired off-policy DDQN learners with one shared environment stream.
 
@@ -588,8 +628,12 @@ def run_sequential_training(env, biased_agent, unbiased_agent, abstract_mdp, epi
     # Fail early if the DFA or training parameters are inconsistent.
     _validate_training_setup( automaton, state_to_index, episodes, log_interval, eval_interval, eval_episodes, )
     unbiased_is_tabular = isinstance(unbiased_agent, TabularQLearner)
-    if not unbiased_is_tabular and biased_agent.batch_size != unbiased_agent.batch_size:
+    if fine_tune_unbiased and unbiased_is_tabular:
+        raise ValueError("Fine-tuning from a biased neural checkpoint requires --unbiased-learner ddqn")
+    if not fine_tune_unbiased and not unbiased_is_tabular and biased_agent.batch_size != unbiased_agent.batch_size:
         raise ValueError("biased and unbiased learners must use the same batch size")
+    if fine_tune_replay_capacity <= 0:
+        raise ValueError("fine_tune_replay_capacity must be greater than zero")
     if gamma_shaping is None:
         gamma_shaping = biased_agent.gamma
     if not 0.0 < gamma_shaping <= 1.0:
@@ -602,11 +646,12 @@ def run_sequential_training(env, biased_agent, unbiased_agent, abstract_mdp, epi
     minibatch_rng = random.Random(minibatch_seed)
 
     # Store both reward views once and materialize each shared minibatch once.
-    memory_capacity = min(getattr(biased_agent.memory, "capacity", 300000), getattr(unbiased_agent.memory, "capacity", 300000)) if not unbiased_is_tabular else getattr(biased_agent.memory, "capacity", 300000)
+    memory_capacity = fine_tune_replay_capacity if fine_tune_unbiased else min(getattr(biased_agent.memory, "capacity", 300000), getattr(unbiased_agent.memory, "capacity", 300000)) if not unbiased_is_tabular else getattr(biased_agent.memory, "capacity", 300000)
     shared_memory = DualReplayBuffer(memory_capacity, num_states)
     biased_agent.memory = shared_memory
     if not unbiased_is_tabular:
         unbiased_agent.memory = shared_memory
+    behavior_agent = unbiased_agent if fine_tune_unbiased else biased_agent
 
     # Store episode-level metrics for plots and post-processing.
     task_reward_history = []
@@ -666,7 +711,7 @@ def run_sequential_training(env, biased_agent, unbiased_agent, abstract_mdp, epi
     # Open one append-only log file for the complete run.
     log_handle = open(log_file, "a", encoding="utf-8") if log_file else None
     zero_init_unbiased_output = bool( getattr(unbiased_agent, "output_layer_zero_initialized", False) )
-    _write_run_header(log_handle, episodes, use_shaping, goal_reward, abstract_mdp, automaton_states, gamma_shaping, eval_interval, eval_episodes, eval_seed, biased_agent.gamma, unbiased_agent.gamma, unbiased_reward_scale, zero_init_unbiased_output)
+    _write_run_header(log_handle, episodes, use_shaping, goal_reward, abstract_mdp, automaton_states, gamma_shaping, eval_interval, eval_episodes, eval_seed, biased_agent.gamma, unbiased_agent.gamma, unbiased_reward_scale, zero_init_unbiased_output, fine_tune_unbiased)
 
     try:
         for episode in range(episodes):
@@ -707,8 +752,8 @@ def run_sequential_training(env, biased_agent, unbiased_agent, abstract_mdp, epi
 
             while not episode_done:
                 # Select an action using the single global epsilon.
-                biased_agent.eps = epsilon_history[-1] if epsilon_history else biased_agent.eps
-                action = biased_agent.select_action(augmented_state)
+                behavior_agent.eps = epsilon_history[-1] if epsilon_history else behavior_agent.eps
+                action = behavior_agent.select_action(augmented_state)
 
                 # The environment reward is intentionally not part of training.
                 next_raw_state, _ignored_env_reward, env_terminated, env_truncated, _ = env.step(action)
@@ -775,9 +820,10 @@ def run_sequential_training(env, biased_agent, unbiased_agent, abstract_mdp, epi
                 shared_memory.push(augmented_state, action, biased_learning_reward, unbiased_learning_reward, next_augmented_state, bootstrap_terminal)
                 if unbiased_is_tabular:
                     unbiased_agent.update(augmented_state, action, unbiased_learning_reward, next_augmented_state, bootstrap_terminal)
-                if len(shared_memory) >= biased_agent.batch_size:
-                    batch_indices = biased_agent.memory.sample_indices(biased_agent.batch_size, minibatch_rng)
-                    biased_agent.optimize_model(batch_indices, reward_channel="biased")
+                if len(shared_memory) >= behavior_agent.batch_size:
+                    batch_indices = shared_memory.sample_indices(behavior_agent.batch_size, minibatch_rng)
+                    if not fine_tune_unbiased:
+                        biased_agent.optimize_model(batch_indices, reward_channel="biased")
                     if not unbiased_is_tabular:
                         unbiased_agent.optimize_model(batch_indices, reward_channel="unbiased")
 
@@ -797,8 +843,8 @@ def run_sequential_training(env, biased_agent, unbiased_agent, abstract_mdp, epi
                     cumulative_env_truncated += 1
 
             # Decay the single epsilon once at the end of the episode.
-            next_epsilon = max( biased_agent.eps_min, biased_agent.eps * biased_agent.eps_decay, )
-            biased_agent.eps = next_epsilon
+            next_epsilon = max(behavior_agent.eps_min, behavior_agent.eps * behavior_agent.eps_decay)
+            behavior_agent.eps = next_epsilon
 
             # Save the metrics collected for this episode.
             episode_learning_reward = episode_task_reward + episode_shaping_reward
@@ -906,6 +952,14 @@ def main(args):
     """Configure the experiment, run or load training, and generate diagnostic plots."""
     if args.num_seeds <= 0:
         raise ValueError("num_seeds must be greater than zero")
+    fine_tune_mode = args.fine_tune_from_biased is not None
+    if fine_tune_mode and args.unbiased_learner != "ddqn":
+        raise ValueError("--fine-tune-from-biased requires --unbiased-learner ddqn")
+    if fine_tune_mode and args.zero_init_unbiased_output:
+        raise ValueError("--zero-init-unbiased-output cannot be combined with --fine-tune-from-biased")
+    if args.fine_tune_eps_min > args.fine_tune_eps_start:
+        raise ValueError("--fine-tune-eps-min cannot exceed --fine-tune-eps-start")
+    fine_tune_checkpoint = _resolve_policy_path(args.fine_tune_from_biased) if fine_tune_mode and not args.post_process else None
     # Keep every artifact isolated under results/<experiment-name>/.
     experiment_dir = os.path.join(FRAMEWORK_DIR, "results", args.experiment_name)
     if args.post_process and not os.path.isdir(experiment_dir):
@@ -948,12 +1002,15 @@ def main(args):
     unbiased_gamma = gamma if args.unbiased_gamma is None else args.unbiased_gamma
     goal_reward = float(config.get("goal_reward", 10000))
     primary_level = abstraction_config.primary
+    if fine_tune_mode and not args.post_process:
+        _save_fine_tuning_config(experiment_dir, fine_tune_checkpoint, args, unbiased_gamma, goal_reward)
 
     # Build the DFA once for both training and post-processing.
     automaton = LTLfAutomaton(formula)
     validation_report = validate_automaton( automaton, regions, )
     level_summary = ", ".join( f"{index}:{level.name}={level.width}x{level.height}" for index, level in enumerate(abstraction_config.levels, start=1) )
-    print( "=== LTLf TRAINING (dual ground learners) ===\n" f"Formula: {formula}\n" f"Regions: { {name: region.as_dict() for name, region in regions.items()} }\n" f"Abstractions: {level_summary}\n" "Ground DDQN return: one-step\n" f"Unbiased learner: {args.unbiased_learner}\n" f"Discount factors: abstract={gamma}, biased={biased_gamma}, " f"unbiased={unbiased_gamma}\n" f"Unbiased reward scale: {args.unbiased_reward_scale}\n" f"Zero-init unbiased output: {args.zero_init_unbiased_output}\n" "Automaton coordinates and training potential: level1\n" f"DFA: states={automaton.states}, pre-trace={automaton.initial_state}, " f"accepting={sorted(automaton.accepting_states)}\n" "Gym reward is ignored by design.\n" f"{validation_report.format()}" )
+    fine_tune_summary = f"Fine-tuning source: {fine_tune_checkpoint}\nFine-tuning transferred Q values: unchanged\nFine-tuning epsilon: start={args.fine_tune_eps_start}, min={args.fine_tune_eps_min}, decay={args.fine_tune_eps_decay}\nFine-tuning learning rate/batch/replay: {args.fine_tune_learning_rate}/{args.fine_tune_batch_size}/{args.fine_tune_replay_capacity}\n" if fine_tune_mode else "Fine-tuning: disabled\n"
+    print( "=== LTLf TRAINING (dual ground learners) ===\n" f"Formula: {formula}\n" f"Regions: { {name: region.as_dict() for name, region in regions.items()} }\n" f"Abstractions: {level_summary}\n" "Ground DDQN return: one-step\n" f"Unbiased learner: {args.unbiased_learner}\n" f"Discount factors: abstract={gamma}, biased={biased_gamma}, " f"unbiased={unbiased_gamma}\n" f"Unbiased reward scale: {args.unbiased_reward_scale}\n" f"Zero-init unbiased output: {args.zero_init_unbiased_output}\n" f"{fine_tune_summary}" "Automaton coordinates and training potential: level1\n" f"DFA: states={automaton.states}, pre-trace={automaton.initial_state}, " f"accepting={sorted(automaton.accepting_states)}\n" "Gym reward is ignored by design.\n" f"{validation_report.format()}" )
 
     if not args.post_process:
         automaton.render_graph(directory=image_dir)
@@ -982,13 +1039,20 @@ def main(args):
                 if args.unbiased_learner == "tabular":
                     unbiased_agent = TabularQLearner(env=env, num_phases=len(automaton.states), gamma=unbiased_gamma, alpha=args.tabular_alpha, policy_dir=policy_dir, random_seed=run_seed + 3_000_003)
                 else:
-                    unbiased_agent = _create_seeded_learner(initialization_seed=unbiased_initialization_seed, random_seed=run_seed + 3_000_003, env=env, max_episodes=args.episodes, eps_decay=args.eps_decay, gamma=unbiased_gamma, extra_state_dims=len(automaton.states), use_polyak=args.polyak, tau=args.polyak_tau, target_update_freq=args.target_update_freq, network_type=args.network_type, policy_dir=policy_dir)
+                    unbiased_eps_decay = args.fine_tune_eps_decay if fine_tune_mode else args.eps_decay
+                    unbiased_agent = _create_seeded_learner(initialization_seed=unbiased_initialization_seed, random_seed=run_seed + 3_000_003, env=env, max_episodes=args.episodes, eps_decay=unbiased_eps_decay, gamma=unbiased_gamma, extra_state_dims=len(automaton.states), use_polyak=args.polyak, tau=args.polyak_tau, target_update_freq=args.target_update_freq, network_type=args.network_type, policy_dir=policy_dir)
                 if args.zero_init_unbiased_output and args.unbiased_learner == "tabular":
                     raise ValueError("--zero-init-unbiased-output is only valid with --unbiased-learner ddqn")
                 if args.zero_init_unbiased_output:
                     unbiased_agent.zero_initialize_output_layer()
+                if fine_tune_mode:
+                    _load_neural_policy(biased_agent, fine_tune_checkpoint)
+                    _load_neural_policy(unbiased_agent, fine_tune_checkpoint, learning_rate=args.fine_tune_learning_rate)
+                    unbiased_agent.eps = args.fine_tune_eps_start
+                    unbiased_agent.eps_min = args.fine_tune_eps_min
+                    unbiased_agent.batch_size = args.fine_tune_batch_size
                 policy_suffix = "" if args.num_seeds == 1 else f"_seed_{run_seed}"
-                metrics = run_sequential_training(env=env, biased_agent=biased_agent, unbiased_agent=unbiased_agent, abstract_mdp=abstract_mdp, episodes=args.episodes, goal_reward=goal_reward, use_shaping=not args.no_shaping, gamma_shaping=(biased_gamma if args.gamma_shaping is None else args.gamma_shaping), unbiased_reward_scale=args.unbiased_reward_scale, log_file=f"{log_dir}/dual_learner_training_seed_{run_seed}.log", log_interval=args.log_interval, eval_interval=args.eval_interval, eval_episodes=args.eval_episodes, eval_seed=args.eval_seed, seed=run_seed, policy_suffix=policy_suffix)
+                metrics = run_sequential_training(env=env, biased_agent=biased_agent, unbiased_agent=unbiased_agent, abstract_mdp=abstract_mdp, episodes=args.episodes, goal_reward=goal_reward, use_shaping=False if fine_tune_mode else not args.no_shaping, gamma_shaping=(biased_gamma if args.gamma_shaping is None else args.gamma_shaping), unbiased_reward_scale=args.unbiased_reward_scale, log_file=f"{log_dir}/dual_learner_training_seed_{run_seed}.log", log_interval=args.log_interval, eval_interval=args.eval_interval, eval_episodes=args.eval_episodes, eval_seed=args.eval_seed, seed=run_seed, policy_suffix=policy_suffix, fine_tune_unbiased=fine_tune_mode, fine_tune_replay_capacity=args.fine_tune_replay_capacity)
                 seed_metrics.append(metrics)
                 save_training_data(f"{data_dir}/dual_learner_data_seed_{run_seed}.npz", **metrics)
             finally:
@@ -1052,6 +1116,13 @@ if __name__ == "__main__":
     parser.add_argument( "--unbiased-reward-scale", type=_positive_float, default=1.0, help="Multiply only the unbiased learner reward by this factor (default: 1.0).", )
     parser.add_argument("--unbiased-learner", choices=["ddqn", "tabular"], default="ddqn", help="Output learner: neural DDQN or sparse tabular Q-learning.")
     parser.add_argument("--tabular-alpha", type=_learning_rate, default=0.1, help="Learning rate used by the tabular unbiased learner.")
+    parser.add_argument("--fine-tune-from-biased", type=Path, default=None, help="Start an unbiased-only DDQN fine-tuning run from this biased policy checkpoint.")
+    parser.add_argument("--fine-tune-eps-start", type=_probability, default=0.1, help="Initial epsilon used by the transferred policy during tuning.")
+    parser.add_argument("--fine-tune-eps-min", type=_probability, default=0.01, help="Minimum epsilon used during tuning.")
+    parser.add_argument("--fine-tune-eps-decay", type=_discount_factor, default=0.9996, help="Per-episode epsilon decay used during tuning.")
+    parser.add_argument("--fine-tune-learning-rate", type=_positive_float, default=1e-3, help="Learning rate of the fresh tuning optimizer.")
+    parser.add_argument("--fine-tune-batch-size", type=_positive_int, default=64, help="Replay minibatch size used during tuning.")
+    parser.add_argument("--fine-tune-replay-capacity", type=_positive_int, default=300000, help="Capacity of the fresh replay buffer used during tuning.")
     parser.add_argument("--log-interval", type=int, default=100)
     parser.add_argument( "--eval-interval", type=_positive_int, default=1000, help="Run autonomous greedy evaluation every N training episodes.", )
     parser.add_argument( "--eval-episodes", type=_positive_int, default=50, help="Number of fixed-seed episodes per learner and evaluation point.", )
