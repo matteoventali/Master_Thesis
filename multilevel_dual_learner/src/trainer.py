@@ -611,7 +611,7 @@ def _build_training_results(histories, initial_acceptance_history, buffer_histor
 # Training loop
 # ==============================
 
-def run_sequential_training(env, biased_agent, unbiased_agent, abstract_mdp, episodes, goal_reward=10000, save_policy=True, use_shaping=True, gamma_shaping=None, unbiased_reward_scale=1.0, log_file=None, log_interval=100, eval_interval=1000, eval_episodes=50, eval_seed=100000, seed=None, policy_suffix="", fine_tune_unbiased=False, fine_tune_replay_capacity=300000):
+def run_sequential_training(env, biased_agent, unbiased_agent, abstract_mdp, episodes, goal_reward=10000, save_policy=True, use_shaping=True, gamma_shaping=1.0, unbiased_reward_scale=1.0, log_file=None, log_interval=100, eval_interval=1000, eval_episodes=50, eval_seed=100000, seed=None, policy_suffix="", fine_tune_unbiased=False, fine_tune_replay_capacity=300000):
     """
     Train paired off-policy DDQN learners with one shared environment stream.
 
@@ -1111,7 +1111,7 @@ if __name__ == "__main__":
     parser.add_argument("--eps-decay", type=float, default=0.9996)
     parser.add_argument( "--biased-gamma", type=_discount_factor, default=None, help="Discount factor for the biased DDQN (default: trajectory.json gamma).", )
     parser.add_argument( "--unbiased-gamma", type=_discount_factor, default=None, help="Discount factor for the unbiased DDQN (default: trajectory.json gamma).", )
-    parser.add_argument( "--gamma-shaping", type=_discount_factor, default=None, help="Discount used in Phi shaping (default: biased gamma; use 1 for the cell-change-equivalent heuristic).", )
+    parser.add_argument( "--gamma-shaping", type=_discount_factor, default=1.0, help="Discount used in Phi shaping (default: 1.0).", )
     parser.add_argument( "--zero-init-unbiased-output", action="store_true", help="Initialize only the unbiased policy/target output layers to zero (default: disabled).", )
     parser.add_argument( "--unbiased-reward-scale", type=_positive_float, default=1.0, help="Multiply only the unbiased learner reward by this factor (default: 1.0).", )
     parser.add_argument("--unbiased-learner", choices=["ddqn", "tabular"], default="ddqn", help="Output learner: neural DDQN or sparse tabular Q-learning.")
