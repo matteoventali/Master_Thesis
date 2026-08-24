@@ -5,6 +5,18 @@ framework_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
 templates_dir="$(cd -- "$framework_dir/../templates" && pwd -P)"
 dockerfile="$framework_dir/docker/Dockerfile"
 image_name="${IMAGE_NAME:-tesi-multilevel-dual-learner}"
+gpu_id="${GPU_ID:-}"
+if [[ -n "$gpu_id" && ! "$gpu_id" =~ ^[0-9]+$ ]]; then
+  printf 'Errore: GPU_ID deve essere un intero non negativo.\n' >&2
+  exit 2
+fi
+if [[ -n "$gpu_id" ]]; then
+  gpu_args=(--gpus "device=$gpu_id")
+  gpu_label="$gpu_id"
+else
+  gpu_args=(--gpus all)
+  gpu_label="all (PyTorch usa cuda:0)"
+fi
 trainer_args=("$@")
 experiment_name=""
 for ((index = 0; index < ${#trainer_args[@]}; index++)); do
@@ -20,17 +32,18 @@ fi
 container_name="${CONTAINER_NAME:-$experiment_name}"
 
 docker build -f "$dockerfile" -t "$image_name" "$framework_dir"
-docker run --rm --gpus all --entrypoint python "$image_name" -c \
+docker run --rm "${gpu_args[@]}" --entrypoint python "$image_name" -c \
   'import torch; assert torch.cuda.is_available(), "CUDA non disponibile nel container"; print(f"GPU: {torch.cuda.get_device_name(0)} | CUDA: {torch.version.cuda}")'
 docker run -d \
   --name "$container_name" \
-  --gpus all \
+  "${gpu_args[@]}" \
   --user "$(id -u):$(id -g)" \
   --mount "type=bind,src=$framework_dir,target=/workspace" \
   --mount "type=bind,src=$templates_dir,target=/templates,readonly" \
   "$image_name" "${trainer_args[@]}"
 
 printf '\nEsperimento avviato: %s\n' "$container_name"
+printf 'GPU:       %s\n' "$gpu_label"
 printf 'Log:       docker logs -f %s\n' "$container_name"
 printf 'Stato:     docker ps -a --filter name=%s\n' "$container_name"
 printf 'Stop:      docker stop %s\n' "$container_name"
