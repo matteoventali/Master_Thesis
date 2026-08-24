@@ -2,6 +2,7 @@
 set -Eeuo pipefail
 
 framework_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
+templates_dir="$(cd -- "$framework_dir/../templates" && pwd -P)"
 dockerfile="$framework_dir/docker/Dockerfile"
 image_name="${IMAGE_NAME:-tesi-multilevel}"
 container_name="${CONTAINER_NAME:-traj2-value-iteration-benchmark}"
@@ -13,6 +14,7 @@ docker run -d --rm \
   --name "$container_name" \
   --user "$(id -u):$(id -g)" \
   --mount "type=bind,src=$framework_dir,target=/workspace" \
+  --mount "type=bind,src=$templates_dir,target=/templates,readonly" \
   --workdir /workspace \
   --entrypoint python \
   "$image_name" \
