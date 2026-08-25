@@ -79,8 +79,12 @@ senza shaping. Gli iperparametri si configurano nel file di astrazione:
     "epsilon_start": 1.0,
     "epsilon_min": 0.05,
     "epsilon_decay": 0.999,
+    "gamma_shaping": 0.99,
     "seed": 0,
-    "log_interval": 1000
+    "log_interval": 1000,
+    "eval_interval": 10000,
+    "eval_episodes": 500,
+    "eval_seed": 100000
   }
 }
 ```
@@ -107,6 +111,15 @@ rate sui restart non-goal, epsilon, aggiornamenti e tempo trascorso.
 I restart che partono già in uno stato DFA accettante continuano ad addestrare
 l'azione `done`, ma sono esclusi da success rate e curve reward per evitare il
 plateau artificiale dovuto al reward immediato.
+Ogni `eval_interval` episodi viene inoltre eseguita una valutazione greedy sugli
+stessi `eval_episodes` restart non-goal, determinati da `eval_seed`. Nei livelli
+dual il log riporta separatamente success rate biased e unbiased; errore TD e
+numero di coppie positive permettono di monitorare la propagazione della Q
+unbiased anche prima che la policy completi il task.
+Nei livelli non-top `gamma_shaping` controlla lo shaping ricevuto dal livello
+superiore secondo `gamma_shaping_i * Phi_(i+1)(next) - Phi_(i+1)(state)`. Se
+omesso viene usato il `gamma` dell'MDP. Sul livello top non è ammesso, perché
+non esiste un potenziale superiore.
 La generazione delle heatmap dei potenziali può essere disabilitata aggiungendo
 `--no-heatmaps` al comando di training o post-processing; i grafici
 reward–epsilon e i log astratti vengono comunque prodotti.

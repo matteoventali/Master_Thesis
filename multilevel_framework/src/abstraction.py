@@ -23,11 +23,15 @@ class LearningConfig:
     epsilon_start: float = 1.0
     epsilon_min: float = 0.05
     epsilon_decay: float = 0.999
+    gamma_shaping: float | None = None
     seed: int = 0
     log_interval: int = 1000
+    eval_interval: int = 10_000
+    eval_episodes: int = 500
+    eval_seed: int = 100_000
 
     def __post_init__(self):
-        for name in ("episodes", "max_steps", "log_interval"):
+        for name in ("episodes", "max_steps", "log_interval", "eval_interval", "eval_episodes"):
             value = getattr(self, name)
             if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
                 raise ValueError(f"learning.{name} must be a positive integer")
@@ -42,8 +46,14 @@ class LearningConfig:
             raise ValueError("learning epsilon values must satisfy 0 <= epsilon_min <= epsilon_start <= 1")
         if not 0.0 < self.epsilon_decay <= 1.0:
             raise ValueError("learning.epsilon_decay must be in the interval (0, 1]")
-        if isinstance(self.seed, bool) or not isinstance(self.seed, int):
-            raise ValueError("learning.seed must be an integer")
+        if self.gamma_shaping is not None:
+            if isinstance(self.gamma_shaping, bool) or not isinstance(self.gamma_shaping, (int, float)) or not math.isfinite(self.gamma_shaping):
+                raise ValueError("learning.gamma_shaping must be a finite number")
+            if not 0.0 < self.gamma_shaping <= 1.0:
+                raise ValueError("learning.gamma_shaping must be in the interval (0, 1]")
+        for name in ("seed", "eval_seed"):
+            if isinstance(getattr(self, name), bool) or not isinstance(getattr(self, name), int):
+                raise ValueError(f"learning.{name} must be an integer")
 
     @classmethod
     def from_dict(cls, data, level_name):
@@ -58,8 +68,12 @@ class LearningConfig:
             "epsilon_start",
             "epsilon_min",
             "epsilon_decay",
+            "gamma_shaping",
             "seed",
             "log_interval",
+            "eval_interval",
+            "eval_episodes",
+            "eval_seed",
         }
         unknown = sorted(set(data) - allowed)
         if unknown:
@@ -151,6 +165,8 @@ class AbstractionConfig:
                 raise ValueError(f"{name}.algorithm must be either 'vi' or 'learning'")
             if is_top_level and algorithm == "vi" and "learning" in raw_level:
                 raise ValueError(f"{name} uses VI and must not define learning parameters")
+            if is_top_level and algorithm == "learning" and isinstance(raw_level.get("learning"), dict) and "gamma_shaping" in raw_level["learning"]:
+                raise ValueError(f"{name} is the top level and must not define gamma_shaping because it has no upper potential")
             learning = LearningConfig.from_dict(raw_level.get("learning"), name)
             levels.append(GridLevel(width=width, height=height, name=name, algorithm=algorithm, learning=learning))
         return cls(tuple(levels))

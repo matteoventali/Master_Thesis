@@ -161,6 +161,7 @@ class LTLfWaypointMDP:
         self.goal_reward = goal_reward
         self.v_star = defaultdict(float)
         self.upper_level_mdp = None
+        self.inter_level_gamma_shaping = gamma
         self.value_iteration_iterations = 0
         self.solution_algorithm = None
         self.learning_episodes = 0
@@ -230,7 +231,7 @@ class LTLfWaypointMDP:
             return 0.0
         state_potential = self.get_upper_level_potential(state)
         next_state_potential = self.get_upper_level_potential(next_state)
-        return self.gamma * next_state_potential - state_potential
+        return self.inter_level_gamma_shaping * next_state_potential - state_potential
 
     def print_policy(self):
         arrows = {
@@ -319,18 +320,33 @@ class LTLfWaypointMDP:
         self.upper_level_mdp = upper_level_mdp
         self.value_iteration_iterations = 0
         uses_shaping = upper_level_mdp is not None
+        self.inter_level_gamma_shaping = self.gamma if config.gamma_shaping is None else config.gamma_shaping
         rng = random.Random(config.seed)
         state_index = {state: index for index, state in enumerate(self.states)}
         action_index = {action: index for index, action in enumerate(self.actions)}
         q_unbiased = [[0.0 for _ in self.actions] for _ in self.states]
         q_biased = [[0.0 for _ in self.actions] for _ in self.states] if uses_shaping else q_unbiased
         restart_states = self.states
+        evaluation_restart_states = [state for state in self.states if not self.automaton.is_goal_reached(state[2])]
+        evaluation_rng = random.Random(config.eval_seed)
+        evaluation_starts = [evaluation_rng.choice(evaluation_restart_states) for _ in range(config.eval_episodes)] if evaluation_restart_states else []
 
         epsilon = config.epsilon_start
         updates = 0
-        learning_history = {"episodes": [], "epsilon": [], "unbiased_episode_reward": [], "successes": [], "episode_lengths": [], "dfa_transitions": [], "initial_acceptances": []}
+        total_valid_pairs = sum(len(self.get_available_actions(state)) for state in self.states)
+        unbiased_positive_mask = bytearray(len(self.states) * len(self.actions))
+        unbiased_positive_pairs = 0
+        unbiased_td_sum = 0.0
+        unbiased_td_count = 0
+        unbiased_td_max = 0.0
+        biased_td_sum = 0.0
+        biased_td_count = 0
+        biased_td_max = 0.0
+        learning_history = {"episodes": [], "epsilon": [], "unbiased_episode_reward": [], "successes": [], "episode_lengths": [], "dfa_transitions": [], "initial_acceptances": [], "evaluation_steps": [], "unbiased_eval_success_rates": [], "unbiased_eval_episode_lengths": []}
         if uses_shaping:
             learning_history["biased_episode_reward"] = []
+            learning_history["biased_eval_success_rates"] = []
+            learning_history["biased_eval_episode_lengths"] = []
 
         learning_description = "dual-table inter-level PBRS" if uses_shaping else "classic single-table unbiased"
         log_handle = None
@@ -353,9 +369,31 @@ class LTLfWaypointMDP:
         def format_percentage(value):
             return "n/a" if not math.isfinite(value) else f"{value:.1%}"
 
+        def evaluate_greedy(q_table):
+            if not evaluation_starts:
+                return float("nan"), float("nan")
+            successes = 0
+            total_steps = 0
+            for evaluation_start in evaluation_starts:
+                evaluation_state = evaluation_start
+                evaluation_steps = 0
+                for evaluation_step in range(config.max_steps + 1):
+                    if evaluation_step == config.max_steps and not self.automaton.is_goal_reached(evaluation_state[2]):
+                        break
+                    evaluation_state_i = state_index[evaluation_state]
+                    evaluation_actions = self.get_available_actions(evaluation_state)
+                    evaluation_action = max(evaluation_actions, key=lambda candidate: (q_table[evaluation_state_i][action_index[candidate]], -candidate))
+                    evaluation_state, _, evaluation_terminal = self.get_transitions(evaluation_state, evaluation_action)
+                    evaluation_steps += 1
+                    if evaluation_terminal:
+                        successes += 1
+                        break
+                total_steps += evaluation_steps
+            return successes / len(evaluation_starts), total_steps / len(evaluation_starts)
+
         start_time = time.monotonic()
         log(f"Q-learning [{self.level_name}: {self.width}x{self.height}, {learning_description}, episodes={config.episodes}]...")
-        log(f"Configuration: max_steps={config.max_steps}, alpha={config.alpha}, epsilon_start={config.epsilon_start}, epsilon_min={config.epsilon_min}, epsilon_decay={config.epsilon_decay}, seed={config.seed}, states={len(self.states)}")
+        log(f"Configuration: max_steps={config.max_steps}, alpha={config.alpha}, epsilon_start={config.epsilon_start}, epsilon_min={config.epsilon_min}, epsilon_decay={config.epsilon_decay}, gamma_shaping={self.inter_level_gamma_shaping if uses_shaping else 'not applicable'}, seed={config.seed}, states={len(self.states)}, eval_interval={config.eval_interval}, eval_episodes={config.eval_episodes}, eval_seed={config.eval_seed}")
 
         for episode in range(1, config.episodes + 1):
             # Random restarts cover the full product space. Accepting states
@@ -393,11 +431,23 @@ class LTLfWaypointMDP:
                 next_actions = self.get_available_actions(next_state)
                 next_unbiased_value = max(q_unbiased[next_i][action_index[candidate]] for candidate in next_actions)
                 unbiased_target = reward if terminal else reward + self.gamma * next_unbiased_value
-                q_unbiased[state_i][action_i] += config.alpha * (unbiased_target - q_unbiased[state_i][action_i])
+                unbiased_td_error = unbiased_target - q_unbiased[state_i][action_i]
+                q_unbiased[state_i][action_i] += config.alpha * unbiased_td_error
+                unbiased_td_sum += abs(unbiased_td_error)
+                unbiased_td_count += 1
+                unbiased_td_max = max(unbiased_td_max, abs(unbiased_td_error))
+                positive_index = state_i * len(self.actions) + action_i
+                if not unbiased_positive_mask[positive_index] and q_unbiased[state_i][action_i] > 0.0:
+                    unbiased_positive_mask[positive_index] = 1
+                    unbiased_positive_pairs += 1
                 if uses_shaping:
                     next_biased_value = max(q_biased[next_i][action_index[candidate]] for candidate in next_actions)
                     biased_target = reward if terminal else reward + shaping_reward + self.gamma * next_biased_value
-                    q_biased[state_i][action_i] += config.alpha * (biased_target - q_biased[state_i][action_i])
+                    biased_td_error = biased_target - q_biased[state_i][action_i]
+                    q_biased[state_i][action_i] += config.alpha * biased_td_error
+                    biased_td_sum += abs(biased_td_error)
+                    biased_td_count += 1
+                    biased_td_max = max(biased_td_max, abs(biased_td_error))
                 updates += 1
                 state = next_state
                 if terminal:
@@ -408,8 +458,8 @@ class LTLfWaypointMDP:
             metric_unbiased_reward = float("nan") if started_accepting else unbiased_episode_reward
             learning_history["unbiased_episode_reward"].append(metric_unbiased_reward)
             learning_history["successes"].append(float("nan") if started_accepting else float(episode_succeeded))
-            learning_history["episode_lengths"].append(episode_steps)
-            learning_history["dfa_transitions"].append(episode_dfa_transitions)
+            learning_history["episode_lengths"].append(float("nan") if started_accepting else episode_steps)
+            learning_history["dfa_transitions"].append(float("nan") if started_accepting else episode_dfa_transitions)
             learning_history["initial_acceptances"].append(int(started_accepting))
             if uses_shaping:
                 learning_history["biased_episode_reward"].append(float("nan") if started_accepting else biased_episode_reward)
@@ -427,7 +477,29 @@ class LTLfWaypointMDP:
                 recent_dfa_transitions = finite_mean(learning_history["dfa_transitions"][recent_slice])
                 cumulative_initial_acceptances = sum(learning_history["initial_acceptances"])
                 elapsed_seconds = time.monotonic() - start_time
-                log("\n" f"[Abstract {self.level_name} | Episode {episode}/{config.episodes} | last {window}]\n" f"success rate (non-goal)     : {format_percentage(recent_success_rate)} (cumulative {format_percentage(cumulative_success_rate)})\n" f"synthetic task reward       : {recent_task_reward:.3f}\n" f"shaping reward              : {recent_shaping_reward:.3f}\n" f"learning reward             : {recent_learning_reward:.3f}\n" f"episode length              : {recent_episode_length:.1f}\n" f"DFA transitions / episode   : {recent_dfa_transitions:.2f}\n" f"epsilon (next episode)      : {epsilon:.5f}\n" f"Q updates cumulative        : {updates}\n" f"accepting-state restarts    : {cumulative_initial_acceptances}\n" f"elapsed                     : {elapsed_seconds:.1f}s")
+                mean_unbiased_td = unbiased_td_sum / unbiased_td_count if unbiased_td_count else float("nan")
+                biased_td_line = f"biased |TD| mean/max       : {biased_td_sum / biased_td_count:.4g}/{biased_td_max:.4g}\n" if uses_shaping and biased_td_count else ""
+                behavior_label = "biased" if uses_shaping else "unbiased"
+                log("\n" f"[Abstract {self.level_name} | Episode {episode}/{config.episodes} | last {window}]\n" f"success rate ({behavior_label})       : {format_percentage(recent_success_rate)} (cumulative {format_percentage(cumulative_success_rate)})\n" f"synthetic task reward       : {recent_task_reward:.3f}\n" f"shaping reward              : {recent_shaping_reward:.3f}\n" f"learning reward             : {recent_learning_reward:.3f}\n" f"episode length (non-goal)   : {recent_episode_length:.1f}\n" f"DFA transitions / episode   : {recent_dfa_transitions:.2f}\n" f"epsilon (next episode)      : {epsilon:.5f}\n" f"Q updates cumulative        : {updates}\n" f"unbiased |TD| mean/max     : {mean_unbiased_td:.4g}/{unbiased_td_max:.4g}\n" f"{biased_td_line}" f"unbiased positive Q pairs   : {unbiased_positive_pairs}/{total_valid_pairs} ({unbiased_positive_pairs / total_valid_pairs:.2%})\n" f"accepting-state restarts    : {cumulative_initial_acceptances}\n" f"elapsed                     : {elapsed_seconds:.1f}s")
+                if episode % config.log_interval == 0 or episode == config.episodes:
+                    unbiased_td_sum = 0.0
+                    unbiased_td_count = 0
+                    unbiased_td_max = 0.0
+                    biased_td_sum = 0.0
+                    biased_td_count = 0
+                    biased_td_max = 0.0
+            if episode == 1 or episode % config.eval_interval == 0 or episode == config.episodes:
+                unbiased_eval_success, unbiased_eval_length = evaluate_greedy(q_unbiased)
+                learning_history["evaluation_steps"].append(episode)
+                learning_history["unbiased_eval_success_rates"].append(unbiased_eval_success)
+                learning_history["unbiased_eval_episode_lengths"].append(unbiased_eval_length)
+                if uses_shaping:
+                    biased_eval_success, biased_eval_length = evaluate_greedy(q_biased)
+                    learning_history["biased_eval_success_rates"].append(biased_eval_success)
+                    learning_history["biased_eval_episode_lengths"].append(biased_eval_length)
+                    log("\n" f"[Abstract greedy evaluation at episode {episode} | {config.eval_episodes} fixed non-goal starts]\n" f"success rate biased         : {format_percentage(biased_eval_success)}, length={biased_eval_length:.1f}\n" f"success rate unbiased       : {format_percentage(unbiased_eval_success)}, length={unbiased_eval_length:.1f}")
+                else:
+                    log("\n" f"[Abstract greedy evaluation at episode {episode} | {config.eval_episodes} fixed non-goal starts]\n" f"success rate unbiased       : {format_percentage(unbiased_eval_success)}, length={unbiased_eval_length:.1f}")
 
         self.v_star = defaultdict(float, {state: max(q_unbiased[state_index[state]][action_index[action]] for action in self.get_available_actions(state)) for state in self.states})
         self.solution_algorithm = "learning"
