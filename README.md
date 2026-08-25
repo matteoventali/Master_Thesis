@@ -104,6 +104,9 @@ Ogni Q-learning astratto scrive inoltre un log in
 `results/<esperimento>/logs/abstract_learning/levelN.log`; `log_interval`
 controlla ogni quanti episodi vengono riportati reward medie recenti, frazione
 di episodi con task reward positiva, epsilon, aggiornamenti e tempo trascorso.
+La generazione delle heatmap dei potenziali può essere disabilitata aggiungendo
+`--no-heatmaps` al comando di training o post-processing; i grafici
+reward–epsilon e i log astratti vengono comunque prodotti.
 
 I notebook attivi sono:
 

@@ -758,7 +758,8 @@ def main(args):
     # Heatmaps depend only on the saved task configuration, not on agent training.
     multilevel_mdp = MultiLevelWaypointMDP( regions=regions, ltlf_automaton=automaton, abstraction_config=abstraction_config, gamma=gamma, goal_reward=goal_reward, )
     multilevel_mdp.compute_value_functions(learning_log_dir=os.path.join(log_dir, "abstract_learning"))
-    save_multilevel_heatmaps( multilevel_mdp, filename_prefix="single_epsilon_exp", output_root=os.path.join(image_dir, "heatmaps"), )
+    if not args.no_heatmaps:
+        save_multilevel_heatmaps( multilevel_mdp, filename_prefix="single_epsilon_exp", output_root=os.path.join(image_dir, "heatmaps"), )
     save_abstract_learning_curves(multilevel_mdp, output_root=os.path.join(image_dir, "abstract_learning"), smoothing_window=args.plot_window)
     abstract_mdp = multilevel_mdp.primary_mdp
 
@@ -845,5 +846,6 @@ if __name__ == "__main__":
     parser.add_argument( "--bellman-alpha", type=float, default=0.1, help="Alpha used by --stochastic-bellman-update (default: 0.1).", )
     parser.add_argument( "--gamma-shaping", type=_discount_factor, default=1.0, help="Discount used in Phi shaping (default: 1.0).", )
     parser.add_argument("--no-shaping", action="store_true")
+    parser.add_argument("--no-heatmaps", action="store_true", help="Skip abstract-potential heatmap generation.")
     parser.add_argument("--post-process", action="store_true")
     main(parser.parse_args())
