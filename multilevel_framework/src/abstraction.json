@@ -1,9 +1,19 @@
 {
-    "levels": [
-        {
-            "name": "level1",
-            "grid_w": 12,
-            "grid_h": 12
-        }
-    ]
+  "levels": [
+    {
+      "name": "level1",
+      "grid_w": 360,
+      "grid_h": 360,
+      "algorithm": "learning",
+      "learning": {
+        "episodes": 1000000,
+        "max_steps": 400,
+        "alpha": 0.1,
+        "epsilon_start": 1.0,
+        "epsilon_min": 0.05,
+        "epsilon_decay": 0.999995,
+        "log_interval": 10000
+      }
+    }
+  ]
 }
