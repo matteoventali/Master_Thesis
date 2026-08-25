@@ -9,8 +9,60 @@ from __future__ import annotations
 
 import json
 import math
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
+
+
+@dataclass(frozen=True)
+class LearningConfig:
+    """Tabular Q-learning parameters for one abstract level."""
+
+    episodes: int = 10_000
+    max_steps: int = 100
+    alpha: float = 0.1
+    epsilon_start: float = 1.0
+    epsilon_min: float = 0.05
+    epsilon_decay: float = 0.999
+    seed: int = 0
+
+    def __post_init__(self):
+        for name in ("episodes", "max_steps"):
+            value = getattr(self, name)
+            if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
+                raise ValueError(f"learning.{name} must be a positive integer")
+        numeric_fields = ("alpha", "epsilon_start", "epsilon_min", "epsilon_decay")
+        for name in numeric_fields:
+            value = getattr(self, name)
+            if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
+                raise ValueError(f"learning.{name} must be a finite number")
+        if not 0.0 < self.alpha <= 1.0:
+            raise ValueError("learning.alpha must be in the interval (0, 1]")
+        if not 0.0 <= self.epsilon_min <= self.epsilon_start <= 1.0:
+            raise ValueError("learning epsilon values must satisfy 0 <= epsilon_min <= epsilon_start <= 1")
+        if not 0.0 < self.epsilon_decay <= 1.0:
+            raise ValueError("learning.epsilon_decay must be in the interval (0, 1]")
+        if isinstance(self.seed, bool) or not isinstance(self.seed, int):
+            raise ValueError("learning.seed must be an integer")
+
+    @classmethod
+    def from_dict(cls, data, level_name):
+        if data is None:
+            return cls()
+        if not isinstance(data, dict):
+            raise ValueError(f"{level_name}.learning must be a JSON object")
+        allowed = {
+            "episodes",
+            "max_steps",
+            "alpha",
+            "epsilon_start",
+            "epsilon_min",
+            "epsilon_decay",
+            "seed",
+        }
+        unknown = sorted(set(data) - allowed)
+        if unknown:
+            raise ValueError(f"{level_name}.learning contains unknown fields: {unknown}")
+        return cls(**data)
 
 
 @dataclass(frozen=True)
@@ -20,6 +72,7 @@ class GridLevel:
     width: int
     height: int
     name: str
+    learning: LearningConfig = field(default_factory=LearningConfig)
 
     def __post_init__(self):
         if isinstance(self.width, bool) or not isinstance(self.width, int) or self.width <= 0:
@@ -58,6 +111,12 @@ class AbstractionConfig:
         """Return level 1, whose coordinates define the automaton semantics."""
         return self.levels[0]
 
+    def algorithm_for_index(self, index):
+        """Return VI for the top level and learning for every lower level."""
+        if not 0 <= index < len(self.levels):
+            raise IndexError("Abstraction level index out of range")
+        return "vi" if index == len(self.levels) - 1 else "learning"
+
     @classmethod
     def from_dict(cls, data):
         if not isinstance(data, dict):
@@ -74,10 +133,13 @@ class AbstractionConfig:
             width = raw_level.get("grid_w", raw_level.get("width"))
             height = raw_level.get("grid_h", raw_level.get("height"))
             if width is None or height is None:
-                raise ValueError(
-                    f"{name} must define grid_w/grid_h (or width/height)"
-                )
-            levels.append(GridLevel(width=width, height=height, name=name))
+                raise ValueError(f"{name} must define grid_w/grid_h (or width/height)")
+            if "algorithm" in raw_level or "solver" in raw_level:
+                raise ValueError(f"{name} must not define algorithm/solver: the top level always uses VI and every lower level uses learning")
+            if index == len(raw_levels) and "learning" in raw_level:
+                raise ValueError(f"{name} is the top level and must not define learning parameters because it always uses VI")
+            learning = LearningConfig.from_dict(raw_level.get("learning"), name)
+            levels.append(GridLevel(width=width, height=height, name=name, learning=learning))
         return cls(tuple(levels))
 
     @classmethod
@@ -109,19 +171,11 @@ def _validate_cell(cell, width, height, label="source"):
     if isinstance(y, bool) or not isinstance(y, int):
         raise ValueError("Grid y-coordinate must be an integer")
     if not 0 <= x < width or not 0 <= y < height:
-        raise ValueError(
-            f"Cell ({x}, {y}) is outside the {label} grid {width}x{height}"
-        )
+        raise ValueError(f"Cell ({x}, {y}) is outside the {label} grid {width}x{height}")
     return x, y
 
 
-def map_cell(
-    cell,
-    source_width,
-    source_height,
-    target_width,
-    target_height,
-):
+def map_cell(cell, source_width, source_height, target_width, target_height):
     """Map one cell centre between arbitrary rectangular grids.
 
     The same function is used in either direction by swapping source and target
@@ -131,44 +185,20 @@ def map_cell(
     _validate_dimensions(source_width, source_height, "Source")
     _validate_dimensions(target_width, target_height, "Target")
     x, y = _validate_cell(cell, source_width, source_height)
-    target_x = min(
-        int(((x + 0.5) / source_width) * target_width),
-        target_width - 1,
-    )
-    target_y = min(
-        int(((y + 0.5) / source_height) * target_height),
-        target_height - 1,
-    )
+    target_x = min(int(((x + 0.5) / source_width) * target_width), target_width - 1)
+    target_y = min(int(((y + 0.5) / source_height) * target_height), target_height - 1)
     return target_x, target_y
 
 
-def map_state(
-    state,
-    source_width,
-    source_height,
-    target_width,
-    target_height,
-):
+def map_state(state, source_width, source_height, target_width, target_height):
     """Map the spatial part of ``(x, y, q)`` while preserving DFA state ``q``."""
     if not isinstance(state, (tuple, list)) or len(state) != 3:
         raise ValueError("An abstract state must be (x, y, q)")
-    x, y = map_cell(
-        state[:2],
-        source_width,
-        source_height,
-        target_width,
-        target_height,
-    )
+    x, y = map_cell(state[:2], source_width, source_height, target_width, target_height)
     return x, y, state[2]
 
 
-def overlapping_cells(
-    cell,
-    source_width,
-    source_height,
-    target_width,
-    target_height,
-):
+def overlapping_cells(cell, source_width, source_height, target_width, target_height):
     """Return every destination cell with positive area overlap.
 
     This is the set-valued counterpart of :func:`map_cell`, useful for exact
@@ -189,21 +219,9 @@ def overlapping_cells(
     ]
 
 
-def map_waypoints(
-    waypoints,
-    source_width,
-    source_height,
-    target_width,
-    target_height,
-):
+def map_waypoints(waypoints, source_width, source_height, target_width, target_height):
     """Map a proposition-to-cell dictionary between arbitrary grids."""
     return {
-        name: map_cell(
-            tuple(coordinates),
-            source_width,
-            source_height,
-            target_width,
-            target_height,
-        )
+        name: map_cell(tuple(coordinates), source_width, source_height, target_width, target_height)
         for name, coordinates in waypoints.items()
     }

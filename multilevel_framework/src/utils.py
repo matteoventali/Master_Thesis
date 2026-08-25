@@ -170,11 +170,20 @@ def save_sequential_heatmaps( abstract_mdp, filename_prefix="v_star", output_dir
                 matrix[y, x] = value
                 
         plt.figure(figsize=(6.4, 5.4), constrained_layout=True)
-        # Let matplotlib infer an independent color scale for this DFA state.
-        # This exposes the direction of each local gradient instead of
-        # compressing it against values from other states or levels.
-        im = plt.imshow(matrix, cmap='viridis', origin='lower')
-        finite_values = matrix[np.isfinite(matrix)]
+        # Use the same one-decimal precision for colors and annotations, so
+        # invisible floating-point residuals cannot span the whole colormap.
+        color_matrix = np.round(matrix, decimals=1)
+        finite_values = color_matrix[np.isfinite(color_matrix)]
+        if len(finite_values) > 0 and np.all(finite_values == finite_values[0]):
+            constant_value = float(finite_values[0])
+            if constant_value > 0.0:
+                im = plt.imshow(color_matrix, cmap='viridis', origin='lower', vmin=0.0, vmax=constant_value)
+            elif constant_value < 0.0:
+                im = plt.imshow(color_matrix, cmap='viridis', origin='lower', vmin=constant_value, vmax=0.0)
+            else:
+                im = plt.imshow(color_matrix, cmap='viridis', origin='lower', vmin=0.0, vmax=1.0)
+        else:
+            im = plt.imshow(color_matrix, cmap='viridis', origin='lower')
         current_vmin = finite_values.min() if len(finite_values) > 0 else 0.0
         current_vmax = finite_values.max() if len(finite_values) > 0 else 0.0
         color_midpoint = (current_vmin + current_vmax) / 2.0
@@ -183,7 +192,7 @@ def save_sequential_heatmaps( abstract_mdp, filename_prefix="v_star", output_dir
                 val = matrix[y, x]
                 if np.isnan(val):
                     continue
-                text_color = 'white' if val < color_midpoint else 'black'
+                text_color = 'white' if color_matrix[y, x] < color_midpoint else 'black'
                 next_q = canonical_q(x, y, current_q)
                 value_y = y + 0.13 if next_q != current_q else y
                 plt.text( x, value_y, f"{val:.1f}", ha='center', va='center', color=text_color, fontsize=7, )
@@ -216,6 +225,49 @@ def save_multilevel_heatmaps( multilevel_mdp, filename_prefix="v_star", output_r
         save_sequential_heatmaps( abstract_mdp, filename_prefix=filename_prefix, output_dir=level_directory, )
         generated_directories.append(level_directory)
     return generated_directories
+
+
+def save_abstract_learning_curves(multilevel_mdp, output_root=None, smoothing_window=100):
+    """Save the reward and epsilon curve for every Q-learned abstraction."""
+    if smoothing_window <= 0:
+        raise ValueError("smoothing_window must be greater than zero")
+    output_root = output_root or os.path.join("img", "abstract_learning")
+    generated_files = []
+    for level_number, abstract_mdp in enumerate(multilevel_mdp.levels, start=1):
+        learning_history = abstract_mdp.learning_history
+        if learning_history is None:
+            continue
+        level_directory = os.path.join(output_root, f"level{level_number}")
+        os.makedirs(level_directory, exist_ok=True)
+        for obsolete_name in ("convergence.png", "convergence_data.npz"):
+            obsolete_path = os.path.join(level_directory, obsolete_name)
+            if os.path.isfile(obsolete_path):
+                os.remove(obsolete_path)
+        data_path = os.path.join(level_directory, "reward_epsilon_data.npz")
+        np.savez_compressed(data_path, **{key: np.asarray(values, dtype=np.float64) for key, values in learning_history.items()})
+
+        episodes = np.asarray(learning_history["episodes"], dtype=np.float64)
+
+        reward_figure, reward_axis = plt.subplots(figsize=(7.2, 4.4), constrained_layout=True)
+        epsilon_axis = reward_axis.twinx()
+        reward_axis.plot(episodes, _trailing_mean(learning_history["biased_episode_reward"], smoothing_window), color=LEARNING_REWARD_COLOR, linewidth=1.7, label="Learning reward (task + shaping)")
+        reward_axis.plot(episodes, _trailing_mean(learning_history["unbiased_episode_reward"], smoothing_window), color=TASK_REWARD_COLOR, linewidth=1.6, label="Task reward")
+        epsilon_axis.plot(episodes, learning_history["epsilon"], color=EPSILON_COLOR, linestyle="--", linewidth=1.4, label="Epsilon")
+        reward_axis.set_xlabel("#Episode")
+        reward_axis.set_ylabel("Episode reward")
+        epsilon_axis.set_ylabel("Epsilon")
+        epsilon_axis.set_ylim(0.0, 1.0)
+        epsilon_axis.grid(False)
+        _style_paper_axis(reward_axis)
+        reward_handles, reward_labels = reward_axis.get_legend_handles_labels()
+        epsilon_handles, epsilon_labels = epsilon_axis.get_legend_handles_labels()
+        _place_legend_above(reward_figure, reward_handles + epsilon_handles, reward_labels + epsilon_labels, max_columns=3)
+        reward_path = os.path.join(level_directory, "reward_epsilon.png")
+        reward_figure.savefig(reward_path, dpi=300, bbox_inches="tight")
+        plt.close(reward_figure)
+        generated_files.extend([reward_path, data_path])
+        print(f" -> Abstract reward/epsilon curve saved to: {reward_path}")
+    return generated_files
 
 # ==============================
 # Training diagnostics and learning curves

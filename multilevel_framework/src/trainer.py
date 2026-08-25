@@ -31,6 +31,7 @@ from utils import (
     plot_shaping_reward_breakdown,
     plot_tabular_training_diagnostics,
     plot_training_variance,
+    save_abstract_learning_curves,
     save_multilevel_heatmaps,
 )
 
@@ -745,7 +746,7 @@ def main(args):
     # Build the DFA once for both training and post-processing.
     automaton = LTLfAutomaton(formula)
     validation_report = validate_automaton( automaton, regions, )
-    level_summary = ", ".join( f"{index}:{level.name}={level.width}x{level.height}" for index, level in enumerate(abstraction_config.levels, start=1) )
+    level_summary = ", ".join(f"{index}:{level.name}={level.width}x{level.height}[{abstraction_config.algorithm_for_index(index - 1)}]" for index, level in enumerate(abstraction_config.levels, start=1))
     bellman_summary = "not applicable" if args.learner == "tabular" else str(args.stochastic_bellman_update)
     if args.learner == "ddqn" and args.stochastic_bellman_update:
         bellman_summary += f" (alpha={args.bellman_alpha})"
@@ -758,6 +759,7 @@ def main(args):
     multilevel_mdp = MultiLevelWaypointMDP( regions=regions, ltlf_automaton=automaton, abstraction_config=abstraction_config, gamma=gamma, goal_reward=goal_reward, )
     multilevel_mdp.compute_value_functions()
     save_multilevel_heatmaps( multilevel_mdp, filename_prefix="single_epsilon_exp", output_root=os.path.join(image_dir, "heatmaps"), )
+    save_abstract_learning_curves(multilevel_mdp, output_root=os.path.join(image_dir, "abstract_learning"), smoothing_window=args.plot_window)
     abstract_mdp = multilevel_mdp.primary_mdp
 
     if not args.post_process:

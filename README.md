@@ -62,6 +62,42 @@ Training e valutazione verificano l'appartenenza sullo stato continuo. Per il
 planning astratto, ogni regione etichetta tutte le celle che interseca; ogni
 livello della gerarchia viene rasterizzato direttamente dalla regione continua.
 
+Nel `multilevel_framework`, il metodo di soluzione deriva automaticamente
+dalla posizione nella gerarchia. Gli iperparametri del learning dei livelli
+non-top possono essere configurati nel file di astrazione:
+
+```json
+{
+  "name": "level1",
+  "grid_w": 12,
+  "grid_h": 12,
+  "learning": {
+    "episodes": 10000,
+    "max_steps": 100,
+    "alpha": 0.1,
+    "epsilon_start": 1.0,
+    "epsilon_min": 0.05,
+    "epsilon_decay": 0.999,
+    "seed": 0
+  }
+}
+```
+
+I livelli sono elencati dal più fine al più grossolano e risolti in ordine
+inverso. Il livello più grossolano usa sempre VI senza shaping; tutti i livelli
+sottostanti usano learning. Con un solo livello viene quindi eseguita soltanto
+VI. Il learning astratto usa una Q-table biased per l'esplorazione con PBRS e
+una Q-table unbiased per il valore trasferito al livello inferiore. Se la
+sezione `learning` manca vengono usati i valori predefiniti mostrati sopra.
+Negli stati DFA accettanti l'unica azione disponibile è `done`: assegna il
+`goal_reward` e termina senza bootstrap. Il valore del goal viene quindi
+appreso o calcolato dalla VI, senza inizializzare manualmente le Q-table.
+
+Per ogni livello appreso vengono salvati `reward_epsilon.png` e i relativi dati
+in `reward_epsilon_data.npz`, sotto
+`results/<esperimento>/img/abstract_learning/levelN/`. Il grafico mostra gli
+andamenti delle reward biased e unbiased insieme a epsilon.
+
 I notebook attivi sono:
 
 - `notebook/notebook_multilevel_framework.ipynb`;
