@@ -102,8 +102,11 @@ in `reward_epsilon_data.npz`, sotto
 andamenti delle reward biased e unbiased insieme a epsilon.
 Ogni Q-learning astratto scrive inoltre un log in
 `results/<esperimento>/logs/abstract_learning/levelN.log`; `log_interval`
-controlla ogni quanti episodi vengono riportati reward medie recenti, frazione
-di episodi con task reward positiva, epsilon, aggiornamenti e tempo trascorso.
+controlla ogni quanti episodi vengono riportati reward medie recenti, success
+rate sui restart non-goal, epsilon, aggiornamenti e tempo trascorso.
+I restart che partono già in uno stato DFA accettante continuano ad addestrare
+l'azione `done`, ma sono esclusi da success rate e curve reward per evitare il
+plateau artificiale dovuto al reward immediato.
 La generazione delle heatmap dei potenziali può essere disabilitata aggiungendo
 `--no-heatmaps` al comando di training o post-processing; i grafici
 reward–epsilon e i log astratti vengono comunque prodotti.

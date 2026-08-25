@@ -1,3 +1,4 @@
+import math
 import os
 import random
 import re
@@ -327,7 +328,7 @@ class LTLfWaypointMDP:
 
         epsilon = config.epsilon_start
         updates = 0
-        learning_history = {"episodes": [], "epsilon": [], "unbiased_episode_reward": []}
+        learning_history = {"episodes": [], "epsilon": [], "unbiased_episode_reward": [], "successes": [], "episode_lengths": [], "dfa_transitions": [], "initial_acceptances": []}
         if uses_shaping:
             learning_history["biased_episode_reward"] = []
 
@@ -345,6 +346,13 @@ class LTLfWaypointMDP:
                 log_handle.write(message + "\n")
                 log_handle.flush()
 
+        def finite_mean(values):
+            finite_values = [value for value in values if math.isfinite(value)]
+            return sum(finite_values) / len(finite_values) if finite_values else float("nan")
+
+        def format_percentage(value):
+            return "n/a" if not math.isfinite(value) else f"{value:.1%}"
+
         start_time = time.monotonic()
         log(f"Q-learning [{self.level_name}: {self.width}x{self.height}, {learning_description}, episodes={config.episodes}]...")
         log(f"Configuration: max_steps={config.max_steps}, alpha={config.alpha}, epsilon_start={config.epsilon_start}, epsilon_min={config.epsilon_min}, epsilon_decay={config.epsilon_decay}, seed={config.seed}, states={len(self.states)}")
@@ -353,8 +361,12 @@ class LTLfWaypointMDP:
             # Random restarts cover the full product space. Accepting states
             # must also be sampled so their only action, done, is learned.
             state = rng.choice(restart_states)
+            started_accepting = self.automaton.is_goal_reached(state[2])
             biased_episode_reward = 0.0
             unbiased_episode_reward = 0.0
+            episode_steps = 0
+            episode_dfa_transitions = 0
+            episode_succeeded = False
             for step in range(config.max_steps + 1):
                 if step == config.max_steps and not self.automaton.is_goal_reached(state[2]):
                     break
@@ -368,6 +380,9 @@ class LTLfWaypointMDP:
                     action = rng.choice(candidates)
 
                 next_state, reward, terminal = self.get_transitions(state, action)
+                episode_steps += 1
+                if next_state[2] != state[2]:
+                    episode_dfa_transitions += 1
                 shaping_reward = 0.0 if terminal else self.get_inter_level_shaping_reward(state, next_state)
                 biased_episode_reward += reward + shaping_reward
                 unbiased_episode_reward += reward
@@ -386,26 +401,33 @@ class LTLfWaypointMDP:
                 updates += 1
                 state = next_state
                 if terminal:
+                    episode_succeeded = True
                     break
 
             learning_history["episodes"].append(episode)
-            learning_history["epsilon"].append(epsilon)
-            learning_history["unbiased_episode_reward"].append(unbiased_episode_reward)
+            metric_unbiased_reward = float("nan") if started_accepting else unbiased_episode_reward
+            learning_history["unbiased_episode_reward"].append(metric_unbiased_reward)
+            learning_history["successes"].append(float("nan") if started_accepting else float(episode_succeeded))
+            learning_history["episode_lengths"].append(episode_steps)
+            learning_history["dfa_transitions"].append(episode_dfa_transitions)
+            learning_history["initial_acceptances"].append(int(started_accepting))
             if uses_shaping:
-                learning_history["biased_episode_reward"].append(biased_episode_reward)
-            if episode == 1 or episode % config.log_interval == 0 or episode == config.episodes:
-                window_start = max(0, episode - config.log_interval)
-                recent_unbiased_rewards = learning_history["unbiased_episode_reward"][window_start:episode]
-                mean_unbiased_reward = sum(recent_unbiased_rewards) / len(recent_unbiased_rewards)
-                positive_reward_rate = sum(reward > 0.0 for reward in recent_unbiased_rewards) / len(recent_unbiased_rewards)
-                reward_summary = f"task_reward_mean={mean_unbiased_reward:.3f}, positive_task_reward_rate={positive_reward_rate:.1%}"
-                if uses_shaping:
-                    recent_biased_rewards = learning_history["biased_episode_reward"][window_start:episode]
-                    mean_biased_reward = sum(recent_biased_rewards) / len(recent_biased_rewards)
-                    reward_summary += f", learning_reward_mean={mean_biased_reward:.3f}"
-                elapsed_seconds = time.monotonic() - start_time
-                log(f"Episode {episode}/{config.episodes} | epsilon={epsilon:.6f} | {reward_summary} | updates={updates} | elapsed={elapsed_seconds:.1f}s")
+                learning_history["biased_episode_reward"].append(float("nan") if started_accepting else biased_episode_reward)
             epsilon = max(config.epsilon_min, epsilon * config.epsilon_decay)
+            learning_history["epsilon"].append(epsilon)
+            if episode == 1 or episode % config.log_interval == 0 or episode == config.episodes:
+                window = min(config.log_interval, episode)
+                recent_slice = slice(-window, None)
+                recent_success_rate = finite_mean(learning_history["successes"][recent_slice])
+                cumulative_success_rate = finite_mean(learning_history["successes"])
+                recent_task_reward = finite_mean(learning_history["unbiased_episode_reward"][recent_slice])
+                recent_learning_reward = finite_mean(learning_history["biased_episode_reward"][recent_slice]) if uses_shaping else recent_task_reward
+                recent_shaping_reward = recent_learning_reward - recent_task_reward
+                recent_episode_length = finite_mean(learning_history["episode_lengths"][recent_slice])
+                recent_dfa_transitions = finite_mean(learning_history["dfa_transitions"][recent_slice])
+                cumulative_initial_acceptances = sum(learning_history["initial_acceptances"])
+                elapsed_seconds = time.monotonic() - start_time
+                log("\n" f"[Abstract {self.level_name} | Episode {episode}/{config.episodes} | last {window}]\n" f"success rate (non-goal)     : {format_percentage(recent_success_rate)} (cumulative {format_percentage(cumulative_success_rate)})\n" f"synthetic task reward       : {recent_task_reward:.3f}\n" f"shaping reward              : {recent_shaping_reward:.3f}\n" f"learning reward             : {recent_learning_reward:.3f}\n" f"episode length              : {recent_episode_length:.1f}\n" f"DFA transitions / episode   : {recent_dfa_transitions:.2f}\n" f"epsilon (next episode)      : {epsilon:.5f}\n" f"Q updates cumulative        : {updates}\n" f"accepting-state restarts    : {cumulative_initial_acceptances}\n" f"elapsed                     : {elapsed_seconds:.1f}s")
 
         self.v_star = defaultdict(float, {state: max(q_unbiased[state_index[state]][action_index[action]] for action in self.get_available_actions(state)) for state in self.states})
         self.solution_algorithm = "learning"
