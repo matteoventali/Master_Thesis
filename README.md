@@ -62,15 +62,16 @@ Training e valutazione verificano l'appartenenza sullo stato continuo. Per il
 planning astratto, ogni regione etichetta tutte le celle che interseca; ogni
 livello della gerarchia viene rasterizzato direttamente dalla regione continua.
 
-Nel `multilevel_framework`, il metodo di soluzione deriva automaticamente
-dalla posizione nella gerarchia. Gli iperparametri del learning dei livelli
-non-top possono essere configurati nel file di astrazione:
+Nel `multilevel_framework`, tutti i livelli non-top usano automaticamente il
+dual Q-learning. Sul livello top si può scegliere tra VI e Q-learning classico
+senza shaping. Gli iperparametri si configurano nel file di astrazione:
 
 ```json
 {
   "name": "level1",
   "grid_w": 12,
   "grid_h": 12,
+  "algorithm": "learning",
   "learning": {
     "episodes": 10000,
     "max_steps": 100,
@@ -84,11 +85,12 @@ non-top possono essere configurati nel file di astrazione:
 ```
 
 I livelli sono elencati dal più fine al più grossolano e risolti in ordine
-inverso. Il livello più grossolano usa sempre VI senza shaping; tutti i livelli
-sottostanti usano learning. Con un solo livello viene quindi eseguita soltanto
-VI. Il learning astratto usa una Q-table biased per l'esplorazione con PBRS e
-una Q-table unbiased per il valore trasferito al livello inferiore. Se la
-sezione `learning` manca vengono usati i valori predefiniti mostrati sopra.
+inverso. Tutti i livelli sottostanti al top usano una Q-table biased per
+l'esplorazione con PBRS e una Q-table unbiased per il valore trasferito al
+livello inferiore. Il top usa VI per default; impostando `"algorithm":
+"learning"` usa invece una sola Q-table con la reward originale. Questo vale
+anche per una gerarchia con un solo livello. Se la sezione `learning` manca
+vengono usati i valori predefiniti mostrati sopra.
 Negli stati DFA accettanti l'unica azione disponibile è `done`: assegna il
 `goal_reward` e termina senza bootstrap. Il valore del goal viene quindi
 appreso o calcolato dalla VI, senza inizializzare manualmente le Q-table.

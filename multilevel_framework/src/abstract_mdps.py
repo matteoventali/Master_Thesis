@@ -272,7 +272,7 @@ class LTLfWaypointMDP:
                 print("".join(row))
     
     def value_iteration(self, theta=0.001, print_policy=True):
-        """Compute the unbiased V* of the unique top abstraction."""
+        """Compute the unbiased V* of a top abstraction selected for VI."""
         if theta <= 0:
             raise ValueError("theta must be greater than zero")
 
@@ -309,27 +309,28 @@ class LTLfWaypointMDP:
     def q_learning(self, config, upper_level_mdp=None, print_policy=True):
         """Learn an unbiased value estimate.
 
-        Two tabular learners consume every sampled transition.  The biased
-        learner receives inter-level PBRS and supplies the epsilon-greedy
-        behaviour policy; the unbiased learner receives the original reward
-        and supplies the value function exported to the next lower level.
+        A top level uses classic single-table Q-learning. A lower level uses a
+        biased table for PBRS-guided behaviour and an unbiased table for the
+        value function exported to the next lower level.
         """
-        if upper_level_mdp is None:
-            raise ValueError("Abstract Q-learning requires an already solved upper level")
         self.upper_level_mdp = upper_level_mdp
         self.value_iteration_iterations = 0
+        uses_shaping = upper_level_mdp is not None
         rng = random.Random(config.seed)
         state_index = {state: index for index, state in enumerate(self.states)}
         action_index = {action: index for index, action in enumerate(self.actions)}
-        q_biased = [[0.0 for _ in self.actions] for _ in self.states]
         q_unbiased = [[0.0 for _ in self.actions] for _ in self.states]
+        q_biased = [[0.0 for _ in self.actions] for _ in self.states] if uses_shaping else q_unbiased
         restart_states = self.states
 
         epsilon = config.epsilon_start
         updates = 0
-        learning_history = {"episodes": [], "epsilon": [], "biased_episode_reward": [], "unbiased_episode_reward": []}
+        learning_history = {"episodes": [], "epsilon": [], "unbiased_episode_reward": []}
+        if uses_shaping:
+            learning_history["biased_episode_reward"] = []
 
-        print(f"Q-learning [{self.level_name}: {self.width}x{self.height}, dual-table inter-level PBRS, episodes={config.episodes}]...")
+        learning_description = "dual-table inter-level PBRS" if uses_shaping else "classic single-table unbiased"
+        print(f"Q-learning [{self.level_name}: {self.width}x{self.height}, {learning_description}, episodes={config.episodes}]...")
 
         for episode in range(1, config.episodes + 1):
             # Random restarts cover the full product space. Accepting states
@@ -358,12 +359,13 @@ class LTLfWaypointMDP:
                 action_i = action_index[action]
 
                 next_actions = self.get_available_actions(next_state)
-                next_biased_value = max(q_biased[next_i][action_index[candidate]] for candidate in next_actions)
                 next_unbiased_value = max(q_unbiased[next_i][action_index[candidate]] for candidate in next_actions)
-                biased_target = reward if terminal else reward + shaping_reward + self.gamma * next_biased_value
                 unbiased_target = reward if terminal else reward + self.gamma * next_unbiased_value
-                q_biased[state_i][action_i] += config.alpha * (biased_target - q_biased[state_i][action_i])
                 q_unbiased[state_i][action_i] += config.alpha * (unbiased_target - q_unbiased[state_i][action_i])
+                if uses_shaping:
+                    next_biased_value = max(q_biased[next_i][action_index[candidate]] for candidate in next_actions)
+                    biased_target = reward if terminal else reward + shaping_reward + self.gamma * next_biased_value
+                    q_biased[state_i][action_i] += config.alpha * (biased_target - q_biased[state_i][action_i])
                 updates += 1
                 state = next_state
                 if terminal:
@@ -371,8 +373,9 @@ class LTLfWaypointMDP:
 
             learning_history["episodes"].append(episode)
             learning_history["epsilon"].append(epsilon)
-            learning_history["biased_episode_reward"].append(biased_episode_reward)
             learning_history["unbiased_episode_reward"].append(unbiased_episode_reward)
+            if uses_shaping:
+                learning_history["biased_episode_reward"].append(biased_episode_reward)
             epsilon = max(config.epsilon_min, epsilon * config.epsilon_decay)
 
         self.v_star = defaultdict(float, {state: max(q_unbiased[state_index[state]][action_index[action]] for action in self.get_available_actions(state)) for state in self.states})
@@ -390,8 +393,9 @@ class MultiLevelWaypointMDP:
 
     Waypoints and automaton interaction are defined on level 1.  Waypoint
     coordinates for every other grid are projections of those coordinates.
-    The coarsest level is solved by value iteration. Every lower abstraction
-    is learned with biased exploration and exports its unbiased value estimate.
+    The coarsest level can use VI or classic Q-learning. Every lower
+    abstraction is learned with biased exploration and exports its unbiased
+    value estimate.
     """
 
     def __init__(self, regions, ltlf_automaton, abstraction_config, gamma=0.99, goal_reward=10000):
@@ -426,7 +430,7 @@ class MultiLevelWaypointMDP:
         return self.levels[0]
 
     def compute_value_functions(self, theta=0.001, print_policies=False):
-        """Solve the top with VI, then learn every lower abstraction."""
+        """Solve the configurable top, then learn every lower abstraction."""
         following_mdp = None
         for index in reversed(range(len(self.levels))):
             level_config = self.abstraction_config.levels[index]

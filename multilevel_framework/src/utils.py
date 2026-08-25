@@ -250,8 +250,11 @@ def save_abstract_learning_curves(multilevel_mdp, output_root=None, smoothing_wi
 
         reward_figure, reward_axis = plt.subplots(figsize=(7.2, 4.4), constrained_layout=True)
         epsilon_axis = reward_axis.twinx()
-        reward_axis.plot(episodes, _trailing_mean(learning_history["biased_episode_reward"], smoothing_window), color=LEARNING_REWARD_COLOR, linewidth=1.7, label="Learning reward (task + shaping)")
-        reward_axis.plot(episodes, _trailing_mean(learning_history["unbiased_episode_reward"], smoothing_window), color=TASK_REWARD_COLOR, linewidth=1.6, label="Task reward")
+        if abstract_mdp.upper_level_mdp is not None:
+            reward_axis.plot(episodes, _trailing_mean(learning_history["biased_episode_reward"], smoothing_window), color=LEARNING_REWARD_COLOR, linewidth=1.7, label="Learning reward (task + shaping)")
+            reward_axis.plot(episodes, _trailing_mean(learning_history["unbiased_episode_reward"], smoothing_window), color=TASK_REWARD_COLOR, linewidth=1.6, label="Task reward")
+        else:
+            reward_axis.plot(episodes, _trailing_mean(learning_history["unbiased_episode_reward"], smoothing_window), color=TASK_REWARD_COLOR, linewidth=1.7, label="Task reward")
         epsilon_axis.plot(episodes, learning_history["epsilon"], color=EPSILON_COLOR, linestyle="--", linewidth=1.4, label="Epsilon")
         reward_axis.set_xlabel("#Episode")
         reward_axis.set_ylabel("Episode reward")

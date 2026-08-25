@@ -72,6 +72,7 @@ class GridLevel:
     width: int
     height: int
     name: str
+    algorithm: str
     learning: LearningConfig = field(default_factory=LearningConfig)
 
     def __post_init__(self):
@@ -81,6 +82,8 @@ class GridLevel:
             raise ValueError(f"{self.name}.grid_h must be a positive integer")
         if not isinstance(self.name, str) or not self.name.strip():
             raise ValueError("Every abstraction level must have a non-empty name")
+        if self.algorithm not in ("vi", "learning"):
+            raise ValueError(f"{self.name}.algorithm must be either 'vi' or 'learning'")
 
     @property
     def shape(self):
@@ -105,6 +108,8 @@ class AbstractionConfig:
         names = [level.name for level in self.levels]
         if len(names) != len(set(names)):
             raise ValueError("Abstraction level names must be unique")
+        if any(level.algorithm != "learning" for level in self.levels[:-1]):
+            raise ValueError("Every non-top abstraction level must use learning")
 
     @property
     def primary(self):
@@ -112,10 +117,10 @@ class AbstractionConfig:
         return self.levels[0]
 
     def algorithm_for_index(self, index):
-        """Return VI for the top level and learning for every lower level."""
+        """Return the validated algorithm assigned to one hierarchy level."""
         if not 0 <= index < len(self.levels):
             raise IndexError("Abstraction level index out of range")
-        return "vi" if index == len(self.levels) - 1 else "learning"
+        return self.levels[index].algorithm
 
     @classmethod
     def from_dict(cls, data):
@@ -134,12 +139,18 @@ class AbstractionConfig:
             height = raw_level.get("grid_h", raw_level.get("height"))
             if width is None or height is None:
                 raise ValueError(f"{name} must define grid_w/grid_h (or width/height)")
-            if "algorithm" in raw_level or "solver" in raw_level:
-                raise ValueError(f"{name} must not define algorithm/solver: the top level always uses VI and every lower level uses learning")
-            if index == len(raw_levels) and "learning" in raw_level:
-                raise ValueError(f"{name} is the top level and must not define learning parameters because it always uses VI")
+            is_top_level = index == len(raw_levels)
+            if "solver" in raw_level:
+                raise ValueError(f"{name} must use 'algorithm', not 'solver'")
+            if not is_top_level and "algorithm" in raw_level:
+                raise ValueError(f"{name} is not the top level: lower levels always use learning and must not define algorithm")
+            algorithm = raw_level.get("algorithm", "vi") if is_top_level else "learning"
+            if algorithm not in ("vi", "learning"):
+                raise ValueError(f"{name}.algorithm must be either 'vi' or 'learning'")
+            if is_top_level and algorithm == "vi" and "learning" in raw_level:
+                raise ValueError(f"{name} uses VI and must not define learning parameters")
             learning = LearningConfig.from_dict(raw_level.get("learning"), name)
-            levels.append(GridLevel(width=width, height=height, name=name, learning=learning))
+            levels.append(GridLevel(width=width, height=height, name=name, algorithm=algorithm, learning=learning))
         return cls(tuple(levels))
 
     @classmethod
