@@ -79,7 +79,8 @@ senza shaping. Gli iperparametri si configurano nel file di astrazione:
     "epsilon_start": 1.0,
     "epsilon_min": 0.05,
     "epsilon_decay": 0.999,
-    "seed": 0
+    "seed": 0,
+    "log_interval": 1000
   }
 }
 ```
@@ -99,6 +100,10 @@ Per ogni livello appreso vengono salvati `reward_epsilon.png` e i relativi dati
 in `reward_epsilon_data.npz`, sotto
 `results/<esperimento>/img/abstract_learning/levelN/`. Il grafico mostra gli
 andamenti delle reward biased e unbiased insieme a epsilon.
+Ogni Q-learning astratto scrive inoltre un log in
+`results/<esperimento>/logs/abstract_learning/levelN.log`; `log_interval`
+controlla ogni quanti episodi vengono riportati reward medie recenti, frazione
+di episodi con task reward positiva, epsilon, aggiornamenti e tempo trascorso.
 
 I notebook attivi sono:
 

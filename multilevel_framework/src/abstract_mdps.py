@@ -1,5 +1,7 @@
+import os
 import random
 import re
+import time
 import warnings
 from collections import defaultdict
 
@@ -306,7 +308,7 @@ class LTLfWaypointMDP:
             self.print_policy()
         return self.v_star
 
-    def q_learning(self, config, upper_level_mdp=None, print_policy=True):
+    def q_learning(self, config, upper_level_mdp=None, print_policy=True, log_file=None):
         """Learn an unbiased value estimate.
 
         A top level uses classic single-table Q-learning. A lower level uses a
@@ -330,7 +332,22 @@ class LTLfWaypointMDP:
             learning_history["biased_episode_reward"] = []
 
         learning_description = "dual-table inter-level PBRS" if uses_shaping else "classic single-table unbiased"
-        print(f"Q-learning [{self.level_name}: {self.width}x{self.height}, {learning_description}, episodes={config.episodes}]...")
+        log_handle = None
+        if log_file is not None:
+            log_directory = os.path.dirname(os.fspath(log_file))
+            if log_directory:
+                os.makedirs(log_directory, exist_ok=True)
+            log_handle = open(log_file, "w", encoding="utf-8")
+
+        def log(message):
+            print(message)
+            if log_handle is not None:
+                log_handle.write(message + "\n")
+                log_handle.flush()
+
+        start_time = time.monotonic()
+        log(f"Q-learning [{self.level_name}: {self.width}x{self.height}, {learning_description}, episodes={config.episodes}]...")
+        log(f"Configuration: max_steps={config.max_steps}, alpha={config.alpha}, epsilon_start={config.epsilon_start}, epsilon_min={config.epsilon_min}, epsilon_decay={config.epsilon_decay}, seed={config.seed}, states={len(self.states)}")
 
         for episode in range(1, config.episodes + 1):
             # Random restarts cover the full product space. Accepting states
@@ -376,6 +393,18 @@ class LTLfWaypointMDP:
             learning_history["unbiased_episode_reward"].append(unbiased_episode_reward)
             if uses_shaping:
                 learning_history["biased_episode_reward"].append(biased_episode_reward)
+            if episode == 1 or episode % config.log_interval == 0 or episode == config.episodes:
+                window_start = max(0, episode - config.log_interval)
+                recent_unbiased_rewards = learning_history["unbiased_episode_reward"][window_start:episode]
+                mean_unbiased_reward = sum(recent_unbiased_rewards) / len(recent_unbiased_rewards)
+                positive_reward_rate = sum(reward > 0.0 for reward in recent_unbiased_rewards) / len(recent_unbiased_rewards)
+                reward_summary = f"task_reward_mean={mean_unbiased_reward:.3f}, positive_task_reward_rate={positive_reward_rate:.1%}"
+                if uses_shaping:
+                    recent_biased_rewards = learning_history["biased_episode_reward"][window_start:episode]
+                    mean_biased_reward = sum(recent_biased_rewards) / len(recent_biased_rewards)
+                    reward_summary += f", learning_reward_mean={mean_biased_reward:.3f}"
+                elapsed_seconds = time.monotonic() - start_time
+                log(f"Episode {episode}/{config.episodes} | epsilon={epsilon:.6f} | {reward_summary} | updates={updates} | elapsed={elapsed_seconds:.1f}s")
             epsilon = max(config.epsilon_min, epsilon * config.epsilon_decay)
 
         self.v_star = defaultdict(float, {state: max(q_unbiased[state_index[state]][action_index[action]] for action in self.get_available_actions(state)) for state in self.states})
@@ -383,6 +412,9 @@ class LTLfWaypointMDP:
         self.learning_episodes = config.episodes
         self.learning_updates = updates
         self.learning_history = learning_history
+        log(f"Completed [{self.level_name}] | episodes={config.episodes} | updates={updates} | elapsed={time.monotonic() - start_time:.1f}s")
+        if log_handle is not None:
+            log_handle.close()
         if print_policy:
             self.print_policy()
         return self.v_star
@@ -429,7 +461,7 @@ class MultiLevelWaypointMDP:
         """Return level 1, used unchanged by automaton handling and training."""
         return self.levels[0]
 
-    def compute_value_functions(self, theta=0.001, print_policies=False):
+    def compute_value_functions(self, theta=0.001, print_policies=False, learning_log_dir=None):
         """Solve the configurable top, then learn every lower abstraction."""
         following_mdp = None
         for index in reversed(range(len(self.levels))):
@@ -438,6 +470,7 @@ class MultiLevelWaypointMDP:
             if self.abstraction_config.algorithm_for_index(index) == "vi":
                 current_mdp.value_iteration(theta=theta, print_policy=print_policies)
             else:
-                current_mdp.q_learning(config=level_config.learning, upper_level_mdp=following_mdp, print_policy=print_policies)
+                log_file = os.path.join(learning_log_dir, f"level{index + 1}.log") if learning_log_dir is not None else None
+                current_mdp.q_learning(config=level_config.learning, upper_level_mdp=following_mdp, print_policy=print_policies, log_file=log_file)
             following_mdp = current_mdp
         return [level.v_star for level in self.levels]

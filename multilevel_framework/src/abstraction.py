@@ -24,9 +24,10 @@ class LearningConfig:
     epsilon_min: float = 0.05
     epsilon_decay: float = 0.999
     seed: int = 0
+    log_interval: int = 1000
 
     def __post_init__(self):
-        for name in ("episodes", "max_steps"):
+        for name in ("episodes", "max_steps", "log_interval"):
             value = getattr(self, name)
             if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
                 raise ValueError(f"learning.{name} must be a positive integer")
@@ -58,6 +59,7 @@ class LearningConfig:
             "epsilon_min",
             "epsilon_decay",
             "seed",
+            "log_interval",
         }
         unknown = sorted(set(data) - allowed)
         if unknown:
