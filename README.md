@@ -111,11 +111,17 @@ rate sui restart non-goal, epsilon, aggiornamenti e tempo trascorso.
 I restart che partono già in uno stato DFA accettante continuano ad addestrare
 l'azione `done`, ma sono esclusi da success rate e curve reward per evitare il
 plateau artificiale dovuto al reward immediato.
-Ogni `eval_interval` episodi viene inoltre eseguita una valutazione greedy sugli
-stessi `eval_episodes` restart non-goal, determinati da `eval_seed`. Nei livelli
-dual il log riporta separatamente success rate biased e unbiased; errore TD e
-numero di coppie positive permettono di monitorare la propagazione della Q
-unbiased anche prima che la policy completi il task.
+Ogni `eval_interval` episodi vengono eseguite due valutazioni greedy sugli
+stessi start determinati da `eval_seed`. La product-state evaluation campiona
+posizioni e stati DFA non accettanti dai quali l'accettazione e ancora
+raggiungibile, riporta i risultati anche per stato DFA iniziale e misura la
+robustezza durante le diverse fasi del task. La full-formula evaluation campiona
+le posizioni ma parte sempre dallo stato iniziale del DFA e misura il
+completamento dell'intera formula. Nei livelli dual il log riporta entrambe le
+valutazioni separatamente per biased e unbiased; le serie aggregate sono
+salvate anche in `reward_epsilon_data.npz`. Errore TD e numero di coppie
+positive permettono di monitorare la propagazione della Q unbiased anche prima
+che la policy completi il task.
 Nei livelli non-top `gamma_shaping` controlla lo shaping ricevuto dal livello
 superiore secondo `gamma_shaping_i * Phi_(i+1)(next) - Phi_(i+1)(state)`. Se
 omesso viene usato il `gamma` dell'MDP. Sul livello top non è ammesso, perché

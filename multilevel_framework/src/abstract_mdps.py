@@ -327,9 +327,25 @@ class LTLfWaypointMDP:
         q_unbiased = [[0.0 for _ in self.actions] for _ in self.states]
         q_biased = [[0.0 for _ in self.actions] for _ in self.states] if uses_shaping else q_unbiased
         restart_states = self.states
-        evaluation_restart_states = [state for state in self.states if not self.automaton.is_goal_reached(state[2])]
+        reverse_dfa_edges = defaultdict(set)
+        for source_q, guarded_destinations in self.automaton.transitions.items():
+            for _, destination_q in guarded_destinations:
+                reverse_dfa_edges[destination_q].add(source_q)
+        acceptance_reachable_q = set(self.automaton.accepting_states)
+        reachability_frontier = list(self.automaton.accepting_states)
+        while reachability_frontier:
+            destination_q = reachability_frontier.pop()
+            for source_q in reverse_dfa_edges[destination_q]:
+                if source_q not in acceptance_reachable_q:
+                    acceptance_reachable_q.add(source_q)
+                    reachability_frontier.append(source_q)
+        recoverable_non_accepting_q = acceptance_reachable_q.difference(self.automaton.accepting_states)
+        evaluation_restart_states = [state for state in self.states if state[2] in recoverable_non_accepting_q]
+        full_formula_restart_states = [(x, y, self.automaton.get_initial_q()) for x in range(self.width) for y in range(self.height)]
         evaluation_rng = random.Random(config.eval_seed)
         evaluation_starts = [evaluation_rng.choice(evaluation_restart_states) for _ in range(config.eval_episodes)] if evaluation_restart_states else []
+        full_formula_rng = random.Random(config.eval_seed + 1)
+        full_formula_evaluation_starts = [full_formula_rng.choice(full_formula_restart_states) for _ in range(config.eval_episodes)] if full_formula_restart_states else []
 
         epsilon = config.epsilon_start
         updates = 0
@@ -342,11 +358,13 @@ class LTLfWaypointMDP:
         biased_td_sum = 0.0
         biased_td_count = 0
         biased_td_max = 0.0
-        learning_history = {"episodes": [], "epsilon": [], "unbiased_episode_reward": [], "successes": [], "episode_lengths": [], "dfa_transitions": [], "initial_acceptances": [], "evaluation_steps": [], "unbiased_eval_success_rates": [], "unbiased_eval_episode_lengths": []}
+        learning_history = {"episodes": [], "epsilon": [], "unbiased_episode_reward": [], "successes": [], "episode_lengths": [], "dfa_transitions": [], "initial_acceptances": [], "evaluation_steps": [], "unbiased_eval_success_rates": [], "unbiased_eval_episode_lengths": [], "unbiased_full_eval_success_rates": [], "unbiased_full_eval_episode_lengths": []}
         if uses_shaping:
             learning_history["biased_episode_reward"] = []
             learning_history["biased_eval_success_rates"] = []
             learning_history["biased_eval_episode_lengths"] = []
+            learning_history["biased_full_eval_success_rates"] = []
+            learning_history["biased_full_eval_episode_lengths"] = []
 
         learning_description = "dual-table inter-level PBRS" if uses_shaping else "classic single-table unbiased"
         log_handle = None
@@ -369,15 +387,18 @@ class LTLfWaypointMDP:
         def format_percentage(value):
             return "n/a" if not math.isfinite(value) else f"{value:.1%}"
 
-        def evaluate_greedy(q_table):
-            if not evaluation_starts:
-                return float("nan"), float("nan"), Counter()
+        def evaluate_greedy(q_table, starts):
+            if not starts:
+                return float("nan"), float("nan"), Counter(), {}
             successes = 0
             total_steps = 0
             transition_counts = Counter()
-            for evaluation_start in evaluation_starts:
+            results_by_initial_q = defaultdict(lambda: {"episodes": 0, "successes": 0, "steps": 0})
+            for evaluation_start in starts:
                 evaluation_state = evaluation_start
                 evaluation_steps = 0
+                initial_q = evaluation_start[2]
+                evaluation_succeeded = False
                 for evaluation_step in range(config.max_steps + 1):
                     if evaluation_step == config.max_steps and not self.automaton.is_goal_reached(evaluation_state[2]):
                         break
@@ -391,13 +412,21 @@ class LTLfWaypointMDP:
                     evaluation_steps += 1
                     if evaluation_terminal:
                         successes += 1
+                        evaluation_succeeded = True
                         break
                 total_steps += evaluation_steps
-            return successes / len(evaluation_starts), total_steps / len(evaluation_starts), transition_counts
+                results_by_initial_q[initial_q]["episodes"] += 1
+                results_by_initial_q[initial_q]["successes"] += int(evaluation_succeeded)
+                results_by_initial_q[initial_q]["steps"] += evaluation_steps
+            return successes / len(starts), total_steps / len(starts), transition_counts, dict(results_by_initial_q)
 
         def format_evaluation_transitions(label, transition_counts):
             transition_lines = "\n".join(f"  {source} -> {target} : {count}" for (source, target), count in sorted(transition_counts.items()))
             return f"DFA transitions {label}       :\n{transition_lines if transition_lines else '  none'}"
+
+        def format_evaluation_by_initial_q(label, results_by_initial_q):
+            result_lines = "\n".join(f"  start q{initial_q}: {result['successes']}/{result['episodes']} = {format_percentage(result['successes'] / result['episodes'])}, length={result['steps'] / result['episodes']:.1f}" for initial_q, result in sorted(results_by_initial_q.items()))
+            return f"success by initial q ({label}) :\n{result_lines if result_lines else '  none'}"
 
         start_time = time.monotonic()
         log(f"Q-learning [{self.level_name}: {self.width}x{self.height}, {learning_description}, episodes={config.episodes}]...")
@@ -497,17 +526,23 @@ class LTLfWaypointMDP:
                     biased_td_count = 0
                     biased_td_max = 0.0
             if episode == 1 or episode % config.eval_interval == 0 or episode == config.episodes:
-                unbiased_eval_success, unbiased_eval_length, unbiased_eval_transitions = evaluate_greedy(q_unbiased)
+                unbiased_eval_success, unbiased_eval_length, unbiased_eval_transitions, unbiased_eval_by_initial_q = evaluate_greedy(q_unbiased, evaluation_starts)
+                unbiased_full_eval_success, unbiased_full_eval_length, unbiased_full_eval_transitions, _ = evaluate_greedy(q_unbiased, full_formula_evaluation_starts)
                 learning_history["evaluation_steps"].append(episode)
                 learning_history["unbiased_eval_success_rates"].append(unbiased_eval_success)
                 learning_history["unbiased_eval_episode_lengths"].append(unbiased_eval_length)
+                learning_history["unbiased_full_eval_success_rates"].append(unbiased_full_eval_success)
+                learning_history["unbiased_full_eval_episode_lengths"].append(unbiased_full_eval_length)
                 if uses_shaping:
-                    biased_eval_success, biased_eval_length, biased_eval_transitions = evaluate_greedy(q_biased)
+                    biased_eval_success, biased_eval_length, biased_eval_transitions, biased_eval_by_initial_q = evaluate_greedy(q_biased, evaluation_starts)
+                    biased_full_eval_success, biased_full_eval_length, biased_full_eval_transitions, _ = evaluate_greedy(q_biased, full_formula_evaluation_starts)
                     learning_history["biased_eval_success_rates"].append(biased_eval_success)
                     learning_history["biased_eval_episode_lengths"].append(biased_eval_length)
-                    log("\n" f"[Abstract greedy evaluation at episode {episode} | {config.eval_episodes} fixed non-goal starts]\n" f"success rate biased         : {format_percentage(biased_eval_success)}, length={biased_eval_length:.1f}\n" f"{format_evaluation_transitions('biased', biased_eval_transitions)}\n" f"success rate unbiased       : {format_percentage(unbiased_eval_success)}, length={unbiased_eval_length:.1f}\n" f"{format_evaluation_transitions('unbiased', unbiased_eval_transitions)}")
+                    learning_history["biased_full_eval_success_rates"].append(biased_full_eval_success)
+                    learning_history["biased_full_eval_episode_lengths"].append(biased_full_eval_length)
+                    log("\n" f"[Abstract product-state greedy evaluation at episode {episode} | {config.eval_episodes} fixed recoverable non-accepting starts]\n" f"success rate biased         : {format_percentage(biased_eval_success)}, length={biased_eval_length:.1f}\n" f"{format_evaluation_by_initial_q('biased', biased_eval_by_initial_q)}\n" f"{format_evaluation_transitions('biased', biased_eval_transitions)}\n" f"success rate unbiased       : {format_percentage(unbiased_eval_success)}, length={unbiased_eval_length:.1f}\n" f"{format_evaluation_by_initial_q('unbiased', unbiased_eval_by_initial_q)}\n" f"{format_evaluation_transitions('unbiased', unbiased_eval_transitions)}\n\n" f"[Abstract full-formula greedy evaluation at episode {episode} | {config.eval_episodes} fixed starts at q{self.automaton.get_initial_q()}]\n" f"success rate biased         : {format_percentage(biased_full_eval_success)}, length={biased_full_eval_length:.1f}\n" f"{format_evaluation_transitions('biased', biased_full_eval_transitions)}\n" f"success rate unbiased       : {format_percentage(unbiased_full_eval_success)}, length={unbiased_full_eval_length:.1f}\n" f"{format_evaluation_transitions('unbiased', unbiased_full_eval_transitions)}")
                 else:
-                    log("\n" f"[Abstract greedy evaluation at episode {episode} | {config.eval_episodes} fixed non-goal starts]\n" f"success rate unbiased       : {format_percentage(unbiased_eval_success)}, length={unbiased_eval_length:.1f}\n" f"{format_evaluation_transitions('unbiased', unbiased_eval_transitions)}")
+                    log("\n" f"[Abstract product-state greedy evaluation at episode {episode} | {config.eval_episodes} fixed recoverable non-accepting starts]\n" f"success rate unbiased       : {format_percentage(unbiased_eval_success)}, length={unbiased_eval_length:.1f}\n" f"{format_evaluation_by_initial_q('unbiased', unbiased_eval_by_initial_q)}\n" f"{format_evaluation_transitions('unbiased', unbiased_eval_transitions)}\n\n" f"[Abstract full-formula greedy evaluation at episode {episode} | {config.eval_episodes} fixed starts at q{self.automaton.get_initial_q()}]\n" f"success rate unbiased       : {format_percentage(unbiased_full_eval_success)}, length={unbiased_full_eval_length:.1f}\n" f"{format_evaluation_transitions('unbiased', unbiased_full_eval_transitions)}")
 
         self.v_star = defaultdict(float, {state: max(q_unbiased[state_index[state]][action_index[action]] for action in self.get_available_actions(state)) for state in self.states})
         self.solution_algorithm = "learning"
