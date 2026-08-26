@@ -227,6 +227,36 @@ def save_multilevel_heatmaps( multilevel_mdp, filename_prefix="v_star", output_r
     return generated_directories
 
 
+def save_multilevel_value_functions(multilevel_mdp, output_root=None):
+    """Save every abstract V-function as a dense numeric NPZ array."""
+    output_root = output_root or os.path.join("results", "abstract_value_functions")
+    generated_files = []
+    for level_number, abstract_mdp in enumerate(multilevel_mdp.levels, start=1):
+        level_directory = os.path.join(output_root, f"level{level_number}")
+        os.makedirs(level_directory, exist_ok=True)
+        dfa_states = np.asarray(sorted(abstract_mdp.automaton.states), dtype=np.int64)
+        q_indices = {int(q): index for index, q in enumerate(dfa_states)}
+
+        def dense_values(value_function, label):
+            dense = np.full((len(dfa_states), abstract_mdp.height, abstract_mdp.width), np.nan, dtype=np.float64)
+            for (x, y, q), value in value_function.items():
+                dense[q_indices[q], y, x] = value
+            if np.isnan(dense).any():
+                raise ValueError(f"{abstract_mdp.level_name} {label} V-function is missing one or more product states")
+            return dense
+
+        unbiased_values = dense_values(abstract_mdp.unbiased_v_star, "unbiased")
+        value_path = os.path.join(level_directory, "value_function.npz")
+        value_data = {"values": unbiased_values, "unbiased_values": unbiased_values, "dfa_states": dfa_states, "accepting_dfa_states": np.asarray(sorted(abstract_mdp.automaton.accepting_states), dtype=np.int64), "width": np.int64(abstract_mdp.width), "height": np.int64(abstract_mdp.height), "gamma": np.float64(abstract_mdp.gamma), "goal_reward": np.float64(abstract_mdp.goal_reward), "level_name": np.asarray(abstract_mdp.level_name), "solution_algorithm": np.asarray(abstract_mdp.solution_algorithm), "has_biased_values": np.bool_(abstract_mdp.biased_v_star is not None)}
+        if abstract_mdp.biased_v_star is not None:
+            value_data["biased_values"] = dense_values(abstract_mdp.biased_v_star, "biased")
+        np.savez_compressed(value_path, **value_data)
+        generated_files.append(value_path)
+        saved_variants = "unbiased + biased" if abstract_mdp.biased_v_star is not None else "unbiased"
+        print(f" -> Abstract V-function saved to: {value_path} ({saved_variants}; values[q_index, y, x])")
+    return generated_files
+
+
 def save_abstract_learning_curves(multilevel_mdp, output_root=None, smoothing_window=100):
     """Save the reward and epsilon curve for every Q-learned abstraction."""
     if smoothing_window <= 0:

@@ -160,6 +160,8 @@ class LTLfWaypointMDP:
         
         self.goal_reward = goal_reward
         self.v_star = defaultdict(float)
+        self.unbiased_v_star = self.v_star
+        self.biased_v_star = None
         self.upper_level_mdp = None
         self.inter_level_gamma_shaping = gamma
         self.value_iteration_iterations = 0
@@ -282,6 +284,8 @@ class LTLfWaypointMDP:
 
         self.upper_level_mdp = None
         self.v_star = defaultdict(float)
+        self.unbiased_v_star = self.v_star
+        self.biased_v_star = None
         self.learning_history = None
         print(f"Value Iteration [{self.level_name}: {self.width}x{self.height}, top-level unbiased solution]...")
 
@@ -302,6 +306,7 @@ class LTLfWaypointMDP:
             if delta < theta:
                 break
 
+        self.unbiased_v_star = self.v_star
         self.value_iteration_iterations = iterations
         self.solution_algorithm = "vi"
         self.learning_episodes = 0
@@ -540,11 +545,13 @@ class LTLfWaypointMDP:
                     learning_history["biased_eval_episode_lengths"].append(biased_eval_length)
                     learning_history["biased_full_eval_success_rates"].append(biased_full_eval_success)
                     learning_history["biased_full_eval_episode_lengths"].append(biased_full_eval_length)
-                    log("\n" f"[Abstract product-state greedy evaluation at episode {episode} | {config.eval_episodes} fixed recoverable non-accepting starts]\n" f"success rate biased         : {format_percentage(biased_eval_success)}, length={biased_eval_length:.1f}\n" f"{format_evaluation_by_initial_q('biased', biased_eval_by_initial_q)}\n" f"{format_evaluation_transitions('biased', biased_eval_transitions)}\n" f"success rate unbiased       : {format_percentage(unbiased_eval_success)}, length={unbiased_eval_length:.1f}\n" f"{format_evaluation_by_initial_q('unbiased', unbiased_eval_by_initial_q)}\n" f"{format_evaluation_transitions('unbiased', unbiased_eval_transitions)}\n\n" f"[Abstract full-formula greedy evaluation at episode {episode} | {config.eval_episodes} fixed starts at q{self.automaton.get_initial_q()}]\n" f"success rate biased         : {format_percentage(biased_full_eval_success)}, length={biased_full_eval_length:.1f}\n" f"{format_evaluation_transitions('biased', biased_full_eval_transitions)}\n" f"success rate unbiased       : {format_percentage(unbiased_full_eval_success)}, length={unbiased_full_eval_length:.1f}\n" f"{format_evaluation_transitions('unbiased', unbiased_full_eval_transitions)}")
+                    log("\n" f"[Abstract greedy evaluation at episode {episode} | {config.eval_episodes} fixed starts: random position, random recoverable non-accepting DFA state]\n" f"shaping-guided biased Q     : success={format_percentage(biased_eval_success)}, length={biased_eval_length:.1f}\n" f"{format_evaluation_by_initial_q('shaping-guided biased Q', biased_eval_by_initial_q)}\n" f"{format_evaluation_transitions('shaping-guided biased Q', biased_eval_transitions)}\n" f"original-reward unbiased Q  : success={format_percentage(unbiased_eval_success)}, length={unbiased_eval_length:.1f}\n" f"{format_evaluation_by_initial_q('original-reward unbiased Q', unbiased_eval_by_initial_q)}\n" f"{format_evaluation_transitions('original-reward unbiased Q', unbiased_eval_transitions)}\n\n" f"[Abstract greedy evaluation at episode {episode} | {config.eval_episodes} fixed starts: random position, starting from q{self.automaton.get_initial_q()}]\n" f"shaping-guided biased Q     : success={format_percentage(biased_full_eval_success)}, length={biased_full_eval_length:.1f}\n" f"{format_evaluation_transitions('shaping-guided biased Q', biased_full_eval_transitions)}\n" f"original-reward unbiased Q  : success={format_percentage(unbiased_full_eval_success)}, length={unbiased_full_eval_length:.1f}\n" f"{format_evaluation_transitions('original-reward unbiased Q', unbiased_full_eval_transitions)}")
                 else:
-                    log("\n" f"[Abstract product-state greedy evaluation at episode {episode} | {config.eval_episodes} fixed recoverable non-accepting starts]\n" f"success rate unbiased       : {format_percentage(unbiased_eval_success)}, length={unbiased_eval_length:.1f}\n" f"{format_evaluation_by_initial_q('unbiased', unbiased_eval_by_initial_q)}\n" f"{format_evaluation_transitions('unbiased', unbiased_eval_transitions)}\n\n" f"[Abstract full-formula greedy evaluation at episode {episode} | {config.eval_episodes} fixed starts at q{self.automaton.get_initial_q()}]\n" f"success rate unbiased       : {format_percentage(unbiased_full_eval_success)}, length={unbiased_full_eval_length:.1f}\n" f"{format_evaluation_transitions('unbiased', unbiased_full_eval_transitions)}")
+                    log("\n" f"[Abstract greedy evaluation at episode {episode} | {config.eval_episodes} fixed starts: random position, random recoverable non-accepting DFA state]\n" f"original-reward unbiased Q  : success={format_percentage(unbiased_eval_success)}, length={unbiased_eval_length:.1f}\n" f"{format_evaluation_by_initial_q('original-reward unbiased Q', unbiased_eval_by_initial_q)}\n" f"{format_evaluation_transitions('original-reward unbiased Q', unbiased_eval_transitions)}\n\n" f"[Abstract greedy evaluation at episode {episode} | {config.eval_episodes} fixed starts: random position, starting from q{self.automaton.get_initial_q()}]\n" f"original-reward unbiased Q  : success={format_percentage(unbiased_full_eval_success)}, length={unbiased_full_eval_length:.1f}\n" f"{format_evaluation_transitions('original-reward unbiased Q', unbiased_full_eval_transitions)}")
 
-        self.v_star = defaultdict(float, {state: max(q_unbiased[state_index[state]][action_index[action]] for action in self.get_available_actions(state)) for state in self.states})
+        self.unbiased_v_star = defaultdict(float, {state: max(q_unbiased[state_index[state]][action_index[action]] for action in self.get_available_actions(state)) for state in self.states})
+        self.biased_v_star = defaultdict(float, {state: max(q_biased[state_index[state]][action_index[action]] for action in self.get_available_actions(state)) for state in self.states}) if uses_shaping else None
+        self.v_star = self.unbiased_v_star
         self.solution_algorithm = "learning"
         self.learning_episodes = config.episodes
         self.learning_updates = updates

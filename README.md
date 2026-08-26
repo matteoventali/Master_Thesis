@@ -104,6 +104,15 @@ Per ogni livello appreso vengono salvati `reward_epsilon.png` e i relativi dati
 in `reward_epsilon_data.npz`, sotto
 `results/<esperimento>/img/abstract_learning/levelN/`. Il grafico mostra gli
 andamenti delle reward biased e unbiased insieme a epsilon.
+Per ogni livello, indipendentemente dall'algoritmo VI o learning, la V-function
+numerica viene inoltre salvata in
+`results/<esperimento>/results/abstract_value_functions/levelN/value_function.npz`.
+Le chiavi `unbiased_values` e, per i livelli dual, `biased_values` usano
+l'ordinamento `[q_index, y, x]`; `values` rimane un alias dell'unbiased per
+compatibilita. `dfa_states` associa ogni `q_index` all'identificatore reale
+dello stato DFA; il file include anche dimensioni, gamma, goal reward,
+algoritmo risolutivo e il flag `has_biased_values`.
+Questo salvataggio viene prodotto anche con `--no-heatmaps`.
 Ogni Q-learning astratto scrive inoltre un log in
 `results/<esperimento>/logs/abstract_learning/levelN.log`; `log_interval`
 controlla ogni quanti episodi vengono riportati reward medie recenti, success
@@ -112,13 +121,13 @@ I restart che partono già in uno stato DFA accettante continuano ad addestrare
 l'azione `done`, ma sono esclusi da success rate e curve reward per evitare il
 plateau artificiale dovuto al reward immediato.
 Ogni `eval_interval` episodi vengono eseguite due valutazioni greedy sugli
-stessi start determinati da `eval_seed`. La product-state evaluation campiona
-posizioni e stati DFA non accettanti dai quali l'accettazione e ancora
-raggiungibile, riporta i risultati anche per stato DFA iniziale e misura la
-robustezza durante le diverse fasi del task. La full-formula evaluation campiona
-le posizioni ma parte sempre dallo stato iniziale del DFA e misura il
-completamento dell'intera formula. Nei livelli dual il log riporta entrambe le
-valutazioni separatamente per biased e unbiased; le serie aggregate sono
+stessi start determinati da `eval_seed`. La prima evaluation parte da
+posizioni casuali e stati DFA casuali non accettanti dai quali l'accettazione e
+ancora raggiungibile, riporta i risultati anche per stato DFA iniziale e misura
+la capacita di recupero durante le diverse fasi del task. La seconda evaluation
+campiona le posizioni ma parte sempre dallo stato iniziale del DFA e
+misura il completamento dell'intera formula. Nei livelli dual il log identifica
+esplicitamente la shaping-guided biased Q e la original-reward unbiased Q; le serie aggregate sono
 salvate anche in `reward_epsilon_data.npz`. Errore TD e numero di coppie
 positive permettono di monitorare la propagazione della Q unbiased anche prima
 che la policy completi il task.

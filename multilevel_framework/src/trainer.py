@@ -33,6 +33,7 @@ from utils import (
     plot_training_variance,
     save_abstract_learning_curves,
     save_multilevel_heatmaps,
+    save_multilevel_value_functions,
 )
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -758,6 +759,7 @@ def main(args):
     # Heatmaps depend only on the saved task configuration, not on agent training.
     multilevel_mdp = MultiLevelWaypointMDP( regions=regions, ltlf_automaton=automaton, abstraction_config=abstraction_config, gamma=gamma, goal_reward=goal_reward, )
     multilevel_mdp.compute_value_functions(learning_log_dir=os.path.join(log_dir, "abstract_learning"))
+    save_multilevel_value_functions(multilevel_mdp, output_root=os.path.join(data_dir, "abstract_value_functions"))
     if not args.no_heatmaps:
         save_multilevel_heatmaps( multilevel_mdp, filename_prefix="single_epsilon_exp", output_root=os.path.join(image_dir, "heatmaps"), )
     save_abstract_learning_curves(multilevel_mdp, output_root=os.path.join(image_dir, "abstract_learning"), smoothing_window=args.plot_window)
