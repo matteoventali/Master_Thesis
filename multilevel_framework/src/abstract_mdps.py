@@ -4,7 +4,7 @@ import random
 import re
 import time
 import warnings
-from collections import defaultdict
+from collections import Counter, defaultdict
 
 from abstraction import map_state
 from spatial_regions import (
@@ -371,9 +371,10 @@ class LTLfWaypointMDP:
 
         def evaluate_greedy(q_table):
             if not evaluation_starts:
-                return float("nan"), float("nan")
+                return float("nan"), float("nan"), Counter()
             successes = 0
             total_steps = 0
+            transition_counts = Counter()
             for evaluation_start in evaluation_starts:
                 evaluation_state = evaluation_start
                 evaluation_steps = 0
@@ -383,13 +384,20 @@ class LTLfWaypointMDP:
                     evaluation_state_i = state_index[evaluation_state]
                     evaluation_actions = self.get_available_actions(evaluation_state)
                     evaluation_action = max(evaluation_actions, key=lambda candidate: (q_table[evaluation_state_i][action_index[candidate]], -candidate))
+                    previous_q = evaluation_state[2]
                     evaluation_state, _, evaluation_terminal = self.get_transitions(evaluation_state, evaluation_action)
+                    if evaluation_state[2] != previous_q:
+                        transition_counts[(previous_q, evaluation_state[2])] += 1
                     evaluation_steps += 1
                     if evaluation_terminal:
                         successes += 1
                         break
                 total_steps += evaluation_steps
-            return successes / len(evaluation_starts), total_steps / len(evaluation_starts)
+            return successes / len(evaluation_starts), total_steps / len(evaluation_starts), transition_counts
+
+        def format_evaluation_transitions(label, transition_counts):
+            transition_lines = "\n".join(f"  {source} -> {target} : {count}" for (source, target), count in sorted(transition_counts.items()))
+            return f"DFA transitions {label}       :\n{transition_lines if transition_lines else '  none'}"
 
         start_time = time.monotonic()
         log(f"Q-learning [{self.level_name}: {self.width}x{self.height}, {learning_description}, episodes={config.episodes}]...")
@@ -489,17 +497,17 @@ class LTLfWaypointMDP:
                     biased_td_count = 0
                     biased_td_max = 0.0
             if episode == 1 or episode % config.eval_interval == 0 or episode == config.episodes:
-                unbiased_eval_success, unbiased_eval_length = evaluate_greedy(q_unbiased)
+                unbiased_eval_success, unbiased_eval_length, unbiased_eval_transitions = evaluate_greedy(q_unbiased)
                 learning_history["evaluation_steps"].append(episode)
                 learning_history["unbiased_eval_success_rates"].append(unbiased_eval_success)
                 learning_history["unbiased_eval_episode_lengths"].append(unbiased_eval_length)
                 if uses_shaping:
-                    biased_eval_success, biased_eval_length = evaluate_greedy(q_biased)
+                    biased_eval_success, biased_eval_length, biased_eval_transitions = evaluate_greedy(q_biased)
                     learning_history["biased_eval_success_rates"].append(biased_eval_success)
                     learning_history["biased_eval_episode_lengths"].append(biased_eval_length)
-                    log("\n" f"[Abstract greedy evaluation at episode {episode} | {config.eval_episodes} fixed non-goal starts]\n" f"success rate biased         : {format_percentage(biased_eval_success)}, length={biased_eval_length:.1f}\n" f"success rate unbiased       : {format_percentage(unbiased_eval_success)}, length={unbiased_eval_length:.1f}")
+                    log("\n" f"[Abstract greedy evaluation at episode {episode} | {config.eval_episodes} fixed non-goal starts]\n" f"success rate biased         : {format_percentage(biased_eval_success)}, length={biased_eval_length:.1f}\n" f"{format_evaluation_transitions('biased', biased_eval_transitions)}\n" f"success rate unbiased       : {format_percentage(unbiased_eval_success)}, length={unbiased_eval_length:.1f}\n" f"{format_evaluation_transitions('unbiased', unbiased_eval_transitions)}")
                 else:
-                    log("\n" f"[Abstract greedy evaluation at episode {episode} | {config.eval_episodes} fixed non-goal starts]\n" f"success rate unbiased       : {format_percentage(unbiased_eval_success)}, length={unbiased_eval_length:.1f}")
+                    log("\n" f"[Abstract greedy evaluation at episode {episode} | {config.eval_episodes} fixed non-goal starts]\n" f"success rate unbiased       : {format_percentage(unbiased_eval_success)}, length={unbiased_eval_length:.1f}\n" f"{format_evaluation_transitions('unbiased', unbiased_eval_transitions)}")
 
         self.v_star = defaultdict(float, {state: max(q_unbiased[state_index[state]][action_index[action]] for action in self.get_available_actions(state)) for state in self.states})
         self.solution_algorithm = "learning"
