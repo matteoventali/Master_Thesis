@@ -113,6 +113,30 @@ compatibilita. `dfa_states` associa ogni `q_index` all'identificatore reale
 dello stato DFA; il file include anche dimensioni, gamma, goal reward,
 algoritmo risolutivo e il flag `has_biased_values`.
 Questo salvataggio viene prodotto anche con `--no-heatmaps`.
+Le V-function salvate possono essere confrontate con lo script
+`multilevel_framework/compare_value_functions.py`. Avviandolo senza argomenti
+si aprono due finestre: la prima seleziona il `value_function.npz` ottenuto con
+VI, usato come riferimento, e la seconda seleziona quello ottenuto dal
+Q-learning. Lo script confronta sia la V unbiased sia, quando presente, la V
+biased, e salva metriche CSV/JSON, mappe dei valori e degli errori e grafici del
+segnale di shaping:
+
+```bash
+~/.env/bin/python multilevel_framework/compare_value_functions.py
+```
+
+La stessa analisi puo essere eseguita senza finestre grafiche specificando i
+file direttamente:
+
+```bash
+~/.env/bin/python multilevel_framework/compare_value_functions.py --reference /path/to/vi/value_function.npz --candidate /path/to/learning/value_function.npz
+```
+
+`trajectory.json` viene sempre richiesto con una terza finestra, in modo che la
+formula e le regioni usate nel confronto siano scelte esplicitamente. In uso
+non interattivo puo essere fornito tramite `--trajectory`. Gli output vengono creati nella directory
+`value_function_comparison` dell'esperimento candidato, oppure nel percorso
+indicato con `--output-dir`.
 Ogni Q-learning astratto scrive inoltre un log in
 `results/<esperimento>/logs/abstract_learning/levelN.log`; `log_interval`
 controlla ogni quanti episodi vengono riportati reward medie recenti, success
