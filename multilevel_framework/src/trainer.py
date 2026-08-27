@@ -747,7 +747,12 @@ def main(args):
     # Build the DFA once for both training and post-processing.
     automaton = LTLfAutomaton(formula)
     validation_report = validate_automaton( automaton, regions, )
-    level_summary = ", ".join(f"{index}:{level.name}={level.width}x{level.height}[{abstraction_config.algorithm_for_index(index - 1)}]" for index, level in enumerate(abstraction_config.levels, start=1))
+    level_summary = ", ".join(
+        f"{index}:{level.name}={level.width}x{level.height}[checkpoint={level.checkpoint}]"
+        if level.checkpoint is not None
+        else f"{index}:{level.name}={level.width}x{level.height}[{abstraction_config.algorithm_for_index(index - 1)}, V={level.value_function_method}]"
+        for index, level in enumerate(abstraction_config.levels, start=1)
+    )
     bellman_summary = "not applicable" if args.learner == "tabular" else str(args.stochastic_bellman_update)
     if args.learner == "ddqn" and args.stochastic_bellman_update:
         bellman_summary += f" (alpha={args.bellman_alpha})"

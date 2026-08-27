@@ -90,6 +90,8 @@ class GridLevel:
     name: str
     algorithm: str
     learning: LearningConfig = field(default_factory=LearningConfig)
+    value_function_method: str = "max"
+    checkpoint: str | None = None
 
     def __post_init__(self):
         if isinstance(self.width, bool) or not isinstance(self.width, int) or self.width <= 0:
@@ -100,6 +102,10 @@ class GridLevel:
             raise ValueError("Every abstraction level must have a non-empty name")
         if self.algorithm not in ("vi", "learning"):
             raise ValueError(f"{self.name}.algorithm must be either 'vi' or 'learning'")
+        if self.value_function_method not in ("max", "policy_evaluation"):
+            raise ValueError(f"{self.name}.value_function_method must be either 'max' or 'policy_evaluation'")
+        if self.checkpoint is not None and (not isinstance(self.checkpoint, str) or not self.checkpoint.strip()):
+            raise ValueError(f"{self.name}.checkpoint must be a non-empty path")
 
     @property
     def shape(self):
@@ -139,7 +145,7 @@ class AbstractionConfig:
         return self.levels[index].algorithm
 
     @classmethod
-    def from_dict(cls, data):
+    def from_dict(cls, data, base_dir=None):
         if not isinstance(data, dict):
             raise ValueError("The abstraction configuration must be a JSON object")
         raw_levels = data.get("levels")
@@ -168,7 +174,16 @@ class AbstractionConfig:
             if is_top_level and algorithm == "learning" and isinstance(raw_level.get("learning"), dict) and "gamma_shaping" in raw_level["learning"]:
                 raise ValueError(f"{name} is the top level and must not define gamma_shaping because it has no upper potential")
             learning = LearningConfig.from_dict(raw_level.get("learning"), name)
-            levels.append(GridLevel(width=width, height=height, name=name, algorithm=algorithm, learning=learning))
+            value_function_method = raw_level.get("value_function_method", "max")
+            checkpoint = raw_level.get("checkpoint")
+            if checkpoint is not None:
+                if not isinstance(checkpoint, str) or not checkpoint.strip():
+                    raise ValueError(f"{name}.checkpoint must be a non-empty path")
+                checkpoint_path = Path(checkpoint).expanduser()
+                if base_dir is not None and not checkpoint_path.is_absolute():
+                    checkpoint_path = Path(base_dir) / checkpoint_path
+                checkpoint = str(checkpoint_path.resolve())
+            levels.append(GridLevel(width=width, height=height, name=name, algorithm=algorithm, learning=learning, value_function_method=value_function_method, checkpoint=checkpoint))
         return cls(tuple(levels))
 
     @classmethod
@@ -176,7 +191,7 @@ class AbstractionConfig:
         """Load and validate an ``abstraction.json`` file."""
         path = Path(path)
         with path.open(encoding="utf-8") as config_file:
-            return cls.from_dict(json.load(config_file))
+            return cls.from_dict(json.load(config_file), base_dir=path.resolve().parent)
 
 
 def _validate_dimensions(width, height, label):

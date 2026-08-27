@@ -72,6 +72,7 @@ senza shaping. Gli iperparametri si configurano nel file di astrazione:
   "grid_w": 12,
   "grid_h": 12,
   "algorithm": "learning",
+  "value_function_method": "policy_evaluation",
   "learning": {
     "episodes": 10000,
     "max_steps": 100,
@@ -96,6 +97,30 @@ livello inferiore. Il top usa VI per default; impostando `"algorithm":
 "learning"` usa invece una sola Q-table con la reward originale. Questo vale
 anche per una gerarchia con un solo livello. Se la sezione `learning` manca
 vengono usati i valori predefiniti mostrati sopra.
+Per ogni livello appreso, `value_function_method` seleziona come ricavare la
+V-function unbiased dalla Q-table: `"max"` usa
+`V(s) = max_a Q_unbiased(s,a)`, mentre `"policy_evaluation"` valuta a orizzonte
+infinito scontato la policy greedy deterministica indotta da `Q_unbiased`. Il
+default, mantenuto per compatibilita, e `"max"`.
+
+Un livello gia appreso puo essere riutilizzato indicando il suo archivio come
+checkpoint:
+
+```json
+{
+  "name": "level1",
+  "grid_w": 12,
+  "grid_h": 12,
+  "algorithm": "learning",
+  "checkpoint": "../previous_experiment/results/abstract_value_functions/level1/value_function.npz"
+}
+```
+
+Il percorso relativo viene risolto rispetto ad `abstraction.json`. Quando il
+checkpoint e presente, Q-learning e costruzione della V vengono saltati e il
+livello carica direttamente `q_function_unbiased` e
+`v_function_unbiased`. Non viene verificato l'allineamento semantico del
+checkpoint con regioni, reward o task correnti.
 Negli stati DFA accettanti l'unica azione disponibile è `done`: assegna il
 `goal_reward` e termina senza bootstrap. Il valore del goal viene quindi
 appreso o calcolato dalla VI, senza inizializzare manualmente le Q-table.
@@ -107,9 +132,11 @@ andamenti delle reward biased e unbiased insieme a epsilon.
 Per ogni livello, indipendentemente dall'algoritmo VI o learning, la V-function
 numerica viene inoltre salvata in
 `results/<esperimento>/results/abstract_value_functions/levelN/value_function.npz`.
-Le chiavi `unbiased_values` e, per i livelli dual, `biased_values` usano
-l'ordinamento `[q_index, y, x]`; `values` rimane un alias dell'unbiased per
-compatibilita. `dfa_states` associa ogni `q_index` all'identificatore reale
+Le chiavi `v_function_unbiased`, `unbiased_values` e, per i livelli dual,
+`biased_values` usano l'ordinamento `[q_index, y, x]`; `values` rimane un alias
+dell'unbiased per compatibilita. Per i livelli appresi viene salvata anche
+`q_function_unbiased`, ordinata come `[q_index, y, x, action]`, rendendo lo
+stesso file utilizzabile come checkpoint. `dfa_states` associa ogni `q_index` all'identificatore reale
 dello stato DFA; il file include anche dimensioni, gamma, goal reward,
 algoritmo risolutivo e il flag `has_biased_values`.
 Questo salvataggio viene prodotto anche con `--no-heatmaps`.

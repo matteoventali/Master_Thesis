@@ -151,8 +151,8 @@ def save_sequential_heatmaps( abstract_mdp, filename_prefix="v_star", output_dir
     
     width, height = abstract_mdp.width, abstract_mdp.height
     
-    # Keep every product-state value visible. Cells whose abstract label would
-    # advance the DFA are annotated, but their source-q value remains useful:
+    # Keep every product-state value visible through the colormap. Cells whose
+    # abstract label would advance the DFA retain only their transition marker:
     # with continuous regions the real agent may enter the circle without
     # changing abstract cell, and training reads exactly this potential.
     def canonical_q(x, y, q):
@@ -170,8 +170,8 @@ def save_sequential_heatmaps( abstract_mdp, filename_prefix="v_star", output_dir
                 matrix[y, x] = value
                 
         plt.figure(figsize=(6.4, 5.4), constrained_layout=True)
-        # Use the same one-decimal precision for colors and annotations, so
-        # invisible floating-point residuals cannot span the whole colormap.
+        # Round colors so invisible floating-point residuals cannot span the
+        # whole colormap.
         color_matrix = np.round(matrix, decimals=1)
         finite_values = color_matrix[np.isfinite(color_matrix)]
         if len(finite_values) > 0 and np.all(finite_values == finite_values[0]):
@@ -184,20 +184,13 @@ def save_sequential_heatmaps( abstract_mdp, filename_prefix="v_star", output_dir
                 im = plt.imshow(color_matrix, cmap='viridis', origin='lower', vmin=0.0, vmax=1.0)
         else:
             im = plt.imshow(color_matrix, cmap='viridis', origin='lower')
-        current_vmin = finite_values.min() if len(finite_values) > 0 else 0.0
-        current_vmax = finite_values.max() if len(finite_values) > 0 else 0.0
-        color_midpoint = (current_vmin + current_vmax) / 2.0
         for y in range(height):
             for x in range(width):
-                val = matrix[y, x]
-                if np.isnan(val):
+                if np.isnan(matrix[y, x]):
                     continue
-                text_color = 'white' if color_matrix[y, x] < color_midpoint else 'black'
                 next_q = canonical_q(x, y, current_q)
-                value_y = y + 0.13 if next_q != current_q else y
-                plt.text( x, value_y, f"{val:.1f}", ha='center', va='center', color=text_color, fontsize=7, )
                 if next_q != current_q:
-                    plt.text( x, y - 0.18, f"→q{next_q}", ha='center', va='center', color='#d32f2f', fontsize=6.5, fontweight='bold', )
+                    plt.text( x, y, f"→q{next_q}", ha='center', va='center', color='#d32f2f', fontsize=6.5, fontweight='bold', )
                     
         plt.colorbar(im, fraction=0.046, pad=0.04, label="Potential Value (V*)")
         
@@ -247,13 +240,23 @@ def save_multilevel_value_functions(multilevel_mdp, output_root=None):
 
         unbiased_values = dense_values(abstract_mdp.unbiased_v_star, "unbiased")
         value_path = os.path.join(level_directory, "value_function.npz")
-        value_data = {"values": unbiased_values, "unbiased_values": unbiased_values, "dfa_states": dfa_states, "accepting_dfa_states": np.asarray(sorted(abstract_mdp.automaton.accepting_states), dtype=np.int64), "width": np.int64(abstract_mdp.width), "height": np.int64(abstract_mdp.height), "gamma": np.float64(abstract_mdp.gamma), "goal_reward": np.float64(abstract_mdp.goal_reward), "level_name": np.asarray(abstract_mdp.level_name), "solution_algorithm": np.asarray(abstract_mdp.solution_algorithm), "has_biased_values": np.bool_(abstract_mdp.biased_v_star is not None)}
+        value_data = {"values": unbiased_values, "unbiased_values": unbiased_values, "v_function_unbiased": unbiased_values, "dfa_states": dfa_states, "accepting_dfa_states": np.asarray(sorted(abstract_mdp.automaton.accepting_states), dtype=np.int64), "width": np.int64(abstract_mdp.width), "height": np.int64(abstract_mdp.height), "gamma": np.float64(abstract_mdp.gamma), "goal_reward": np.float64(abstract_mdp.goal_reward), "level_name": np.asarray(abstract_mdp.level_name), "solution_algorithm": np.asarray(abstract_mdp.solution_algorithm), "value_function_method": np.asarray(abstract_mdp.value_function_method), "has_biased_values": np.bool_(abstract_mdp.biased_v_star is not None)}
+        if abstract_mdp.unbiased_q is not None:
+            q_values = np.full((len(dfa_states), abstract_mdp.height, abstract_mdp.width, len(abstract_mdp.actions)), np.nan, dtype=np.float64)
+            for state, action_values in zip(abstract_mdp.states, abstract_mdp.unbiased_q):
+                x, y, q = state
+                q_values[q_indices[q], y, x, :] = np.asarray(action_values, dtype=np.float64)
+            if np.isnan(q_values).any():
+                raise ValueError(f"{abstract_mdp.level_name} unbiased Q-function is missing one or more product states")
+            value_data["q_function_unbiased"] = q_values
         if abstract_mdp.biased_v_star is not None:
             value_data["biased_values"] = dense_values(abstract_mdp.biased_v_star, "biased")
         np.savez_compressed(value_path, **value_data)
         generated_files.append(value_path)
-        saved_variants = "unbiased + biased" if abstract_mdp.biased_v_star is not None else "unbiased"
-        print(f" -> Abstract V-function saved to: {value_path} ({saved_variants}; values[q_index, y, x])")
+        saved_variants = "unbiased Q/V" if abstract_mdp.unbiased_q is not None else "unbiased V"
+        if abstract_mdp.biased_v_star is not None:
+            saved_variants += " + biased V"
+        print(f" -> Abstract checkpoint saved to: {value_path} ({saved_variants}; V[q_index, y, x], Q[q_index, y, x, action])")
     return generated_files
 
 

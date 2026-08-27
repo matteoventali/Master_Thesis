@@ -6,6 +6,8 @@ import time
 import warnings
 from collections import Counter, defaultdict
 
+import numpy as np
+
 from abstraction import map_state
 from spatial_regions import (
     rasterize_regions,
@@ -161,6 +163,7 @@ class LTLfWaypointMDP:
         self.goal_reward = goal_reward
         self.v_star = defaultdict(float)
         self.unbiased_v_star = self.v_star
+        self.unbiased_q = None
         self.biased_v_star = None
         self.upper_level_mdp = None
         self.inter_level_gamma_shaping = gamma
@@ -169,6 +172,9 @@ class LTLfWaypointMDP:
         self.learning_episodes = 0
         self.learning_updates = 0
         self.learning_history = None
+        self.value_function_method = None
+        self.policy_evaluation_iterations = 0
+        self.checkpoint_path = None
         
     def _get_truth_assignment(self, x, y):
         """
@@ -285,6 +291,7 @@ class LTLfWaypointMDP:
         self.upper_level_mdp = None
         self.v_star = defaultdict(float)
         self.unbiased_v_star = self.v_star
+        self.unbiased_q = None
         self.biased_v_star = None
         self.learning_history = None
         print(f"Value Iteration [{self.level_name}: {self.width}x{self.height}, top-level unbiased solution]...")
@@ -309,13 +316,110 @@ class LTLfWaypointMDP:
         self.unbiased_v_star = self.v_star
         self.value_iteration_iterations = iterations
         self.solution_algorithm = "vi"
+        self.value_function_method = "vi"
+        self.policy_evaluation_iterations = 0
+        self.checkpoint_path = None
         self.learning_episodes = 0
         self.learning_updates = 0
         if print_policy:
             self.print_policy()
         return self.v_star
 
-    def q_learning(self, config, upper_level_mdp=None, print_policy=True, log_file=None):
+    def _max_q_value_function(self, q_table):
+        """Return ``max_a Q(s, a)`` over the actions available in each state."""
+        state_index = {state: index for index, state in enumerate(self.states)}
+        action_index = {action: index for index, action in enumerate(self.actions)}
+        return defaultdict(float, {
+            state: max(q_table[state_index[state]][action_index[action]] for action in self.get_available_actions(state))
+            for state in self.states
+        })
+
+    def policy_evaluation(self, q_unbiased, theta=0.001):
+        """Evaluate the deterministic greedy policy induced by ``q_unbiased``.
+
+        Ties use the same deterministic rule as greedy evaluation: the action
+        with the smallest numeric identifier wins.  The Bellman expectation
+        equation is solved for the infinite-horizon discounted abstract MDP.
+        """
+        if theta <= 0:
+            raise ValueError("theta must be greater than zero")
+        state_index = {state: index for index, state in enumerate(self.states)}
+        action_index = {action: index for index, action in enumerate(self.actions)}
+        policy = {
+            state: max(
+                self.get_available_actions(state),
+                key=lambda action: (q_unbiased[state_index[state]][action_index[action]], -action),
+            )
+            for state in self.states
+        }
+        values = defaultdict(float)
+        iterations = 0
+        while True:
+            iterations += 1
+            delta = 0.0
+            new_values = values.copy()
+            for state in self.states:
+                next_state, reward, terminal = self.get_transitions(state, policy[state])
+                value = reward if terminal else reward + self.gamma * values[next_state]
+                delta = max(delta, abs(value - values[state]))
+                new_values[state] = value
+            values = new_values
+            if delta < theta:
+                break
+        self.policy_evaluation_iterations = iterations
+        return values
+
+    def load_checkpoint(self, checkpoint_path, upper_level_mdp=None, print_policy=True):
+        """Load an unbiased abstract Q/V checkpoint and skip level training."""
+        checkpoint_path = os.fspath(checkpoint_path)
+        with np.load(checkpoint_path, allow_pickle=False) as checkpoint:
+            if "q_function_unbiased" not in checkpoint.files:
+                raise ValueError(f"Checkpoint has no q_function_unbiased: {checkpoint_path}")
+            value_key = "v_function_unbiased" if "v_function_unbiased" in checkpoint.files else "unbiased_values"
+            if value_key not in checkpoint.files or "dfa_states" not in checkpoint.files:
+                raise ValueError(f"Checkpoint has no unbiased V-function or dfa_states: {checkpoint_path}")
+            q_values = np.asarray(checkpoint["q_function_unbiased"], dtype=np.float64)
+            v_values = np.asarray(checkpoint[value_key], dtype=np.float64)
+            saved_dfa_states = [int(q) for q in np.asarray(checkpoint["dfa_states"]).tolist()]
+            saved_value_function_method = str(checkpoint["value_function_method"].item()) if "value_function_method" in checkpoint.files else "checkpoint"
+
+        expected_q_shape = (len(saved_dfa_states), self.height, self.width, len(self.actions))
+        expected_v_shape = (len(saved_dfa_states), self.height, self.width)
+        if q_values.shape != expected_q_shape or v_values.shape != expected_v_shape:
+            raise ValueError(
+                f"Checkpoint arrays cannot be indexed on {self.width}x{self.height}: "
+                f"Q shape={q_values.shape}, V shape={v_values.shape}"
+            )
+        saved_q_index = {q: index for index, q in enumerate(saved_dfa_states)}
+        missing_q = sorted(set(self.automaton.states).difference(saved_q_index))
+        if missing_q:
+            raise ValueError(f"Checkpoint has no rows for DFA states: {missing_q}")
+
+        self.upper_level_mdp = upper_level_mdp
+        self.unbiased_q = [
+            q_values[saved_q_index[state[2]], state[1], state[0], :].tolist()
+            for state in self.states
+        ]
+        self.unbiased_v_star = defaultdict(float, {
+            state: float(v_values[saved_q_index[state[2]], state[1], state[0]])
+            for state in self.states
+        })
+        self.v_star = self.unbiased_v_star
+        self.biased_v_star = None
+        self.solution_algorithm = "checkpoint"
+        self.value_function_method = saved_value_function_method
+        self.value_iteration_iterations = 0
+        self.policy_evaluation_iterations = 0
+        self.learning_episodes = 0
+        self.learning_updates = 0
+        self.learning_history = None
+        self.checkpoint_path = os.path.abspath(checkpoint_path)
+        print(f"Checkpoint loaded [{self.level_name}, V={self.value_function_method}] <- {self.checkpoint_path}")
+        if print_policy:
+            self.print_policy()
+        return self.v_star
+
+    def q_learning(self, config, upper_level_mdp=None, print_policy=True, log_file=None, value_function_method="max", policy_evaluation_theta=0.001):
         """Learn an unbiased value estimate.
 
         A top level uses classic single-table Q-learning. A lower level uses a
@@ -324,6 +428,10 @@ class LTLfWaypointMDP:
         """
         self.upper_level_mdp = upper_level_mdp
         self.value_iteration_iterations = 0
+        self.policy_evaluation_iterations = 0
+        self.checkpoint_path = None
+        if value_function_method not in ("max", "policy_evaluation"):
+            raise ValueError("value_function_method must be either 'max' or 'policy_evaluation'")
         uses_shaping = upper_level_mdp is not None
         self.inter_level_gamma_shaping = self.gamma if config.gamma_shaping is None else config.gamma_shaping
         rng = random.Random(config.seed)
@@ -549,14 +657,20 @@ class LTLfWaypointMDP:
                 else:
                     log("\n" f"[Abstract greedy evaluation at episode {episode} | {config.eval_episodes} fixed starts: random position, random recoverable non-accepting DFA state]\n" f"original-reward unbiased Q  : success={format_percentage(unbiased_eval_success)}, length={unbiased_eval_length:.1f}\n" f"{format_evaluation_by_initial_q('original-reward unbiased Q', unbiased_eval_by_initial_q)}\n" f"{format_evaluation_transitions('original-reward unbiased Q', unbiased_eval_transitions)}\n\n" f"[Abstract greedy evaluation at episode {episode} | {config.eval_episodes} fixed starts: random position, starting from q{self.automaton.get_initial_q()}]\n" f"original-reward unbiased Q  : success={format_percentage(unbiased_full_eval_success)}, length={unbiased_full_eval_length:.1f}\n" f"{format_evaluation_transitions('original-reward unbiased Q', unbiased_full_eval_transitions)}")
 
-        self.unbiased_v_star = defaultdict(float, {state: max(q_unbiased[state_index[state]][action_index[action]] for action in self.get_available_actions(state)) for state in self.states})
+        self.unbiased_q = q_unbiased
+        if value_function_method == "policy_evaluation":
+            self.unbiased_v_star = self.policy_evaluation(q_unbiased, theta=policy_evaluation_theta)
+        else:
+            self.unbiased_v_star = self._max_q_value_function(q_unbiased)
         self.biased_v_star = defaultdict(float, {state: max(q_biased[state_index[state]][action_index[action]] for action in self.get_available_actions(state)) for state in self.states}) if uses_shaping else None
         self.v_star = self.unbiased_v_star
         self.solution_algorithm = "learning"
+        self.value_function_method = value_function_method
         self.learning_episodes = config.episodes
         self.learning_updates = updates
         self.learning_history = learning_history
-        log(f"Completed [{self.level_name}] | episodes={config.episodes} | updates={updates} | elapsed={time.monotonic() - start_time:.1f}s")
+        policy_evaluation_summary = f" | policy-evaluation iterations={self.policy_evaluation_iterations}" if value_function_method == "policy_evaluation" else ""
+        log(f"Completed [{self.level_name}] | episodes={config.episodes} | updates={updates} | V={value_function_method}{policy_evaluation_summary} | elapsed={time.monotonic() - start_time:.1f}s")
         if log_handle is not None:
             log_handle.close()
         if print_policy:
@@ -611,10 +725,12 @@ class MultiLevelWaypointMDP:
         for index in reversed(range(len(self.levels))):
             level_config = self.abstraction_config.levels[index]
             current_mdp = self.levels[index]
-            if self.abstraction_config.algorithm_for_index(index) == "vi":
+            if level_config.checkpoint is not None:
+                current_mdp.load_checkpoint(level_config.checkpoint, upper_level_mdp=following_mdp, print_policy=print_policies)
+            elif self.abstraction_config.algorithm_for_index(index) == "vi":
                 current_mdp.value_iteration(theta=theta, print_policy=print_policies)
             else:
                 log_file = os.path.join(learning_log_dir, f"level{index + 1}.log") if learning_log_dir is not None else None
-                current_mdp.q_learning(config=level_config.learning, upper_level_mdp=following_mdp, print_policy=print_policies, log_file=log_file)
+                current_mdp.q_learning(config=level_config.learning, upper_level_mdp=following_mdp, print_policy=print_policies, log_file=log_file, value_function_method=level_config.value_function_method, policy_evaluation_theta=theta)
             following_mdp = current_mdp
         return [level.v_star for level in self.levels]
