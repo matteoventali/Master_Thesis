@@ -58,6 +58,50 @@ coordinate normalizzate di LunarLander (`x` in `[-1, 1]`, `y` in `[0, 1.5]`):
 }
 ```
 
+Oltre alle regioni circolari, `predicates` permette di definire genericamente
+semipiani sopra, sotto, a sinistra o a destra di un waypoint:
+
+```json
+{
+  "formula": "F(wp1 & X(F(g1))) & G(wp1 -> X(G(!above_wp1)))",
+  "regions": {
+    "wp1": {"center": [-0.4, 0.8], "radius": 0.1},
+    "g1": {"center": [0.6, 1.0], "radius": 0.1}
+  },
+  "predicates": {
+    "above_wp1": {
+      "type": "relative_position",
+      "reference": "wp1",
+      "relation": "above",
+      "boundary": "edge",
+      "offset": 0.0
+    }
+  }
+}
+```
+
+Le relazioni disponibili sono `above`, `below`, `left_of` e `right_of`.
+I predicati riferiti a un waypoint usano sempre il suo bordo esterno;
+`boundary: "edge"` e quindi opzionale. `offset` aggiunge un margine non
+negativo verso l'esterno. Una soglia assoluta, indipendente da un waypoint, si
+puo esprimere con `threshold`, per esempio:
+
+```json
+"below_limit": {
+  "type": "relative_position",
+  "relation": "below",
+  "threshold": 0.25
+}
+```
+
+La dipendenza temporale rimane nella formula LTLf: il predicato
+`above_wp1` significa solamente che la posizione corrente e sopra `wp1`, mentre
+`G(wp1 -> X(G(!above_wp1)))` impone di non tornarci dopo aver raggiunto il
+waypoint. Sullo stato continuo viene usato il bordo geometrico del cerchio. Su
+ogni astrazione vengono invece usate la riga o la colonna piu esterna tra le
+celle rasterizzate del waypoint: `above` e `below` valgono per tutte le x,
+mentre `left_of` e `right_of` valgono per tutte le y.
+
 Training e valutazione verificano l'appartenenza sullo stato continuo. Per il
 planning astratto, ogni regione etichetta tutte le celle che interseca; ogni
 livello della gerarchia viene rasterizzato direttamente dalla regione continua.
@@ -125,6 +169,10 @@ checkpoint con regioni, reward o task correnti.
 Negli stati DFA accettanti l'unica azione disponibile è `done`: assegna il
 `goal_reward` e termina senza bootstrap. Il valore del goal viene quindi
 appreso o calcolato dalla VI, senza inizializzare manualmente le Q-table.
+Gli stati DFA dai quali non e piu raggiungibile alcuna accettazione sono
+classificati automaticamente come fallimenti terminali. Ricevono task reward
+zero e terminano senza bootstrap; l'eventuale shaping
+`gamma_shaping * Phi(next) - Phi(state)` viene comunque applicato normalmente.
 
 Per ogni livello appreso vengono salvati `reward_epsilon.png` e i relativi dati
 in `reward_epsilon_data.npz`, sotto

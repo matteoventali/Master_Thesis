@@ -10,6 +10,7 @@ import numpy as np
 
 from abstraction import map_state
 from spatial_regions import (
+    CircularRegion,
     rasterize_regions,
     truth_assignment_from_cell,
     truth_assignment_from_observation,
@@ -43,6 +44,7 @@ class LTLfAutomaton:
         # Keep a stable state order for the MDP and one-hot encodings.
         self.states = sorted(list(self.states))
         self.num_phases = len(self.states)
+        self.failure_states = self._compute_failure_states()
 
     def _parse_dot(self, dot_string):
         """
@@ -82,6 +84,30 @@ class LTLfAutomaton:
     def is_goal_reached(self, current_q):
         """Return whether the current DFA state is accepting."""
         return current_q in self.accepting_states
+
+    def _compute_failure_states(self):
+        """Return states from which no accepting state is graph-reachable."""
+        reverse_edges = defaultdict(set)
+        for source, guarded_destinations in self.transitions.items():
+            for _, destination in guarded_destinations:
+                reverse_edges[destination].add(source)
+        acceptance_reachable = set(self.accepting_states)
+        frontier = list(self.accepting_states)
+        while frontier:
+            destination = frontier.pop()
+            for source in reverse_edges[destination]:
+                if source not in acceptance_reachable:
+                    acceptance_reachable.add(source)
+                    frontier.append(source)
+        return set(self.states).difference(acceptance_reachable)
+
+    def is_failure(self, current_q):
+        """Return whether acceptance is irreversibly unreachable from a state."""
+        return current_q in self.failure_states
+
+    def is_terminal(self, current_q):
+        """Return whether a state ends the task with either success or failure."""
+        return self.is_goal_reached(current_q) or self.is_failure(current_q)
 
     def get_next_q(self, current_q, truth_assignment):
         """
@@ -187,8 +213,8 @@ class LTLfWaypointMDP:
         return truth_assignment_from_observation(self.regions, observation)
 
     def get_available_actions(self, state):
-        """Return only done at the goal, and only movements elsewhere."""
-        return [self.DONE_ACTION] if self.automaton.is_goal_reached(state[2]) else self.movement_actions
+        """Return only done at success/failure terminals, movements elsewhere."""
+        return [self.DONE_ACTION] if self.automaton.is_terminal(state[2]) else self.movement_actions
 
     def get_transitions(self, state, action):
         x, y, q = state
@@ -196,7 +222,8 @@ class LTLfWaypointMDP:
         if action not in available_actions:
             raise ValueError(f"Action {action} is not available in state {state}; expected one of {available_actions}")
         if action == self.DONE_ACTION:
-            return state, self.goal_reward, True
+            reward = self.goal_reward if self.automaton.is_goal_reached(q) else 0.0
+            return state, reward, True
         
         # Apply the abstract physical movement.
         next_y = y
@@ -265,6 +292,9 @@ class LTLfWaypointMDP:
 
                     if self.automaton.is_goal_reached(q):
                         row.append(" G ")
+                        continue
+                    if self.automaton.is_failure(q):
+                        row.append(" E ")
                         continue
 
                     best_action = None
@@ -524,8 +554,8 @@ class LTLfWaypointMDP:
                         transition_counts[(previous_q, evaluation_state[2])] += 1
                     evaluation_steps += 1
                     if evaluation_terminal:
-                        successes += 1
-                        evaluation_succeeded = True
+                        evaluation_succeeded = self.automaton.is_goal_reached(evaluation_state[2])
+                        successes += int(evaluation_succeeded)
                         break
                 total_steps += evaluation_steps
                 results_by_initial_q[initial_q]["episodes"] += 1
@@ -547,9 +577,10 @@ class LTLfWaypointMDP:
 
         for episode in range(1, config.episodes + 1):
             # Random restarts cover the full product space. Accepting states
-            # must also be sampled so their only action, done, is learned.
+            # and failure states must also be sampled so done is learned.
             state = rng.choice(restart_states)
             started_accepting = self.automaton.is_goal_reached(state[2])
+            started_terminal = self.automaton.is_terminal(state[2])
             biased_episode_reward = 0.0
             unbiased_episode_reward = 0.0
             episode_steps = 0
@@ -601,18 +632,18 @@ class LTLfWaypointMDP:
                 updates += 1
                 state = next_state
                 if terminal:
-                    episode_succeeded = True
+                    episode_succeeded = self.automaton.is_goal_reached(state[2])
                     break
 
             learning_history["episodes"].append(episode)
-            metric_unbiased_reward = float("nan") if started_accepting else unbiased_episode_reward
+            metric_unbiased_reward = float("nan") if started_terminal else unbiased_episode_reward
             learning_history["unbiased_episode_reward"].append(metric_unbiased_reward)
-            learning_history["successes"].append(float("nan") if started_accepting else float(episode_succeeded))
-            learning_history["episode_lengths"].append(float("nan") if started_accepting else episode_steps)
-            learning_history["dfa_transitions"].append(float("nan") if started_accepting else episode_dfa_transitions)
+            learning_history["successes"].append(float("nan") if started_terminal else float(episode_succeeded))
+            learning_history["episode_lengths"].append(float("nan") if started_terminal else episode_steps)
+            learning_history["dfa_transitions"].append(float("nan") if started_terminal else episode_dfa_transitions)
             learning_history["initial_acceptances"].append(int(started_accepting))
             if uses_shaping:
-                learning_history["biased_episode_reward"].append(float("nan") if started_accepting else biased_episode_reward)
+                learning_history["biased_episode_reward"].append(float("nan") if started_terminal else biased_episode_reward)
             epsilon = max(config.epsilon_min, epsilon * config.epsilon_decay)
             learning_history["epsilon"].append(epsilon)
             if episode == 1 or episode % config.log_interval == 0 or episode == config.episodes:
@@ -681,13 +712,10 @@ class LTLfWaypointMDP:
 class MultiLevelWaypointMDP:
     """Ordered hierarchy of grid MDPs sharing one LTLf automaton.
 
-    Waypoints and automaton interaction are defined on level 1.  Waypoint
-    coordinates for every other grid are projections of those coordinates.
     The coarsest level can use VI or classic Q-learning. Every lower
     abstraction is learned with biased exploration and exports its unbiased
     value estimate.
     """
-
     def __init__(self, regions, ltlf_automaton, abstraction_config, gamma=0.99, goal_reward=10000):
         self.automaton = ltlf_automaton
         self.abstraction_config = abstraction_config
@@ -704,6 +732,8 @@ class MultiLevelWaypointMDP:
     def _warn_on_region_collisions(level):
         cells_to_names = defaultdict(list)
         for name, cells in level.region_cells.items():
+            if not isinstance(level.regions[name], CircularRegion):
+                continue
             for cell in cells:
                 cells_to_names[cell].append(name)
         collisions = {

@@ -288,13 +288,13 @@ def main() -> int:
 
     from abstraction import AbstractionConfig, GridLevel
     from abstract_mdps import LTLfAutomaton, MultiLevelWaypointMDP
-    from spatial_regions import load_regions
+    from spatial_regions import load_task_propositions
 
     trajectory = load_json(trajectory_path)
     initial_size = args.initial_size
 
     formula = trajectory.get("formula", "F(goal)")
-    regions = load_regions(trajectory.get("regions"))
+    regions, predicates, task_propositions = load_task_propositions(trajectory.get("regions"), trajectory.get("predicates"))
     gamma = args.gamma if args.gamma is not None else float(trajectory.get("gamma", 0.99))
     goal_reward = float(trajectory.get("goal_reward", 10000))
     automaton = LTLfAutomaton(formula)
@@ -303,6 +303,7 @@ def main() -> int:
 
     print(f"Task: {trajectory_path}")
     print(f"Continuous regions: {', '.join(regions)}")
+    print(f"Derived predicates: {', '.join(predicates) if predicates else 'none'}")
     print(f"CSV: {csv_path}")
     print(f"Config hash: {config_hash}")
     print(f"Value-iteration timeout per grid: {args.timeout:g} s")
@@ -320,7 +321,7 @@ def main() -> int:
             theta=args.theta,
             gamma=gamma,
             goal_reward=goal_reward,
-            regions=regions,
+            regions=task_propositions,
             automaton=automaton,
             abstraction_config_class=AbstractionConfig,
             grid_level_class=GridLevel,

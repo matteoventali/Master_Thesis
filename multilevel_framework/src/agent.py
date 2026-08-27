@@ -185,7 +185,6 @@ class HierarchicalDQNLearner:
         os.makedirs(self.policy_dir, exist_ok=True)
         torch.save( self.policy_net.state_dict(), os.path.join(self.policy_dir, self.policy_name), )
 
-
 class TabularQLearner:
     """Sparse online Q-learning over discretized LunarLander and DFA states."""
 

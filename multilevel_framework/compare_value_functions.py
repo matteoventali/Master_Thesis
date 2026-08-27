@@ -19,7 +19,7 @@ if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
 from abstract_mdps import LTLfAutomaton, LTLfWaypointMDP
-from spatial_regions import load_regions
+from spatial_regions import load_task_propositions
 
 
 def parse_args():
@@ -352,8 +352,8 @@ def main():
     with trajectory_path.open(encoding="utf-8") as trajectory_file:
         trajectory = json.load(trajectory_file)
     automaton = LTLfAutomaton(trajectory.get("formula", "F(goal)"))
-    regions = load_regions(trajectory.get("regions"))
-    mdp = LTLfWaypointMDP(regions=regions, ltlf_automaton=automaton, width=reference["width"], height=reference["height"], gamma=reference["gamma"], goal_reward=reference["goal_reward"], level_name="comparison")
+    _, _, task_propositions = load_task_propositions(trajectory.get("regions"), trajectory.get("predicates"))
+    mdp = LTLfWaypointMDP(regions=task_propositions, ltlf_automaton=automaton, width=reference["width"], height=reference["height"], gamma=reference["gamma"], goal_reward=reference["goal_reward"], level_name="comparison")
     reference_states = [int(q) for q in reference["dfa_states"]]
     if set(reference_states) != set(automaton.states):
         raise ValueError(f"trajectory DFA states {sorted(automaton.states)} do not match NPZ states {reference_states}")

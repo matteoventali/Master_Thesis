@@ -85,20 +85,20 @@ class AutomatonValidationReport:
 # DFA validation
 # ==============================
 
-def validate_automaton(automaton, regions, max_propositions=12, raise_on_error=True):
-    """Validate DFA structure, guards, reachability, and region propositions."""
+def validate_automaton(automaton, spatial_propositions, max_propositions=12, raise_on_error=True):
+    """Validate DFA structure, guards, reachability, and spatial propositions."""
     propositions = _extract_formula_propositions(automaton.formula_str)
     report = AutomatonValidationReport(automaton.formula_str, propositions)
     states = set(automaton.states)
-    region_propositions = set(regions)
+    declared_propositions = set(spatial_propositions)
 
     # Validate formula propositions and waypoint declarations.
-    missing_regions = sorted(set(propositions) - region_propositions)
-    unused_regions = sorted(region_propositions - set(propositions))
+    missing_regions = sorted(set(propositions) - declared_propositions)
+    unused_regions = sorted(declared_propositions - set(propositions))
     if missing_regions:
-        report.add_error(f"Formula propositions without regions: {missing_regions}")
+        report.add_error(f"Formula propositions without spatial definitions: {missing_regions}")
     if unused_regions:
-        report.add_warning(f"Region propositions not used by the formula: {unused_regions}")
+        report.add_warning(f"Spatial propositions not used by the formula: {unused_regions}")
     if len(propositions) > max_propositions:
         report.add_error(f"The formula has {len(propositions)} propositions; exhaustive validation is limited to {max_propositions}")
 
@@ -164,6 +164,7 @@ def validate_automaton(automaton, regions, max_propositions=12, raise_on_error=T
     report.statistics = {
         "states": len(states),
         "accepting_states": len(automaton.accepting_states),
+        "failure_states": len(automaton.failure_states),
         "transitions": sum(len(transitions) for transitions in automaton.transitions.values()),
         "valuations": len(truth_assignments),
         "state_valuation_pairs": checked_pairs,

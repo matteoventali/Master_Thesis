@@ -26,7 +26,7 @@ from grid_overlay import (
     draw_abstract_grid,
     geometry_from_env,
 )
-from spatial_regions import load_regions, rasterize_regions
+from spatial_regions import load_task_propositions, rasterize_regions
 from utils import (
     LEARNING_REWARD_COLOR,
     RAW_DATA_COLOR,
@@ -127,6 +127,7 @@ def evaluate_policy(policy, policy_dir, episodes, render, formula, regions, goal
     environment_returns = []
     episode_lengths = []
     successes = 0
+    failures = 0
     state_reach_counts = {q: 0 for q in automaton_states}
     grid_traces = []
     trace_frames = []
@@ -153,11 +154,12 @@ def evaluate_policy(policy, policy_dir, episodes, render, formula, regions, goal
 
             reached_states = {q}
             success = automaton.is_goal_reached(q)
+            failed = automaton.is_failure(q)
             terminated = truncated = False
             environment_return = 0.0
             steps = 0
 
-            while not (success or terminated or truncated):
+            while not (success or failed or terminated or truncated):
                 # Append the current DFA state as a one-hot vector.
                 one_hot = np.zeros(len(automaton_states), dtype=np.float32)
                 one_hot[state_to_index[q]] = 1.0
@@ -188,6 +190,8 @@ def evaluate_policy(policy, policy_dir, episodes, render, formula, regions, goal
                 if next_q != q:
                     if automaton.is_goal_reached(next_q):
                         print(f"[{policy_name} | Episode {episode + 1}] DFA transition {q} -> {next_q}: final goal reached.")
+                    elif automaton.is_failure(next_q):
+                        print(f"[{policy_name} | Episode {episode + 1}] DFA transition {q} -> {next_q}: irreversible task failure.")
                     else:
                         print(f"[{policy_name} | Episode {episode + 1}] DFA transition {q} -> {next_q}: intermediate waypoint reached.")
 
@@ -196,12 +200,14 @@ def evaluate_policy(policy, policy_dir, episodes, render, formula, regions, goal
                 observation = next_observation
                 q = next_q
                 success = automaton.is_goal_reached(q)
+                failed = automaton.is_failure(q)
 
                 if render:
                     time.sleep(0.02)
 
             # Store episode-level metrics and count every DFA state reached at least once.
             successes += int(success)
+            failures += int(failed)
             for reached_q in reached_states:
                 state_reach_counts[reached_q] += 1
             task_returns.append(float(goal_reward) if success else 0.0)
@@ -219,6 +225,7 @@ def evaluate_policy(policy, policy_dir, episodes, render, formula, regions, goal
         "environment_returns": environment_returns,
         "episode_lengths": episode_lengths,
         "successes": successes,
+        "failures": failures,
         "state_reach_counts": state_reach_counts,
         "grid_traces": grid_traces,
         "trace_frames": trace_frames,
@@ -401,7 +408,7 @@ def main():
     abstraction_config = AbstractionConfig.load(args.abstraction_config.expanduser())
 
     formula = config["formula"]
-    regions = load_regions(config.get("regions"))
+    regions, _, task_propositions = load_task_propositions(config.get("regions"), config.get("predicates"))
     grid_w = abstraction_config.primary.width
     grid_h = abstraction_config.primary.height
     goal_reward = float(config.get("goal_reward", 10000.0))
@@ -410,17 +417,18 @@ def main():
     results = []
     for policy in args.policies:
         traced_episodes = min(args.trace_episodes, args.episodes) if args.trace_grid else 0
-        result = evaluate_policy( policy, args.policy_dir, args.episodes, args.render, formula, regions, goal_reward, grid_w, grid_h, args.seed, trace_episodes=traced_episodes, network_type=args.network_type, )
+        result = evaluate_policy( policy, args.policy_dir, args.episodes, args.render, formula, task_propositions, goal_reward, grid_w, grid_h, args.seed, trace_episodes=traced_episodes, network_type=args.network_type, )
         results.append(result)
 
     # Print the summary and create one plot for each evaluated policy.
     args.output_dir.mkdir(parents=True, exist_ok=True)
     for result in results:
         success_rate = result["successes"] / args.episodes
+        failure_rate = result["failures"] / args.episodes
         mean_gym_return = np.mean(result["environment_returns"])
         mean_length = np.mean(result["episode_lengths"])
         reached = ", ".join(f"q={q}: {count}/{args.episodes}" for q, count in result["state_reach_counts"].items())
-        print(f"[{result['policy']}] success={success_rate:.1%}, mean Gym return={mean_gym_return:.2f}, mean length={mean_length:.1f} | reached: {reached}")
+        print(f"[{result['policy']}] success={success_rate:.1%}, failure={failure_rate:.1%}, mean Gym return={mean_gym_return:.2f}, mean length={mean_length:.1f} | reached: {reached}")
         print(f"Plot saved to: {plot_policy(result, args.window, args.output_dir)}")
         if args.trace_grid:
             trace_paths = plot_grid_traces( result, regions, grid_w, grid_h, args.output_dir )
