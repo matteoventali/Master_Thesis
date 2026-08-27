@@ -28,6 +28,7 @@ from utils import (
     phi_mapping_sequential,
     plot_buffer_fractions,
     plot_buffer_variance,
+    plot_evaluation_performance,
     plot_shaping_reward_breakdown,
     plot_tabular_training_diagnostics,
     plot_training_variance,
@@ -805,15 +806,33 @@ def main(args):
     epsilon_runs = data["epsilon_history_runs"] if "epsilon_history_runs" in data else data["epsilon_history"][np.newaxis, ...]
     buffer_runs = data["buffer_histories_runs"] if "buffer_histories_runs" in data else data["buffer_histories"][np.newaxis, ...]
     seed_values = data["seeds"] if "seeds" in data else np.asarray([args.seed])
+    has_evaluations = all(
+        key in data
+        for key in (
+            "evaluation_steps",
+            "eval_success_rates",
+            "eval_task_rewards",
+            "eval_episode_lengths",
+        )
+    )
+    if has_evaluations:
+        evaluation_steps_runs = data["evaluation_steps_runs"] if "evaluation_steps_runs" in data else data["evaluation_steps"][np.newaxis, ...]
+        eval_success_runs = data["eval_success_rates_runs"] if "eval_success_rates_runs" in data else data["eval_success_rates"][np.newaxis, ...]
+        eval_reward_runs = data["eval_task_rewards_runs"] if "eval_task_rewards_runs" in data else data["eval_task_rewards"][np.newaxis, ...]
+        eval_length_runs = data["eval_episode_lengths_runs"] if "eval_episode_lengths_runs" in data else data["eval_episode_lengths"][np.newaxis, ...]
     for obsolete_name in ("buffer_fractions_single_epsilon.png", "reward_breakdown_single_epsilon.png"):
         (Path(plot_dir) / obsolete_name).unlink(missing_ok=True)
     for run_index, (run_seed, task_rewards, learning_rewards, epsilon_history) in enumerate(zip(seed_values, task_reward_runs, learning_reward_runs, epsilon_runs)):
         seed_plot_dir = os.path.join(plot_dir, f"seed_{int(run_seed)}")
         os.makedirs(seed_plot_dir, exist_ok=True)
         plot_shaping_reward_breakdown(task_rewards, learning_rewards, epsilon_history, window_size=args.plot_window, filename=f"{seed_plot_dir}/reward_breakdown_single_epsilon.png", title=f"Reward Breakdown — Seed {int(run_seed)}")
+        if has_evaluations:
+            plot_evaluation_performance(evaluation_steps_runs[run_index], eval_success_runs[run_index], eval_reward_runs[run_index], eval_length_runs[run_index], filename=f"{seed_plot_dir}/evaluation_performance.png", title=f"Greedy Evaluation — Seed {int(run_seed)}")
         if run_index < len(buffer_runs):
             plot_buffer_fractions(buffer_runs[run_index], filename=f"{seed_plot_dir}/buffer_fractions_single_epsilon.png", window_size=args.plot_window, state_labels=data["automaton_states"], title=f"Replay Buffer Composition — Seed {int(run_seed)}")
     plot_training_variance( learning_reward_runs, window_size=args.plot_window, filename=f"{plot_dir}/training_variance_single_epsilon.png", epsilon_histories=epsilon_runs, )
+    if has_evaluations:
+        plot_evaluation_performance(evaluation_steps_runs, eval_success_runs, eval_reward_runs, eval_length_runs, filename=f"{plot_dir}/evaluation_performance.png", title="Greedy Evaluation Across Seeds")
     plot_buffer_variance(buffer_runs, window_size=args.plot_window, filename=f"{plot_dir}/buffer_variance_single_epsilon.png", state_labels=data["automaton_states"])
     tabular_table_runs = data["tabular_table_sizes_runs"] if "tabular_table_sizes_runs" in data else data["tabular_table_sizes"][np.newaxis, ...] if "tabular_table_sizes" in data else None
     if tabular_table_runs is not None and np.isfinite(tabular_table_runs).any():

@@ -426,6 +426,60 @@ def plot_tabular_training_diagnostics(table_sizes, updated_state_actions, state_
     print(f"\n>>> Tabular diagnostics plot saved to: {filename}")
     plt.close(fig)
 
+
+def plot_evaluation_performance(
+    evaluation_steps,
+    success_rates,
+    task_rewards,
+    episode_lengths,
+    filename="img/evaluation_performance.png",
+    title="Greedy Evaluation Performance",
+):
+    """Plot greedy-evaluation metrics, aggregating multiple seeds when present."""
+    steps = np.asarray(evaluation_steps)
+    success_runs = np.atleast_2d(np.asarray(success_rates, dtype=np.float64))
+    reward_runs = np.atleast_2d(np.asarray(task_rewards, dtype=np.float64))
+    length_runs = np.atleast_2d(np.asarray(episode_lengths, dtype=np.float64))
+    if steps.ndim == 2:
+        if not np.all(steps == steps[0]):
+            raise ValueError("evaluation steps must be identical across seeds")
+        steps = steps[0]
+    if steps.ndim != 1 or len(steps) == 0:
+        raise ValueError("evaluation_steps must be a non-empty vector")
+    expected_shape = success_runs.shape
+    if reward_runs.shape != expected_shape or length_runs.shape != expected_shape:
+        raise ValueError("evaluation metrics must share shape (num_seeds, evaluations)")
+    if expected_shape[1] != len(steps):
+        raise ValueError("evaluation metrics must contain one value per evaluation step")
+
+    _prepare_plot_path(filename)
+    fig, axes = plt.subplots(3, 1, figsize=(7.2, 8.0), sharex=True, constrained_layout=True)
+    series = (
+        (success_runs, "Success rate", (0.0, 1.0), LEARNING_REWARD_COLOR),
+        (reward_runs, "Mean task reward", None, TASK_REWARD_COLOR),
+        (length_runs, "Mean episode length", None, SERIES_COLORS[2]),
+    )
+    for axis, (runs, ylabel, limits, color) in zip(axes, series):
+        mean = np.mean(runs, axis=0)
+        std = np.std(runs, axis=0)
+        axis.plot(steps, mean, color=color, linewidth=1.8)
+        if runs.shape[0] > 1:
+            lower = mean - std
+            upper = mean + std
+            if limits is not None:
+                lower = np.clip(lower, *limits)
+                upper = np.clip(upper, *limits)
+            axis.fill_between(steps, lower, upper, color=color, alpha=0.18, linewidth=0)
+        axis.set_ylabel(ylabel)
+        if limits is not None:
+            axis.set_ylim(*limits)
+        _style_paper_axis(axis)
+    axes[-1].set_xlabel("#Training episode")
+    fig.suptitle(title)
+    fig.savefig(filename, dpi=300, bbox_inches="tight")
+    print(f"\n>>> Evaluation performance plot saved to: {filename}")
+    plt.close(fig)
+
 def plot_buffer_variance(buffer_histories_runs, window_size=100, filename="img/buffer_variance.png", state_labels=None, title="Replay Buffer Composition Across Seeds"):
     """Plot mean replay-buffer fractions with a ±1 std band across seeds."""
     runs = np.asarray(buffer_histories_runs, dtype=np.float64)
