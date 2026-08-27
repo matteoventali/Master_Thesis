@@ -151,14 +151,6 @@ def save_sequential_heatmaps( abstract_mdp, filename_prefix="v_star", output_dir
     
     width, height = abstract_mdp.width, abstract_mdp.height
     
-    # Keep every product-state value visible through the colormap. Cells whose
-    # abstract label would advance the DFA retain only their transition marker:
-    # with continuous regions the real agent may enter the circle without
-    # changing abstract cell, and training reads exactly this potential.
-    def canonical_q(x, y, q):
-        truth_assignment = abstract_mdp._get_truth_assignment(x, y)
-        return abstract_mdp.automaton.get_next_q(q, truth_assignment)
-
     for current_q in abstract_mdp.automaton.states:
         matrix = np.full((height, width), np.nan)
         for (x, y, q), value in abstract_mdp.v_star.items():
@@ -184,22 +176,11 @@ def save_sequential_heatmaps( abstract_mdp, filename_prefix="v_star", output_dir
                 im = plt.imshow(color_matrix, cmap='viridis', origin='lower', vmin=0.0, vmax=1.0)
         else:
             im = plt.imshow(color_matrix, cmap='viridis', origin='lower')
-        for y in range(height):
-            for x in range(width):
-                if np.isnan(matrix[y, x]):
-                    continue
-                next_q = canonical_q(x, y, current_q)
-                if next_q != current_q:
-                    plt.text( x, y, f"→q{next_q}", ha='center', va='center', color='#d32f2f', fontsize=6.5, fontweight='bold', )
-                    
         plt.colorbar(im, fraction=0.046, pad=0.04, label="Potential Value (V*)")
         
         ax = plt.gca()
         ax.set_xlabel("Grid x")
         ax.set_ylabel("Grid y")
-        ax.set_xticks(np.arange(-.5, width, 1), minor=True)
-        ax.set_yticks(np.arange(-.5, height, 1), minor=True)
-        ax.grid(which='minor', color='w', linestyle='-', linewidth=1, alpha=0.4)
         _draw_visible_area_overlay(ax, width, height)
         
         # Keep the heatmap free of waypoint and goal markers.

@@ -63,7 +63,8 @@ planning astratto, ogni regione etichetta tutte le celle che interseca; ogni
 livello della gerarchia viene rasterizzato direttamente dalla regione continua.
 
 Nel `multilevel_framework`, tutti i livelli non-top usano automaticamente il
-dual Q-learning. Sul livello top si può scegliere tra VI e Q-learning classico
+dual Q-learning. Sul livello top si può scegliere tra `"value_iteration"` e
+Q-learning classico (`"learning"`)
 senza shaping. Gli iperparametri si configurano nel file di astrazione:
 
 ```json
@@ -93,7 +94,7 @@ senza shaping. Gli iperparametri si configurano nel file di astrazione:
 I livelli sono elencati dal più fine al più grossolano e risolti in ordine
 inverso. Tutti i livelli sottostanti al top usano una Q-table biased per
 l'esplorazione con PBRS e una Q-table unbiased per il valore trasferito al
-livello inferiore. Il top usa VI per default; impostando `"algorithm":
+livello inferiore. Il top usa `"value_iteration"` per default; impostando `"algorithm":
 "learning"` usa invece una sola Q-table con la reward originale. Questo vale
 anche per una gerarchia con un solo livello. Se la sezione `learning` manca
 vengono usati i valori predefiniti mostrati sopra.

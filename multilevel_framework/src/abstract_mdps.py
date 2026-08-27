@@ -315,8 +315,8 @@ class LTLfWaypointMDP:
 
         self.unbiased_v_star = self.v_star
         self.value_iteration_iterations = iterations
-        self.solution_algorithm = "vi"
-        self.value_function_method = "vi"
+        self.solution_algorithm = "value_iteration"
+        self.value_function_method = "value_iteration"
         self.policy_evaluation_iterations = 0
         self.checkpoint_path = None
         self.learning_episodes = 0
@@ -727,7 +727,7 @@ class MultiLevelWaypointMDP:
             current_mdp = self.levels[index]
             if level_config.checkpoint is not None:
                 current_mdp.load_checkpoint(level_config.checkpoint, upper_level_mdp=following_mdp, print_policy=print_policies)
-            elif self.abstraction_config.algorithm_for_index(index) == "vi":
+            elif self.abstraction_config.algorithm_for_index(index) == "value_iteration":
                 current_mdp.value_iteration(theta=theta, print_policy=print_policies)
             else:
                 log_file = os.path.join(learning_log_dir, f"level{index + 1}.log") if learning_log_dir is not None else None

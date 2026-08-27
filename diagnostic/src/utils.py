@@ -198,14 +198,6 @@ def save_sequential_heatmaps(
     
     width, height = abstract_mdp.width, abstract_mdp.height
     
-    # Keep every product-state value visible. Cells whose abstract label would
-    # advance the DFA are annotated, but their source-q value remains useful:
-    # with continuous regions the real agent may enter the circle without
-    # changing abstract cell, and training reads exactly this potential.
-    def canonical_q(x, y, q):
-        truth_assignment = abstract_mdp._get_truth_assignment(x, y)
-        return abstract_mdp.automaton.get_next_q(q, truth_assignment)
-
     for current_q in abstract_mdp.automaton.states:
         matrix = np.full((height, width), np.nan)
         for (x, y, q), value in abstract_mdp.v_star.items():
@@ -221,47 +213,11 @@ def save_sequential_heatmaps(
         # This exposes the direction of each local gradient instead of
         # compressing it against values from other states or levels.
         im = plt.imshow(matrix, cmap='viridis', origin='lower')
-        finite_values = matrix[np.isfinite(matrix)]
-        current_vmin = finite_values.min() if len(finite_values) > 0 else 0.0
-        current_vmax = finite_values.max() if len(finite_values) > 0 else 0.0
-        color_midpoint = (current_vmin + current_vmax) / 2.0
-        for y in range(height):
-            for x in range(width):
-                val = matrix[y, x]
-                if np.isnan(val):
-                    continue
-                text_color = 'white' if val < color_midpoint else 'black'
-                next_q = canonical_q(x, y, current_q)
-                value_y = y + 0.13 if next_q != current_q else y
-                plt.text(
-                    x,
-                    value_y,
-                    f"{val:.1f}",
-                    ha='center',
-                    va='center',
-                    color=text_color,
-                    fontsize=7,
-                )
-                if next_q != current_q:
-                    plt.text(
-                        x,
-                        y - 0.18,
-                        f"→q{next_q}",
-                        ha='center',
-                        va='center',
-                        color='#d32f2f',
-                        fontsize=6.5,
-                        fontweight='bold',
-                    )
-                    
         plt.colorbar(im, fraction=0.046, pad=0.04, label="Potential Value (V*)")
         
         ax = plt.gca()
         ax.set_xlabel("Grid x")
         ax.set_ylabel("Grid y")
-        ax.set_xticks(np.arange(-.5, width, 1), minor=True)
-        ax.set_yticks(np.arange(-.5, height, 1), minor=True)
-        ax.grid(which='minor', color='w', linestyle='-', linewidth=1, alpha=0.4)
         _draw_visible_area_overlay(ax, width, height)
         
         # Keep the heatmap free of waypoint and goal markers.

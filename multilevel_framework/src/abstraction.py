@@ -100,8 +100,8 @@ class GridLevel:
             raise ValueError(f"{self.name}.grid_h must be a positive integer")
         if not isinstance(self.name, str) or not self.name.strip():
             raise ValueError("Every abstraction level must have a non-empty name")
-        if self.algorithm not in ("vi", "learning"):
-            raise ValueError(f"{self.name}.algorithm must be either 'vi' or 'learning'")
+        if self.algorithm not in ("value_iteration", "learning"):
+            raise ValueError(f"{self.name}.algorithm must be either 'value_iteration' or 'learning'")
         if self.value_function_method not in ("max", "policy_evaluation"):
             raise ValueError(f"{self.name}.value_function_method must be either 'max' or 'policy_evaluation'")
         if self.checkpoint is not None and (not isinstance(self.checkpoint, str) or not self.checkpoint.strip()):
@@ -166,10 +166,10 @@ class AbstractionConfig:
                 raise ValueError(f"{name} must use 'algorithm', not 'solver'")
             if not is_top_level and "algorithm" in raw_level:
                 raise ValueError(f"{name} is not the top level: lower levels always use learning and must not define algorithm")
-            algorithm = raw_level.get("algorithm", "vi") if is_top_level else "learning"
-            if algorithm not in ("vi", "learning"):
-                raise ValueError(f"{name}.algorithm must be either 'vi' or 'learning'")
-            if is_top_level and algorithm == "vi" and "learning" in raw_level:
+            algorithm = raw_level.get("algorithm", "value_iteration") if is_top_level else "learning"
+            if algorithm not in ("value_iteration", "learning"):
+                raise ValueError(f"{name}.algorithm must be either 'value_iteration' or 'learning'")
+            if is_top_level and algorithm == "value_iteration" and "learning" in raw_level:
                 raise ValueError(f"{name} uses VI and must not define learning parameters")
             if is_top_level and algorithm == "learning" and isinstance(raw_level.get("learning"), dict) and "gamma_shaping" in raw_level["learning"]:
                 raise ValueError(f"{name} is the top level and must not define gamma_shaping because it has no upper potential")
