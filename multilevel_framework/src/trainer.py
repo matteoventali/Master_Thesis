@@ -779,7 +779,7 @@ def main(args):
     multilevel_mdp.compute_value_functions(learning_log_dir=os.path.join(log_dir, "abstract_learning"))
     save_multilevel_value_functions(multilevel_mdp, output_root=os.path.join(data_dir, "abstract_value_functions"))
     if not args.no_heatmaps:
-        save_multilevel_heatmaps( multilevel_mdp, filename_prefix="single_epsilon_exp", output_root=os.path.join(image_dir, "heatmaps"), )
+        save_multilevel_heatmaps( multilevel_mdp, filename_prefix="single_epsilon_exp", output_root=os.path.join(image_dir, "heatmaps"), annotate_cells=args.heatmap_annotation, )
     save_abstract_learning_curves(multilevel_mdp, output_root=os.path.join(image_dir, "abstract_learning"), smoothing_window=args.plot_window)
     abstract_mdp = multilevel_mdp.primary_mdp
 
@@ -885,5 +885,6 @@ if __name__ == "__main__":
     parser.add_argument( "--gamma-shaping", type=_discount_factor, default=1.0, help="Discount used in Phi shaping (default: 1.0).", )
     parser.add_argument("--no-shaping", action="store_true")
     parser.add_argument("--no-heatmaps", action="store_true", help="Skip abstract-potential heatmap generation.")
+    parser.add_argument("--heatmap-annotation", action="store_true", help="Write the numeric V-function value inside every heatmap cell (default: disabled).")
     parser.add_argument("--post-process", action="store_true")
     main(parser.parse_args())

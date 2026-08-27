@@ -237,7 +237,9 @@ omesso viene usato il `gamma` dell'MDP. Sul livello top non è ammesso, perché
 non esiste un potenziale superiore.
 La generazione delle heatmap dei potenziali può essere disabilitata aggiungendo
 `--no-heatmaps` al comando di training o post-processing; i grafici
-reward–epsilon e i log astratti vengono comunque prodotti.
+reward–epsilon e i log astratti vengono comunque prodotti. Le heatmap non
+mostrano valori numerici nelle celle per default. Per ripristinarli usare
+`--heatmap-annotation`.
 
 I notebook attivi sono:
 

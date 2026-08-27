@@ -139,7 +139,7 @@ def _draw_visible_area_overlay(axis, width, height):
 # ==============================
 
 
-def save_sequential_heatmaps( abstract_mdp, filename_prefix="v_star", output_dir=None, ):
+def save_sequential_heatmaps( abstract_mdp, filename_prefix="v_star", output_dir=None, annotate_cells=False, ):
     """
     Generates and saves a separate heatmap for V* for each phase defined in the MDP,
     without any waypoint or goal markers (clean heatmap).
@@ -179,6 +179,17 @@ def save_sequential_heatmaps( abstract_mdp, filename_prefix="v_star", output_dir
         plt.colorbar(im, fraction=0.046, pad=0.04, label="Potential Value (V*)")
         
         ax = plt.gca()
+        if annotate_cells:
+            color_min = float(finite_values.min()) if len(finite_values) else 0.0
+            color_max = float(finite_values.max()) if len(finite_values) else 0.0
+            color_midpoint = (color_min + color_max) / 2.0
+            for y in range(height):
+                for x in range(width):
+                    value = matrix[y, x]
+                    if np.isnan(value):
+                        continue
+                    text_color = "white" if color_matrix[y, x] < color_midpoint else "black"
+                    ax.text(x, y, f"{value:.1f}", ha="center", va="center", color=text_color, fontsize=7)
         ax.set_xlabel("Grid x")
         ax.set_ylabel("Grid y")
         _draw_visible_area_overlay(ax, width, height)
@@ -190,13 +201,13 @@ def save_sequential_heatmaps( abstract_mdp, filename_prefix="v_star", output_dir
         print( f" -> Generated V* Heatmap for {abstract_mdp.level_name}, " f"DFA State q={current_q}" )
 
 
-def save_multilevel_heatmaps( multilevel_mdp, filename_prefix="v_star", output_root=None, ):
+def save_multilevel_heatmaps( multilevel_mdp, filename_prefix="v_star", output_root=None, annotate_cells=False, ):
     """Save each level's heatmaps under ``level1``, ``level2``, and so on."""
     output_root = output_root or os.path.join("img", "heatmaps")
     generated_directories = []
     for level_number, abstract_mdp in enumerate(multilevel_mdp.levels, start=1):
         level_directory = os.path.join(output_root, f"level{level_number}")
-        save_sequential_heatmaps( abstract_mdp, filename_prefix=filename_prefix, output_dir=level_directory, )
+        save_sequential_heatmaps( abstract_mdp, filename_prefix=filename_prefix, output_dir=level_directory, annotate_cells=annotate_cells, )
         generated_directories.append(level_directory)
     return generated_directories
 
