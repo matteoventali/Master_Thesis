@@ -370,8 +370,8 @@ def parse_args():
     """Build and parse the evaluator command-line arguments."""
     parser = argparse.ArgumentParser(description="Evaluate LTLf-guided neural or tabular policies for LunarLander.")
     parser.add_argument( "policies", nargs="*", help="Checkpoint filenames or explicit checkpoint paths. If omitted, graphical file selectors are opened.", )
-    parser.add_argument("--config", type=Path, default=SCRIPT_DIR / "trajectory.json", help="Experiment JSON configuration.")
-    parser.add_argument( "--abstraction-config", type=Path, default=SCRIPT_DIR / "abstraction.json", help="Grid hierarchy; evaluation uses its level1 dimensions.", )
+    parser.add_argument("--config", type=Path, default=FRAMEWORK_DIR / "config" / "trajectory.json", help="Experiment JSON configuration.")
+    parser.add_argument( "--abstraction-config", type=Path, default=FRAMEWORK_DIR / "config" / "abstraction.json", help="Grid hierarchy; evaluation uses its level1 dimensions.", )
     parser.add_argument("--policy-dir", type=Path, default=FRAMEWORK_DIR / "results", help="Directory used to resolve checkpoint filenames.")
     parser.add_argument("--gui", action="store_true", help="Select policies and trajectory.json using graphical dialogs.")
     parser.add_argument("--episodes", type=_positive_int, default=100)

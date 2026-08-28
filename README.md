@@ -15,6 +15,12 @@ La repository mantiene due soli framework:
 Ogni framework contiene i sorgenti in `src/`, i launcher Docker nella propria
 root e scrive i nuovi artefatti in `results/<experiment-name>/`.
 
+Le configurazioni predefinite del framework multi-livello si trovano in
+`multilevel_framework/config/`: `trajectory.json` descrive il task e
+`abstraction.json` la gerarchia di griglie. Durante un esperimento entrambi i
+file vengono copiati in `results/<experiment-name>/` come snapshot della
+configurazione utilizzata.
+
 ## Avvio
 
 Dalla root della repository:

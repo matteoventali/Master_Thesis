@@ -25,8 +25,8 @@ from utils import phi_mapping_grid, spatial_grid_boundaries
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 FRAMEWORK_DIR = SCRIPT_DIR.parent
-DEFAULT_CONFIG = SCRIPT_DIR / "trajectory.json"
-DEFAULT_ABSTRACTION_CONFIG = SCRIPT_DIR / "abstraction.json"
+DEFAULT_CONFIG = FRAMEWORK_DIR / "config" / "trajectory.json"
+DEFAULT_ABSTRACTION_CONFIG = FRAMEWORK_DIR / "config" / "abstraction.json"
 
 
 @dataclass(frozen=True)

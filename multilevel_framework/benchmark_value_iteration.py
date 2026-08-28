@@ -279,7 +279,7 @@ def main() -> int:
 
     framework_dir = args.framework_dir.resolve()
     src_dir = framework_dir / "src"
-    trajectory_path = (args.trajectory or src_dir / "trajectory.json").resolve()
+    trajectory_path = (args.trajectory or framework_dir / "config" / "trajectory.json").resolve()
     csv_path = args.csv.resolve()
 
     if not src_dir.is_dir():

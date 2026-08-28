@@ -43,6 +43,7 @@ FRAMEWORK_DIR = (
     if os.path.basename(SCRIPT_DIR) == "src"
     else SCRIPT_DIR
 )
+CONFIG_DIR = os.path.join(FRAMEWORK_DIR, "config")
 
 
 # ==============================
@@ -83,7 +84,7 @@ def _experiment_name(value):
 def _resolve_config_path(requested_path, default_filename, experiment_dir, post_process):
     """Resolve a config, preferring the experiment snapshot during post-processing."""
     requested = Path(requested_path).expanduser()
-    framework_default = Path(SCRIPT_DIR) / default_filename
+    framework_default = Path(CONFIG_DIR) / default_filename
     uses_default = (
         str(requested_path) == default_filename
         or requested.resolve() == framework_default.resolve()
@@ -93,7 +94,7 @@ def _resolve_config_path(requested_path, default_filename, experiment_dir, post_
         candidates.extend( [ Path(experiment_dir) / default_filename, Path(experiment_dir) / "results" / default_filename, ] )
     candidates.append(requested)
     if not requested.is_absolute():
-        candidates.append(Path(SCRIPT_DIR) / requested)
+        candidates.append(Path(CONFIG_DIR) / requested)
 
     for candidate in candidates:
         if candidate.is_file():
