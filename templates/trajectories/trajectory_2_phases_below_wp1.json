@@ -1,15 +1,16 @@
 {
-    "formula": "F(wp1 & X(F(g1))) & G(wp1 -> X(G(below_wp1)))",
+    "formula": "F(wp1 & X(F(g1))) & G(wp1 -> X(wp1 U G(below_wp1)))",
     "goal_reward": 10000,
     "regions": {
         "wp1": {"center": [-0.75, 1.0625], "radius": 0.1},
-        "g1": {"center": [0.75, 0.5], "radius": 0.1}
+        "g1": {"center": [0.75, 1.0625], "radius": 0.1}
     },
     "predicates": {
         "below_wp1": {
-            "type": "relative_position",
-            "reference": "wp1",
-            "relation": "below"
+            "type": "half_plane",
+            "axis": "y",
+            "operator": "<",
+            "threshold": 1.0625
         }
     }
 }

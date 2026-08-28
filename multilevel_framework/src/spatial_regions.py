@@ -1,4 +1,4 @@
-"""Continuous circular task regions and their grid over-approximations."""
+"""Continuous task predicates and their grid over-approximations."""
 
 from __future__ import annotations
 
@@ -58,43 +58,91 @@ class CircularRegion:
 
 
 @dataclass(frozen=True)
-class HalfPlanePredicate:
-    """A generic above/below/left/right proposition in observation space."""
+class BoxPredicate:
+    """An axis-aligned rectangular proposition in observation space."""
 
-    relation: str
-    threshold: float
-    reference: str | None = None
-    boundary: str = "edge"
-    offset: float = 0.0
+    x_min: float
+    x_max: float
+    y_min: float
+    y_max: float
 
     def __post_init__(self) -> None:
-        if self.relation not in {"above", "below", "left_of", "right_of"}:
-            raise ValueError("A relative-position relation must be above, below, left_of, or right_of")
-        if not math.isfinite(float(self.threshold)):
-            raise ValueError("A relative-position threshold must be finite")
+        values = (self.x_min, self.x_max, self.y_min, self.y_max)
+        if any(isinstance(value, bool) or not isinstance(value, (int, float)) for value in values):
+            raise ValueError("Box bounds must be numbers")
+        if not all(math.isfinite(float(value)) for value in values):
+            raise ValueError("Box bounds must be finite")
+        if self.x_min > self.x_max or self.y_min > self.y_max:
+            raise ValueError("Box minimum bounds must not exceed maximum bounds")
 
     def contains(self, x: float, y: float) -> bool:
-        coordinate = float(y) if self.relation in {"above", "below"} else float(x)
-        if self.relation in {"above", "right_of"}:
-            return coordinate > self.threshold
-        return coordinate < self.threshold
+        return self.x_min <= float(x) <= self.x_max and self.y_min <= float(y) <= self.y_max
 
     def intersects_cell(self, bounds: Sequence[float]) -> bool:
         if len(bounds) != 4:
             raise ValueError("Cell bounds must be (x_min, x_max, y_min, y_max)")
         x_min, x_max, y_min, y_max = bounds
-        if self.relation == "above":
-            return y_max > self.threshold
-        if self.relation == "below":
-            return y_min < self.threshold
-        if self.relation == "right_of":
-            return x_max > self.threshold
-        return x_min < self.threshold
+        return (
+            x_max >= self.x_min
+            and x_min <= self.x_max
+            and y_max >= self.y_min
+            and y_min <= self.y_max
+        )
 
     def as_dict(self) -> dict[str, object]:
-        if self.reference is not None:
-            return {"type": "relative_position", "relation": self.relation, "reference": self.reference, "boundary": self.boundary, "offset": self.offset}
-        return {"type": "relative_position", "relation": self.relation, "threshold": self.threshold}
+        return {
+            "type": "box",
+            "x_min": self.x_min,
+            "x_max": self.x_max,
+            "y_min": self.y_min,
+            "y_max": self.y_max,
+        }
+
+
+@dataclass(frozen=True)
+class HalfPlanePredicate:
+    """An axis-aligned threshold proposition in observation space."""
+
+    axis: str
+    operator: str
+    threshold: float
+
+    def __post_init__(self) -> None:
+        if self.axis not in {"x", "y"}:
+            raise ValueError("A half-plane axis must be x or y")
+        if self.operator not in {"<", "<=", ">", ">="}:
+            raise ValueError("A half-plane operator must be <, <=, >, or >=")
+        if not math.isfinite(float(self.threshold)):
+            raise ValueError("A half-plane threshold must be finite")
+
+    def contains(self, x: float, y: float) -> bool:
+        coordinate = float(x) if self.axis == "x" else float(y)
+        return {
+            "<": coordinate < self.threshold,
+            "<=": coordinate <= self.threshold,
+            ">": coordinate > self.threshold,
+            ">=": coordinate >= self.threshold,
+        }[self.operator]
+
+    def intersects_cell(self, bounds: Sequence[float]) -> bool:
+        if len(bounds) != 4:
+            raise ValueError("Cell bounds must be (x_min, x_max, y_min, y_max)")
+        x_min, x_max, y_min, y_max = bounds
+        cell_min, cell_max = (x_min, x_max) if self.axis == "x" else (y_min, y_max)
+        return {
+            "<": cell_min < self.threshold,
+            "<=": cell_min <= self.threshold,
+            ">": cell_max > self.threshold,
+            ">=": cell_max >= self.threshold,
+        }[self.operator]
+
+    def as_dict(self) -> dict[str, object]:
+        return {
+            "type": "half_plane",
+            "axis": self.axis,
+            "operator": self.operator,
+            "threshold": self.threshold,
+        }
 
 
 def load_regions(raw_regions: Mapping[str, object]) -> dict[str, CircularRegion]:
@@ -112,8 +160,8 @@ def load_regions(raw_regions: Mapping[str, object]) -> dict[str, CircularRegion]
 def load_spatial_predicates(
     raw_predicates: Mapping[str, object] | None,
     regions: Mapping[str, CircularRegion],
-) -> dict[str, HalfPlanePredicate]:
-    """Parse generic half-plane predicates, optionally anchored to a region."""
+) -> dict[str, object]:
+    """Parse atomic circle, box, and half-plane spatial predicates."""
     if raw_predicates is None:
         return {}
     if not isinstance(raw_predicates, Mapping):
@@ -127,45 +175,44 @@ def load_spatial_predicates(
             raise ValueError(f"Predicate {name!r} duplicates a region proposition")
         if not isinstance(data, Mapping):
             raise ValueError(f"Predicate {name!r} must be a JSON object")
-        if data.get("type", "relative_position") != "relative_position":
-            raise ValueError(f"Predicate {name!r}.type must be 'relative_position'")
-        relation = data.get("relation")
-        if relation not in {"above", "below", "left_of", "right_of"}:
-            raise ValueError(f"Predicate {name!r}.relation must be above, below, left_of, or right_of")
-        offset = data.get("offset", 0.0)
-        if isinstance(offset, bool) or not isinstance(offset, (int, float)) or not math.isfinite(float(offset)):
-            raise ValueError(f"Predicate {name!r}.offset must be a finite number")
+        predicate_type = data.get("type")
+        if predicate_type not in {"circle", "box", "half_plane"}:
+            raise ValueError(f"Predicate {name!r}.type must be circle, box, or half_plane")
 
-        reference_name = data.get("reference")
-        explicit_threshold = data.get("threshold")
-        if (reference_name is None) == (explicit_threshold is None):
-            raise ValueError(f"Predicate {name!r} must define exactly one of reference or threshold")
+        if predicate_type == "circle":
+            unknown_fields = sorted(set(data) - {"type", "center", "radius"})
+            if unknown_fields:
+                raise ValueError(f"Predicate {name!r} contains unknown fields: {unknown_fields}")
+            predicates[name] = CircularRegion.from_dict(data, name=name)
+            continue
 
-        boundary = data.get("boundary", "edge")
-        if boundary != "edge":
-            raise ValueError(f"Predicate {name!r}.boundary must be 'edge': relative predicates use the outermost extent of their reference region")
-        if reference_name is not None:
-            if reference_name not in regions:
-                raise ValueError(f"Predicate {name!r} references unknown region {reference_name!r}")
-            if float(offset) < 0.0:
-                raise ValueError(f"Predicate {name!r}.offset must be non-negative when a reference is used")
-            reference_region = regions[reference_name]
-            vertical = relation in {"above", "below"}
-            threshold = reference_region.center_y if vertical else reference_region.center_x
-            direction = 1.0 if relation in {"above", "right_of"} else -1.0
-            threshold += direction * (reference_region.radius + float(offset))
-        else:
-            if isinstance(explicit_threshold, bool) or not isinstance(explicit_threshold, (int, float)) or not math.isfinite(float(explicit_threshold)):
-                raise ValueError(f"Predicate {name!r}.threshold must be a finite number")
-            threshold = float(explicit_threshold) + float(offset)
-            reference_name = None
+        if predicate_type == "box":
+            box_fields = {"x_min", "x_max", "y_min", "y_max"}
+            unknown_fields = sorted(set(data) - ({"type"} | box_fields))
+            if unknown_fields:
+                raise ValueError(f"Predicate {name!r} contains unknown fields: {unknown_fields}")
+            missing_fields = sorted(box_fields - set(data))
+            if missing_fields:
+                raise ValueError(f"Predicate {name!r} is missing fields: {missing_fields}")
+            predicates[name] = BoxPredicate(**{field: data[field] for field in box_fields})
+            continue
 
+        unknown_fields = sorted(set(data) - {"type", "axis", "operator", "threshold"})
+        if unknown_fields:
+            raise ValueError(f"Predicate {name!r} contains unknown fields: {unknown_fields}")
+        axis = data.get("axis")
+        operator = data.get("operator")
+        if axis not in {"x", "y"}:
+            raise ValueError(f"Predicate {name!r}.axis must be x or y")
+        if operator not in {"<", "<=", ">", ">="}:
+            raise ValueError(f"Predicate {name!r}.operator must be <, <=, >, or >=")
+        threshold = data.get("threshold")
+        if isinstance(threshold, bool) or not isinstance(threshold, (int, float)) or not math.isfinite(float(threshold)):
+            raise ValueError(f"Predicate {name!r}.threshold must be a finite number")
         predicates[name] = HalfPlanePredicate(
-            relation=relation,
-            threshold=threshold,
-            reference=reference_name,
-            boundary=boundary,
-            offset=float(offset),
+            axis=axis,
+            operator=operator,
+            threshold=float(threshold),
         )
     return predicates
 
@@ -218,8 +265,6 @@ def rasterize_regions(
     """Over-approximate every region with all intersected cells of one grid."""
     rasterized = {}
     for name, region in regions.items():
-        if isinstance(region, HalfPlanePredicate) and region.reference is not None:
-            continue
         cells = frozenset(
             (x, y)
             for x in range(width)
@@ -229,36 +274,6 @@ def rasterize_regions(
         if not cells and isinstance(region, CircularRegion):
             raise ValueError(f"Region {name!r} does not intersect the {width}x{height} grid")
         rasterized[name] = cells
-
-    # A referenced directional predicate is aligned to the bounding rows or
-    # columns of the cells assigned to its waypoint. The resulting predicate
-    # is a global half-plane: x is irrelevant for above/below and y is
-    # irrelevant for left/right.
-    for name, predicate in regions.items():
-        if not isinstance(predicate, HalfPlanePredicate) or predicate.reference is None:
-            continue
-        reference_cells = rasterized[predicate.reference]
-        reference_x = [x for x, _ in reference_cells]
-        reference_y = [y for _, y in reference_cells]
-        min_x, max_x = min(reference_x), max(reference_x)
-        min_y, max_y = min(reference_y), max(reference_y)
-        x_step = (OBSERVATION_X_BOUNDS[1] - OBSERVATION_X_BOUNDS[0]) / width
-        y_step = (OBSERVATION_Y_BOUNDS[1] - OBSERVATION_Y_BOUNDS[0]) / height
-        x_margin_cells = math.ceil(predicate.offset / x_step)
-        y_margin_cells = math.ceil(predicate.offset / y_step)
-        if predicate.relation == "above":
-            first_y = max_y + 1 + y_margin_cells
-            cells = ((x, y) for x in range(width) for y in range(first_y, height))
-        elif predicate.relation == "below":
-            last_y = min_y - y_margin_cells
-            cells = ((x, y) for x in range(width) for y in range(0, last_y))
-        elif predicate.relation == "right_of":
-            first_x = max_x + 1 + x_margin_cells
-            cells = ((x, y) for x in range(first_x, width) for y in range(height))
-        else:
-            last_x = min_x - x_margin_cells
-            cells = ((x, y) for x in range(0, last_x) for y in range(height))
-        rasterized[name] = frozenset(cells)
     return rasterized
 
 

@@ -885,6 +885,6 @@ if __name__ == "__main__":
     parser.add_argument( "--gamma-shaping", type=_discount_factor, default=1.0, help="Discount used in Phi shaping (default: 1.0).", )
     parser.add_argument("--no-shaping", action="store_true")
     parser.add_argument("--no-heatmaps", action="store_true", help="Skip abstract-potential heatmap generation.")
-    parser.add_argument("--heatmap-annotation", action="store_true", help="Write the numeric V-function value inside every heatmap cell (default: disabled).")
+    parser.add_argument("--heatmap-annotation", action="store_true", help="Annotate heatmap cells with V-function values and DFA state changes (default: disabled).")
     parser.add_argument("--post-process", action="store_true")
     main(parser.parse_args())

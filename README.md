@@ -58,49 +58,65 @@ coordinate normalizzate di LunarLander (`x` in `[-1, 1]`, `y` in `[0, 1.5]`):
 }
 ```
 
-Oltre alle regioni circolari, `predicates` permette di definire genericamente
-semipiani sopra, sotto, a sinistra o a destra di un waypoint:
+`predicates` permette di definire tre tipi di proprietà spaziali atomiche nelle
+coordinate dell'environment: `circle`, `box` e `half_plane`. Le regioni
+circolari già presenti in `regions` restano compatibili e sono adatte a waypoint
+e goal.
 
 ```json
 {
-  "formula": "F(wp1 & X(F(g1))) & G(wp1 -> X(G(!above_wp1)))",
+  "formula": "F(wp1 & X(F(g1))) & G(wp1 -> X(G(!above_limit)))",
   "regions": {
     "wp1": {"center": [-0.4, 0.8], "radius": 0.1},
     "g1": {"center": [0.6, 1.0], "radius": 0.1}
   },
   "predicates": {
-    "above_wp1": {
-      "type": "relative_position",
-      "reference": "wp1",
-      "relation": "above",
-      "boundary": "edge",
-      "offset": 0.0
+    "above_limit": {
+      "type": "half_plane",
+      "axis": "y",
+      "operator": ">",
+      "threshold": 0.9
     }
   }
 }
 ```
 
-Le relazioni disponibili sono `above`, `below`, `left_of` e `right_of`.
-I predicati riferiti a un waypoint usano sempre il suo bordo esterno;
-`boundary: "edge"` e quindi opzionale. `offset` aggiunge un margine non
-negativo verso l'esterno. Una soglia assoluta, indipendente da un waypoint, si
-puo esprimere con `threshold`, per esempio:
+Un cerchio e un rettangolo possono essere definiti in questo modo:
+
+```json
+"near_point": {
+  "type": "circle",
+  "center": [0.2, 0.7],
+  "radius": 0.1
+},
+"corridor": {
+  "type": "box",
+  "x_min": -0.5,
+  "x_max": 0.5,
+  "y_min": 0.2,
+  "y_max": 1.0
+}
+```
+
+Per `half_plane`, `axis` può essere `x` oppure `y` e `operator` può essere `<`,
+`<=`, `>` oppure `>=`; ogni predicato richiede una `threshold` numerica. Per
+esempio:
 
 ```json
 "below_limit": {
-  "type": "relative_position",
-  "relation": "below",
+  "type": "half_plane",
+  "axis": "y",
+  "operator": "<",
   "threshold": 0.25
 }
 ```
 
-La dipendenza temporale rimane nella formula LTLf: il predicato
-`above_wp1` significa solamente che la posizione corrente e sopra `wp1`, mentre
-`G(wp1 -> X(G(!above_wp1)))` impone di non tornarci dopo aver raggiunto il
-waypoint. Sullo stato continuo viene usato il bordo geometrico del cerchio. Su
-ogni astrazione vengono invece usate la riga o la colonna piu esterna tra le
-celle rasterizzate del waypoint: `above` e `below` valgono per tutte le x,
-mentre `left_of` e `right_of` valgono per tutte le y.
+La dipendenza temporale rimane nella formula LTLf: `above_limit` significa
+solamente che la posizione corrente ha `y > 0.9`, mentre
+`G(wp1 -> X(G(!above_limit)))` attiva il vincolo dopo `wp1`. Sullo stato
+continuo ogni predicato viene valutato sulla posizione esatta. Sul livello
+astratto una cella soddisfa un predicato se interseca il cerchio, il rettangolo
+o il semipiano corrispondente.
 
 Training e valutazione verificano l'appartenenza sullo stato continuo. Per il
 planning astratto, ogni regione etichetta tutte le celle che interseca; ogni
@@ -238,8 +254,9 @@ non esiste un potenziale superiore.
 La generazione delle heatmap dei potenziali può essere disabilitata aggiungendo
 `--no-heatmaps` al comando di training o post-processing; i grafici
 reward–epsilon e i log astratti vengono comunque prodotti. Le heatmap non
-mostrano valori numerici nelle celle per default. Per ripristinarli usare
-`--heatmap-annotation`.
+mostrano annotazioni nelle celle per default. Con `--heatmap-annotation`, le
+celle compatibili mostrano il valore numerico; quelle il cui ingresso cambia
+lo stato DFA mostrano invece la destinazione della transizione (`→qN`).
 
 I notebook attivi sono:
 

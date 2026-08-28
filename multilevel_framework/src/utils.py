@@ -188,8 +188,23 @@ def save_sequential_heatmaps( abstract_mdp, filename_prefix="v_star", output_dir
                     value = matrix[y, x]
                     if np.isnan(value):
                         continue
-                    text_color = "white" if color_matrix[y, x] < color_midpoint else "black"
-                    ax.text(x, y, f"{value:.1f}", ha="center", va="center", color=text_color, fontsize=7)
+                    truth_assignment = abstract_mdp._get_truth_assignment(x, y)
+                    next_q = abstract_mdp.automaton.get_next_q(current_q, truth_assignment)
+                    changes_automaton_state = next_q != current_q
+                    if changes_automaton_state:
+                        ax.text(
+                            x,
+                            y,
+                            f"→q{next_q}",
+                            ha="center",
+                            va="center",
+                            color="#d32f2f",
+                            fontsize=6.5,
+                            fontweight="bold",
+                        )
+                    else:
+                        text_color = "white" if color_matrix[y, x] < color_midpoint else "black"
+                        ax.text(x, y, f"{value:.1f}", ha="center", va="center", color=text_color, fontsize=7)
         ax.set_xlabel("Grid x")
         ax.set_ylabel("Grid y")
         _draw_visible_area_overlay(ax, width, height)
