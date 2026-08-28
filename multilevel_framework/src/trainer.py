@@ -9,6 +9,7 @@ import random
 import re
 import shutil
 from collections import Counter
+from dataclasses import dataclass
 from pathlib import Path
 
 # ==============================
@@ -453,260 +454,296 @@ def _build_training_results(histories, initial_acceptance_history, buffer_histor
 # Training loop
 # ==============================
 
-def run_sequential_training(env, agent, abstract_mdp, episodes, goal_reward=10000, save_policy=True, use_shaping=True, gamma_shaping=1.0, log_file=None, log_interval=100, eval_interval=1000, eval_episodes=50, eval_seed=100000, seed=None, policy_suffix=""):
-    """
-    Train one DDQN or tabular agent with the LTLf automaton and one epsilon.
+@dataclass
+class TrainingContext:
+    """Mutable state shared by the small phases of one complete training run."""
 
-    The Gym reward is deliberately discarded. The learning reward is the
-    synthetic goal reward plus potential-based shaping. Shaping is evaluated
-    on every transition, including terminal success and failure transitions.
-    """
-    # Build a stable mapping between DFA states and learner features.
-    automaton = abstract_mdp.automaton
-    automaton_states = list(automaton.states)
-    state_to_index = {q: index for index, q in enumerate(automaton_states)}
-    num_states = len(automaton_states)
+    env: object
+    agent: object
+    abstract_mdp: object
+    automaton: object
+    automaton_states: list
+    state_to_index: dict
+    episodes: int
+    goal_reward: float
+    save_policy: bool
+    use_shaping: bool
+    gamma_shaping: float
+    log_interval: int
+    eval_interval: int
+    eval_episodes: int
+    eval_seed: int
+    policy_suffix: str
+    histories: dict
+    initial_acceptance_history: list
+    buffer_histories: list
+    cumulative_state_visits: Counter
+    cumulative_state_entries: Counter
+    cumulative_transitions: Counter
+    log_handle: object = None
+    cumulative_env_terminated: int = 0
+    cumulative_env_truncated: int = 0
+    cumulative_initial_acceptances: int = 0
+    best_evaluation_score: tuple | None = None
+    best_mean_reward: float = -np.inf
+    best_policy_episode: int = 0
 
-    # Fail early if the DFA or training parameters are inconsistent.
-    _validate_training_setup(automaton, state_to_index, episodes, log_interval, eval_interval, eval_episodes)
-    if not 0.0 < gamma_shaping <= 1.0:
-        raise ValueError("gamma_shaping must be in the interval (0, 1]")
 
-    # Store episode-level metrics for plots and post-processing.
-    task_reward_history = []
-    learning_reward_history = []
-    shaping_reward_history = []
-    epsilon_history = []
-    episode_length_history = []
-    success_history = []
-    failure_history = []
-    initial_acceptance_history = []
-    abstract_change_history = []
-    dfa_transition_history = []
-    transition_counter_history = []
-    buffer_histories = [[] for _ in automaton_states]
+@dataclass(frozen=True)
+class TrainingStepResult:
+    """All state changes and diagnostics produced by one environment step."""
+
+    next_raw_state: object
+    next_augmented_state: object
+    next_q: object
+    synthetic_goal_reward: float
+    shaping_signal: float
+    episode_done: bool
+    succeeded: bool
+    failed: bool
+    env_terminated: bool
+    env_truncated: bool
+    abstract_changed: bool
+    dfa_changed: bool
+
+
+@dataclass(frozen=True)
+class TrainingEpisodeResult:
+    """Episode-level measurements committed to the global histories together."""
+
+    task_reward: float
+    shaping_reward: float
+    length: int
+    succeeded: bool
+    failed: bool
+    abstract_changes: int
+    dfa_transitions: int
+    state_visits: list
+    state_entries: list
+    transitions: Counter
+    next_epsilon: float
+
+
+def _create_training_histories(automaton_states):
+    """Create every rectangular history consumed by logging and post-processing."""
     state_visit_histories = [[] for _ in automaton_states]
     state_entry_histories = [[] for _ in automaton_states]
     histories = {
-        "task_rewards": task_reward_history,
-        "learning_rewards": learning_reward_history,
-        "shaping_rewards": shaping_reward_history,
-        "epsilons": epsilon_history,
-        "episode_lengths": episode_length_history,
-        "successes": success_history,
-        "failures": failure_history,
-        "abstract_changes": abstract_change_history,
-        "dfa_transitions": dfa_transition_history,
-        "transition_counters": transition_counter_history,
-        "state_visits": state_visit_histories,
-        "state_entries": state_entry_histories,
-        "tabular_table_sizes": [],
-        "tabular_visited_states": [],
-        "tabular_updated_state_actions": [],
-        "tabular_state_action_coverage": [],
-        "tabular_positive_updates": [],
-        "evaluation_steps": [],
-        "eval_success_rates": [],
-        "eval_task_rewards": [],
-        "eval_episode_lengths": [],
-        "eval_known_state_fractions": [],
+        "task_rewards": [], "learning_rewards": [], "shaping_rewards": [], "epsilons": [],
+        "episode_lengths": [], "successes": [], "failures": [], "abstract_changes": [],
+        "dfa_transitions": [], "transition_counters": [], "state_visits": state_visit_histories,
+        "state_entries": state_entry_histories, "tabular_table_sizes": [], "tabular_visited_states": [],
+        "tabular_updated_state_actions": [], "tabular_state_action_coverage": [], "tabular_positive_updates": [],
+        "evaluation_steps": [], "eval_success_rates": [], "eval_task_rewards": [],
+        "eval_episode_lengths": [], "eval_known_state_fractions": [],
     }
+    return histories, [], [[] for _ in automaton_states]
 
-    # Keep cumulative counters for diagnostics shown during training.
-    cumulative_state_visits = Counter()
-    cumulative_state_entries = Counter()
-    cumulative_transitions = Counter()
-    cumulative_env_terminated = 0
-    cumulative_env_truncated = 0
-    cumulative_initial_acceptances = 0
-    best_mean_reward = -np.inf
-    best_policy_episode = 0
-    best_evaluation_score = None
 
-    # Open one append-only log file for the complete run.
+def _initialize_training_context(env, agent, abstract_mdp, episodes, goal_reward, save_policy, use_shaping, gamma_shaping, log_file, log_interval, eval_interval, eval_episodes, eval_seed, policy_suffix):
+    """Validate one run and allocate the state shared by all training phases."""
+    automaton = abstract_mdp.automaton
+    automaton_states = list(automaton.states)
+    state_to_index = {q: index for index, q in enumerate(automaton_states)}
+    _validate_training_setup(automaton, state_to_index, episodes, log_interval, eval_interval, eval_episodes)
+    if not 0.0 < gamma_shaping <= 1.0:
+        raise ValueError("gamma_shaping must be in the interval (0, 1]")
+    histories, initial_acceptance_history, buffer_histories = _create_training_histories(automaton_states)
     log_handle = open(log_file, "a", encoding="utf-8") if log_file else None
+    context = TrainingContext(env=env, agent=agent, abstract_mdp=abstract_mdp, automaton=automaton, automaton_states=automaton_states, state_to_index=state_to_index, episodes=episodes, goal_reward=float(goal_reward), save_policy=save_policy, use_shaping=use_shaping, gamma_shaping=gamma_shaping, log_interval=log_interval, eval_interval=eval_interval, eval_episodes=eval_episodes, eval_seed=eval_seed, policy_suffix=policy_suffix, histories=histories, initial_acceptance_history=initial_acceptance_history, buffer_histories=buffer_histories, cumulative_state_visits=Counter(), cumulative_state_entries=Counter(), cumulative_transitions=Counter(), log_handle=log_handle)
     _write_run_header(log_handle, episodes, use_shaping, goal_reward, abstract_mdp, automaton_states, gamma_shaping, eval_interval, eval_episodes, eval_seed)
+    return context
 
+
+def _perform_training_step(context, raw_state, augmented_state, q):
+    """Execute one action, advance the DFA, compute rewards, and update the learner."""
+    action = context.agent.select_action(augmented_state)
+
+    # Gym's reward is deliberately discarded: task completion is defined only
+    # by the DFA, while the abstract V-function supplies the shaping signal.
+    next_raw_state, _ignored_env_reward, env_terminated, env_truncated, _ = context.env.step(action)
+    x, y = _abstract_position(raw_state, context.abstract_mdp)
+    next_x, next_y = _abstract_position(next_raw_state, context.abstract_mdp)
+    abstract_state = (x, y, q)
+    abstract_next_state_without_q = (next_x, next_y)
+
+    truth_assignment = context.abstract_mdp.get_environment_truth_assignment(next_raw_state)
+    next_q = context.automaton.get_next_q(q, truth_assignment)
+    if next_q not in context.state_to_index:
+        raise RuntimeError(f"DFA returned unknown state {next_q!r} from state {q!r}")
+    abstract_next_state = (*abstract_next_state_without_q, next_q)
+
+    succeeded = context.automaton.is_goal_reached(next_q)
+    failed = context.automaton.is_failure(next_q)
+    synthetic_goal_reward = context.goal_reward if succeeded else 0.0
+
+    # A Gym truncation stops data collection but still permits bootstrap. True
+    # environment terminals and DFA terminals do not have a continuation value.
+    episode_done = env_terminated or env_truncated or succeeded or failed
+    bootstrap_terminal = env_terminated or succeeded or failed
+    next_augmented_state = _augment_state(next_raw_state, next_q, context.state_to_index)
+
+    # Potential-based shaping is evaluated even on the last collected step.
+    # With gamma_shaping=1 an unchanged product state contributes exactly zero.
+    shaping_signal = 0.0
+    if context.use_shaping:
+        phi_state = context.abstract_mdp.v_star.get(abstract_state, 0.0)
+        phi_next_state = context.abstract_mdp.v_star.get(abstract_next_state, 0.0)
+        shaping_signal = context.gamma_shaping * phi_next_state - phi_state
+
+    learning_reward = synthetic_goal_reward + shaping_signal
+    context.agent.memory.push(augmented_state, action, learning_reward, next_augmented_state, bootstrap_terminal)
+    if isinstance(context.agent, TabularQLearner):
+        context.agent.update(augmented_state, action, learning_reward, next_augmented_state, bootstrap_terminal)
+    else:
+        context.agent.optimize_model()
+
+    return TrainingStepResult(next_raw_state=next_raw_state, next_augmented_state=next_augmented_state, next_q=next_q, synthetic_goal_reward=synthetic_goal_reward, shaping_signal=shaping_signal, episode_done=episode_done, succeeded=succeeded, failed=failed, env_terminated=env_terminated, env_truncated=env_truncated, abstract_changed=abstract_state != abstract_next_state, dfa_changed=q != next_q)
+
+
+def _run_training_episode(context, reset_seed=None):
+    """Run one complete episode and return metrics without writing global histories."""
+    raw_state, _ = context.env.reset(seed=reset_seed)
+    q = _evaluate_initial_automaton_state(raw_state, context.abstract_mdp)
+    if q not in context.state_to_index:
+        raise RuntimeError(f"DFA returned unknown initial state {q!r} after evaluating s0")
+    augmented_state = _augment_state(raw_state, q, context.state_to_index)
+    context.agent.eps = context.histories["epsilons"][-1] if context.histories["epsilons"] else context.agent.eps
+
+    succeeded = context.automaton.is_goal_reached(q)
+    failed = context.automaton.is_failure(q)
+    episode_done = succeeded or failed
+    task_reward = context.goal_reward if succeeded else 0.0
+    shaping_reward = 0.0
+    steps = 0
+    abstract_changes = 0
+    dfa_transitions = 0
+    state_visits = [0] * len(context.automaton_states)
+    state_entries = [0] * len(context.automaton_states)
+    state_visits[context.state_to_index[q]] = 1
+    state_entries[context.state_to_index[q]] = 1
+    transitions = Counter()
+
+    # The initial observation is an entry from the virtual pre-trace state.
+    context.cumulative_state_visits[q] += 1
+    context.cumulative_state_entries[q] += 1
+    if succeeded:
+        context.cumulative_initial_acceptances += 1
+
+    while not episode_done:
+        previous_q = q
+        step = _perform_training_step(context, raw_state, augmented_state, previous_q)
+        state_visits[context.state_to_index[step.next_q]] += 1
+        context.cumulative_state_visits[step.next_q] += 1
+        abstract_changes += int(step.abstract_changed)
+
+        if step.dfa_changed:
+            transition = (previous_q, step.next_q)
+            dfa_transitions += 1
+            state_entries[context.state_to_index[step.next_q]] += 1
+            transitions[transition] += 1
+            context.cumulative_state_entries[step.next_q] += 1
+            context.cumulative_transitions[transition] += 1
+
+        task_reward += step.synthetic_goal_reward
+        shaping_reward += step.shaping_signal
+        steps += 1
+        succeeded = step.succeeded
+        failed = step.failed
+        episode_done = step.episode_done
+        raw_state = step.next_raw_state
+        augmented_state = step.next_augmented_state
+        q = step.next_q
+        context.cumulative_env_terminated += int(step.env_terminated)
+        context.cumulative_env_truncated += int(step.env_truncated)
+
+    # Exploration decays exactly once, so every transition in an episode uses
+    # the same epsilon and the stored value applies to the following episode.
+    next_epsilon = max(context.agent.eps_min, context.agent.eps * context.agent.eps_decay)
+    context.agent.eps = next_epsilon
+    return TrainingEpisodeResult(task_reward=task_reward, shaping_reward=shaping_reward, length=steps, succeeded=succeeded, failed=failed, abstract_changes=abstract_changes, dfa_transitions=dfa_transitions, state_visits=state_visits, state_entries=state_entries, transitions=transitions, next_epsilon=next_epsilon)
+
+
+def _record_training_episode(context, result):
+    """Commit one completed episode atomically to every monitoring history."""
+    histories = context.histories
+    histories["task_rewards"].append(result.task_reward)
+    histories["shaping_rewards"].append(result.shaping_reward)
+    histories["learning_rewards"].append(result.task_reward + result.shaping_reward)
+    histories["epsilons"].append(result.next_epsilon)
+    histories["episode_lengths"].append(result.length)
+    histories["successes"].append(int(result.succeeded))
+    histories["failures"].append(int(result.failed))
+    histories["abstract_changes"].append(result.abstract_changes)
+    histories["dfa_transitions"].append(result.dfa_transitions)
+    histories["transition_counters"].append(result.transitions)
+    context.initial_acceptance_history.append(int(result.length == 0 and result.succeeded))
+
+    tabular_metrics = context.agent.metrics_snapshot() if isinstance(context.agent, TabularQLearner) else {"table_size": np.nan, "visited_states": np.nan, "updated_state_actions": np.nan, "state_action_coverage": np.nan, "positive_updates": np.nan}
+    histories["tabular_table_sizes"].append(tabular_metrics["table_size"])
+    histories["tabular_visited_states"].append(tabular_metrics["visited_states"])
+    histories["tabular_updated_state_actions"].append(tabular_metrics["updated_state_actions"])
+    histories["tabular_state_action_coverage"].append(tabular_metrics["state_action_coverage"])
+    histories["tabular_positive_updates"].append(tabular_metrics["positive_updates"])
+
+    for index in range(len(context.automaton_states)):
+        context.buffer_histories[index].append(context.agent.memory.q_fraction_onehot(index, len(context.automaton_states)))
+        histories["state_visits"][index].append(result.state_visits[index])
+        histories["state_entries"][index].append(result.state_entries[index])
+
+
+def _training_cumulative_counters(context):
+    """Expose cumulative diagnostics in the format expected by the logger."""
+    return {"state_visits": context.cumulative_state_visits, "state_entries": context.cumulative_state_entries, "transitions": context.cumulative_transitions, "initial_acceptances": context.cumulative_initial_acceptances, "env_terminated": context.cumulative_env_terminated, "env_truncated": context.cumulative_env_truncated}
+
+
+def _run_periodic_training_evaluation(context, episode):
+    """Evaluate greedily, append metrics, and replace the best policy if needed."""
+    _write_log(f"\nStarting autonomous greedy evaluation at episode {episode + 1} ({context.eval_episodes} fixed-seed episodes)...\n", context.log_handle)
+    evaluation = _evaluate_agent_greedily(context.agent, context.abstract_mdp, context.eval_episodes, context.goal_reward, context.eval_seed)
+    context.histories["evaluation_steps"].append(episode + 1)
+    context.histories["eval_success_rates"].append(evaluation["success_rate"])
+    context.histories["eval_task_rewards"].append(evaluation["mean_task_reward"])
+    context.histories["eval_episode_lengths"].append(evaluation["mean_episode_length"])
+    context.histories["eval_known_state_fractions"].append(evaluation["known_state_fraction"])
+    known_line = f", known states={evaluation['known_state_fraction']:.1%}" if isinstance(context.agent, TabularQLearner) else ""
+    _write_log(f"[Greedy evaluation at episode {episode + 1} | {context.eval_episodes} fixed-seed episodes]\nsuccess={evaluation['success_rate']:.1%}, failure={evaluation['failure_rate']:.1%}, task reward={evaluation['mean_task_reward']:.3f}, length={evaluation['mean_episode_length']:.1f}{known_line}\nDFA transitions: {_format_counter(evaluation['transition_counts'])}\n", context.log_handle)
+
+    score = _evaluation_score(evaluation)
+    if context.best_evaluation_score is None or score > context.best_evaluation_score:
+        context.best_evaluation_score = score
+        context.best_mean_reward = evaluation["mean_task_reward"]
+        context.best_policy_episode = episode + 1
+        if context.save_policy:
+            _save_named_policy(context.agent, f"best_policy{context.policy_suffix}.{_policy_extension(context.agent)}")
+        _write_log(f"Best policy updated from autonomous greedy evaluation at episode {context.best_policy_episode}.\n", context.log_handle)
+
+
+def _finalize_training(context):
+    """Save the last policy and return the numeric histories exposed by the API."""
+    if context.save_policy:
+        _save_named_policy(context.agent, f"last_policy{context.policy_suffix}.{_policy_extension(context.agent)}")
+        _write_log(f"Last policy saved after episode {context.episodes}. Best greedy evaluation: episode {context.best_policy_episode}, mean task reward={context.best_mean_reward:.3f}\n", context.log_handle)
+    return _build_training_results(context.histories, context.initial_acceptance_history, context.buffer_histories, context.automaton_states, context.best_mean_reward, context.best_policy_episode, context.gamma_shaping)
+
+
+def run_sequential_training(env, agent, abstract_mdp, episodes, goal_reward=10000, save_policy=True, use_shaping=True, gamma_shaping=1.0, log_file=None, log_interval=100, eval_interval=1000, eval_episodes=1000, eval_seed=100000, seed=None, policy_suffix=""):
+    """Train one learner while delegating each lifecycle phase to a focused helper."""
+    context = _initialize_training_context(env, agent, abstract_mdp, episodes, goal_reward, save_policy, use_shaping, gamma_shaping, log_file, log_interval, eval_interval, eval_episodes, eval_seed, policy_suffix)
     try:
         for episode in range(episodes):
             evaluation_due = _is_evaluation_due(episode, episodes, eval_interval)
-            # Reset the environment and consume s0 before selecting the first action.
-            raw_state, _ = env.reset(seed=seed if episode == 0 else None)
-            q = _evaluate_initial_automaton_state(raw_state, abstract_mdp)
-            if q not in state_to_index:
-                raise RuntimeError(f"DFA returned unknown initial state {q!r} after evaluating s0")
-            augmented_state = _augment_state(raw_state, q, state_to_index)
-
-            # Reset counters local to the current episode.
-            succeeded = automaton.is_goal_reached(q)
-            failed = automaton.is_failure(q)
-            episode_done = succeeded or failed
-            episode_steps = 0
-            episode_task_reward = float(goal_reward) if succeeded else 0.0
-            episode_shaping_reward = 0.0
-            episode_abstract_changes = 0
-            episode_dfa_transitions = 0
-            episode_state_visits = [0] * num_states
-            episode_state_visits[state_to_index[q]] = 1
-            # Count s0 as an entry from the virtual pre-trace state.
-            episode_state_entries = [0] * num_states
-            episode_state_entries[state_to_index[q]] = 1
-            episode_transitions = Counter()
-            if succeeded:
-                cumulative_initial_acceptances += 1
-            cumulative_state_visits[q] += 1
-            cumulative_state_entries[q] += 1
-
-            while not episode_done:
-                # Select an action using the single global epsilon.
-                agent.eps = epsilon_history[-1] if epsilon_history else agent.eps
-                action = agent.select_action(augmented_state)
-
-                # The environment reward is intentionally not part of training.
-                next_raw_state, _ignored_env_reward, env_terminated, env_truncated, _ = env.step(action)
-
-                # Map the transition to abstract spatial states.
-                x, y = _abstract_position(raw_state, abstract_mdp)
-                next_x, next_y = _abstract_position(next_raw_state, abstract_mdp)
-                abstract_state = (x, y, q)
-
-                # Advance the DFA using propositions true in the arrival state.
-                truth_assignment = abstract_mdp.get_environment_truth_assignment(next_raw_state)
-                next_q = automaton.get_next_q(q, truth_assignment)
-                if next_q not in state_to_index:
-                    raise RuntimeError(f"DFA returned unknown state {next_q!r} from state {q!r}")
-
-                # Count every arrival in a DFA state, including self-transitions.
-                episode_state_visits[state_to_index[next_q]] += 1
-                cumulative_state_visits[next_q] += 1
-
-                # Track physical abstraction changes separately from DFA changes.
-                abstract_next_state = (next_x, next_y, next_q)
-                abstract_changed = abstract_state != abstract_next_state
-                dfa_changed = next_q != q
-
-                if abstract_changed:
-                    episode_abstract_changes += 1
-                if dfa_changed:
-                    transition = (q, next_q)
-                    episode_dfa_transitions += 1
-                    episode_state_entries[state_to_index[next_q]] += 1
-                    episode_transitions[transition] += 1
-                    cumulative_state_entries[next_q] += 1
-                    cumulative_transitions[transition] += 1
-
-                # Assign the synthetic task reward only on DFA acceptance.
-                synthetic_goal_reward = 0.0
-                if automaton.is_goal_reached(next_q):
-                    synthetic_goal_reward = float(goal_reward)
-                    succeeded = True
-                failed = automaton.is_failure(next_q)
-
-                # Stop data collection on any Gym ending, DFA success, or
-                # irreversible DFA failure.
-                # A truncation (for example Gym's time limit) ends data
-                # collection, but it is not an MDP terminal state: the learner must
-                # still bootstrap from its final observation.
-                episode_done = env_terminated or env_truncated or succeeded or failed
-                bootstrap_terminal = env_terminated or succeeded or failed
-                next_augmented_state = _augment_state(next_raw_state, next_q, state_to_index)
-
-                # Evaluate the potential difference on every environment step.
-                # With gamma_shaping=1, unchanged abstract states yield zero,
-                # reproducing the previous cell-change heuristic exactly.
-                shaping_signal = 0.0
-                if use_shaping:
-                    phi_state = abstract_mdp.v_star.get(abstract_state, 0.0)
-                    phi_next_state = abstract_mdp.v_star.get(abstract_next_state, 0.0)
-                    shaping_signal = gamma_shaping * phi_next_state - phi_state
-
-                # Store the transition and perform one learner update.
-                learning_reward = synthetic_goal_reward + shaping_signal
-                agent.memory.push(augmented_state, action, learning_reward, next_augmented_state, bootstrap_terminal)
-                if isinstance(agent, TabularQLearner):
-                    agent.update(augmented_state, action, learning_reward, next_augmented_state, bootstrap_terminal)
-                else:
-                    agent.optimize_model()
-
-                # Update the episode totals and move to the next state.
-                episode_steps += 1
-                episode_task_reward += synthetic_goal_reward
-                episode_shaping_reward += shaping_signal
-                raw_state = next_raw_state
-                augmented_state = next_augmented_state
-                q = next_q
-
-                # Count Gym endings for diagnostics without using its reward.
-                if env_terminated:
-                    cumulative_env_terminated += 1
-                if env_truncated:
-                    cumulative_env_truncated += 1
-
-            # Decay the single epsilon once at the end of the episode.
-            next_epsilon = max(agent.eps_min, agent.eps * agent.eps_decay)
-            agent.eps = next_epsilon
-
-            # Save the metrics collected for this episode.
-            episode_learning_reward = episode_task_reward + episode_shaping_reward
-            task_reward_history.append(episode_task_reward)
-            shaping_reward_history.append(episode_shaping_reward)
-            learning_reward_history.append(episode_learning_reward)
-            epsilon_history.append(next_epsilon)
-            episode_length_history.append(episode_steps)
-            success_history.append(int(succeeded))
-            failure_history.append(int(failed))
-            initial_acceptance_history.append(int(episode_steps == 0 and succeeded))
-            abstract_change_history.append(episode_abstract_changes)
-            dfa_transition_history.append(episode_dfa_transitions)
-            transition_counter_history.append(episode_transitions)
-            tabular_metrics = agent.metrics_snapshot() if isinstance(agent, TabularQLearner) else {"table_size": np.nan, "visited_states": np.nan, "updated_state_actions": np.nan, "state_action_coverage": np.nan, "positive_updates": np.nan}
-            histories["tabular_table_sizes"].append(tabular_metrics["table_size"])
-            histories["tabular_visited_states"].append(tabular_metrics["visited_states"])
-            histories["tabular_updated_state_actions"].append(tabular_metrics["updated_state_actions"])
-            histories["tabular_state_action_coverage"].append(tabular_metrics["state_action_coverage"])
-            histories["tabular_positive_updates"].append(tabular_metrics["positive_updates"])
-
-            # Record replay-buffer composition, state visits, and entries from other states.
-            for index in range(num_states):
-                buffer_histories[index].append(agent.memory.q_fraction_onehot(index, num_states))
-                state_visit_histories[index].append(episode_state_visits[index])
-                state_entry_histories[index].append(episode_state_entries[index])
-
-            # Print recent and cumulative diagnostics at the requested interval.
+            result = _run_training_episode(context, reset_seed=seed if episode == 0 else None)
+            _record_training_episode(context, result)
             if _should_log(episode, episodes, log_interval) or evaluation_due:
-                cumulative_counters = {"state_visits": cumulative_state_visits, "state_entries": cumulative_state_entries, "transitions": cumulative_transitions, "initial_acceptances": cumulative_initial_acceptances, "env_terminated": cumulative_env_terminated, "env_truncated": cumulative_env_truncated}
-                _write_log(_build_training_log(episode, episodes, log_interval, automaton_states, agent, histories, cumulative_counters), log_handle)
-
+                _write_log(_build_training_log(episode, episodes, log_interval, context.automaton_states, agent, context.histories, _training_cumulative_counters(context)), context.log_handle)
             if evaluation_due:
-                _write_log(f"\nStarting autonomous greedy evaluation at episode {episode + 1} ({eval_episodes} fixed-seed episodes)...\n", log_handle)
-                evaluation = _evaluate_agent_greedily(agent, abstract_mdp, eval_episodes, goal_reward, eval_seed)
-                histories["evaluation_steps"].append(episode + 1)
-                histories["eval_success_rates"].append(evaluation["success_rate"])
-                histories["eval_task_rewards"].append(evaluation["mean_task_reward"])
-                histories["eval_episode_lengths"].append(evaluation["mean_episode_length"])
-                histories["eval_known_state_fractions"].append(evaluation["known_state_fraction"])
-                known_line = f", known states={evaluation['known_state_fraction']:.1%}" if isinstance(agent, TabularQLearner) else ""
-                _write_log(f"[Greedy evaluation at episode {episode + 1} | {eval_episodes} fixed-seed episodes]\nsuccess={evaluation['success_rate']:.1%}, failure={evaluation['failure_rate']:.1%}, task reward={evaluation['mean_task_reward']:.3f}, length={evaluation['mean_episode_length']:.1f}{known_line}\nDFA transitions: {_format_counter(evaluation['transition_counts'])}\n", log_handle)
-                score = _evaluation_score(evaluation)
-                if best_evaluation_score is None or score > best_evaluation_score:
-                    best_evaluation_score = score
-                    best_mean_reward = evaluation["mean_task_reward"]
-                    best_policy_episode = episode + 1
-                    if save_policy:
-                        _save_named_policy(agent, f"best_policy{policy_suffix}.{_policy_extension(agent)}")
-                    _write_log(f"Best policy updated from autonomous greedy evaluation at episode {best_policy_episode}.\n", log_handle)
-
-        # Save the final policy independently from its monitored performance.
-        if save_policy:
-            _save_named_policy(agent, f"last_policy{policy_suffix}.{_policy_extension(agent)}")
-            _write_log(f"Last policy saved after episode {episodes}. Best greedy evaluation: episode {best_policy_episode}, mean task reward={best_mean_reward:.3f}\n", log_handle)
+                _run_periodic_training_evaluation(context, episode)
+        return _finalize_training(context)
     finally:
-        # Always close the log, including when training raises an exception.
-        if log_handle:
-            log_handle.close()
-
-    # Return named histories to avoid ambiguous tuple positions.
-    return _build_training_results(histories, initial_acceptance_history, buffer_histories, automaton_states, best_mean_reward, best_policy_episode, gamma_shaping)
+        # The log must be closed even when the environment or learner raises.
+        if context.log_handle:
+            context.log_handle.close()
 
 
 # ==============================
@@ -874,7 +911,7 @@ if __name__ == "__main__":
     parser.add_argument("--tabular-alpha", type=_learning_rate, default=0.1, help="Learning rate used when --learner tabular is selected.")
     parser.add_argument("--log-interval", type=int, default=100)
     parser.add_argument("--eval-interval", type=_positive_int, default=1000, help="Run autonomous greedy evaluation every N training episodes.")
-    parser.add_argument("--eval-episodes", type=_positive_int, default=50, help="Number of fixed-seed episodes used at each greedy evaluation.")
+    parser.add_argument("--eval-episodes", type=_positive_int, default=1000, help="Number of fixed-seed episodes used at each greedy evaluation.")
     parser.add_argument("--eval-seed", type=int, default=100000, help="First held-out seed reused at every greedy evaluation.")
     parser.add_argument("--plot-window", type=int, default=500)
     parser.add_argument( "--polyak", action=argparse.BooleanOptionalAction, default=True, help="Use Polyak target updates (disable with --no-polyak).", )
