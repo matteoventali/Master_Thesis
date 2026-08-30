@@ -28,6 +28,7 @@ METRIC_LABELS = {
     "episode_lengths": "Episode length",
     "abstract_changes": "Abstract-state changes",
     "dfa_transitions": "DFA transitions",
+    "eval_success_rates": "Evaluation task success rate",
 }
 DEFAULT_METRIC = "learning_rewards"
 METRICS_WITH_EPSILON = {
@@ -36,6 +37,7 @@ METRICS_WITH_EPSILON = {
     "successes",
     "completed_cycles",
 }
+EVALUATION_METRICS = {"eval_success_rates"}
 SEED_FILE_RE = re.compile(r"_seed_-?\d+\.npz$")
 EPSILON_COLOR = "#E6AB02"
 EXPERIMENT_COLORS = (
@@ -120,6 +122,7 @@ class TrainingSummary:
     standard_deviation: np.ndarray
     run_count: int
     source: str
+    steps: np.ndarray
 
 
 def _positive_int(value: str) -> int:
@@ -218,7 +221,10 @@ def _trailing_moving_average(runs: np.ndarray, window: int) -> np.ndarray:
 
 
 def _summary_from_runs(
-    runs: np.ndarray, window: int, source: str
+    runs: np.ndarray,
+    window: int,
+    source: str,
+    steps: np.ndarray | None = None,
 ) -> TrainingSummary:
     smoothed = _trailing_moving_average(runs, window)
     with np.errstate(invalid="ignore"):
@@ -229,7 +235,32 @@ def _summary_from_runs(
         standard_deviation=np.sqrt(variance),
         run_count=runs.shape[0],
         source=source,
+        steps=(
+            np.arange(1, runs.shape[1] + 1, dtype=np.float64)
+            if steps is None
+            else np.asarray(steps, dtype=np.float64)
+        ),
     )
+
+
+def _evaluation_steps(path: Path, length: int) -> np.ndarray:
+    """Load the training episode associated with each greedy evaluation."""
+    try:
+        with np.load(path, allow_pickle=False) as data:
+            if "evaluation_steps_runs" in data:
+                values = np.asarray(data["evaluation_steps_runs"], dtype=np.float64)
+                if values.ndim == 2:
+                    values = np.nanmean(values, axis=0)
+            elif "evaluation_steps" in data:
+                values = np.asarray(data["evaluation_steps"], dtype=np.float64)
+            else:
+                values = np.asarray([])
+    except (OSError, ValueError):
+        values = np.asarray([])
+    if values.ndim == 1 and values.size >= length:
+        return values[:length]
+    # Old archives may contain evaluation values without their checkpoint axis.
+    return np.arange(1, length + 1, dtype=np.float64)
 
 
 def load_training_summary(
@@ -267,10 +298,12 @@ def load_training_summary(
                 -len(item[1].parts),
             ),
         )
-        return _summary_from_runs(runs, window, str(path))
+        steps = _evaluation_steps(path, runs.shape[1]) if metric in EVALUATION_METRICS else None
+        return _summary_from_runs(runs, window, str(path), steps)
 
     seed_files = [path for path in experiment.files if SEED_FILE_RE.search(path.name)]
     seed_runs: list[np.ndarray] = []
+    metric_seed_files: list[Path] = []
     for path in seed_files:
         try:
             with np.load(path, allow_pickle=False) as data:
@@ -278,12 +311,20 @@ def load_training_summary(
                     run = np.asarray(data[metric], dtype=np.float64)
                     if run.ndim == 1 and run.size:
                         seed_runs.append(run)
+                        metric_seed_files.append(path)
         except (OSError, ValueError):
             continue
     if seed_runs:
         shortest = min(run.size for run in seed_runs)
         runs = np.stack([run[:shortest] for run in seed_runs])
-        return _summary_from_runs(runs, window, f"{len(seed_runs)} file seed")
+        steps = (
+            _evaluation_steps(metric_seed_files[0], runs.shape[1])
+            if metric in EVALUATION_METRICS
+            else None
+        )
+        return _summary_from_runs(
+            runs, window, f"{len(seed_runs)} file seed", steps
+        )
 
     # Some older archives saved only precomputed mean and variance.
     mean_key = f"{metric}_mean"
@@ -306,6 +347,11 @@ def load_training_summary(
                             standard_deviation=smoothed_std,
                             run_count=0,
                             source=str(path),
+                            steps=(
+                                _evaluation_steps(path, mean.size)
+                                if metric in EVALUATION_METRICS
+                                else np.arange(1, mean.size + 1, dtype=np.float64)
+                            ),
                         )
         except (OSError, ValueError):
             continue
@@ -317,7 +363,8 @@ def load_training_summary(
             with np.load(path, allow_pickle=False) as data:
                 if metric in data:
                     runs = _as_runs(data[metric], path, metric)
-                    return _summary_from_runs(runs, window, str(path))
+                    steps = _evaluation_steps(path, runs.shape[1]) if metric in EVALUATION_METRICS else None
+                    return _summary_from_runs(runs, window, str(path), steps)
         except (OSError, ValueError):
             continue
     raise ValueError(
@@ -468,6 +515,7 @@ def plot_comparison(
 
         matplotlib.use("Agg")
     import matplotlib.pyplot as plt
+    from matplotlib.ticker import PercentFormatter
 
     summaries = [
         load_training_summary(experiment, metric, window)
@@ -495,7 +543,7 @@ def plot_comparison(
     )
     epsilon_entries: list[tuple[np.ndarray, str, str, str]] = []
     for index, (experiment, summary) in enumerate(zip(experiments, summaries)):
-        episodes = np.arange(1, summary.mean.size + 1)
+        episodes = summary.steps
         color = EXPERIMENT_COLORS[index % len(EXPERIMENT_COLORS)]
         if summary.run_count:
             seed_label = "seed" if summary.run_count == 1 else "seeds"
@@ -568,8 +616,15 @@ def plot_comparison(
             )
 
     metric_label = METRIC_LABELS[metric]
-    axes.set_xlabel("#Episode")
+    axes.set_xlabel(
+        "Training episode at evaluation"
+        if metric in EVALUATION_METRICS
+        else "#Episode"
+    )
     axes.set_ylabel(metric_label)
+    if metric in EVALUATION_METRICS:
+        axes.set_ylim(0.0, 1.0)
+        axes.yaxis.set_major_formatter(PercentFormatter(xmax=1.0))
     for spine in axes.spines.values():
         spine.set_visible(True)
         spine.set_linewidth(0.8)
@@ -674,7 +729,7 @@ def launch_gui(experiments: Sequence[Experiment], results_dir: Path) -> None:
     metric_box.grid(row=0, column=1, sticky="ew", padx=(10, 0))
 
     window_var = tk.IntVar(value=500)
-    ttk.Label(options, text="Episodes in moving average:").grid(
+    ttk.Label(options, text="Samples in moving average:").grid(
         row=1, column=0, sticky="w", pady=(8, 0)
     )
     ttk.Spinbox(options, from_=1, to=100000, textvariable=window_var).grid(
@@ -793,7 +848,7 @@ def build_parser(framework_dir: Path) -> argparse.ArgumentParser:
         "--window",
         type=_positive_int,
         default=500,
-        help="Number of most recent episodes in the moving average (default: 500).",
+        help="Number of most recent samples in the moving average (default: 500).",
     )
     parser.add_argument("--output", type=Path, help="Path of the final PNG.")
     parser.add_argument(
@@ -869,9 +924,14 @@ def main(framework_dir: Path | None = None) -> int:
         for experiment, summary in zip(selected, summaries):
             run_count = summary.run_count or "aggregate"
             run_label = "run" if summary.run_count == 1 else "runs"
+            sample_label = (
+                "evaluation points"
+                if args.metric in EVALUATION_METRICS
+                else "episodes"
+            )
             print(
                 f"- {experiment.name}: {run_count} {run_label}, "
-                f"{summary.mean.size} episodes"
+                f"{summary.mean.size} {sample_label}"
             )
         return 0
 
