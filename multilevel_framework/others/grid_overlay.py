@@ -9,9 +9,16 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Mapping, Sequence
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+FRAMEWORK_DIR = SCRIPT_DIR.parent
+SRC_DIR = FRAMEWORK_DIR / "src"
+if str(SRC_DIR) not in sys.path:
+    sys.path.insert(0, str(SRC_DIR))
 
 import gymnasium as gym
 import matplotlib.pyplot as plt
@@ -24,8 +31,6 @@ from spatial_regions import OBSERVATION_X_BOUNDS, OBSERVATION_Y_BOUNDS, BoxPredi
 from utils import phi_mapping_grid, spatial_grid_boundaries
 
 
-SCRIPT_DIR = Path(__file__).resolve().parent
-FRAMEWORK_DIR = SCRIPT_DIR.parent
 DEFAULT_CONFIG = FRAMEWORK_DIR / "config" / "trajectory.json"
 DEFAULT_ABSTRACTION_CONFIG = FRAMEWORK_DIR / "config" / "abstraction.json"
 

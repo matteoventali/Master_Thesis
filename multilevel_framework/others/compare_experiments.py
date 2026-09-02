@@ -1,4 +1,4 @@
-"""Open the training experiment comparator for this framework."""
+"""Launch the training experiment comparator for this framework."""
 
 from pathlib import Path
 import sys

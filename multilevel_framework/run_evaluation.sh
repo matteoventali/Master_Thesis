@@ -29,4 +29,4 @@ docker run --rm \
   --mount "type=bind,src=$templates_dir,target=/templates,readonly" \
   --workdir /workspace \
   --entrypoint python \
-  "$image_name" /workspace/src/evaluate.py "$@"
+  "$image_name" /workspace/others/evaluate.py "$@"

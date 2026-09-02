@@ -6,8 +6,15 @@
 
 import argparse
 import json
+import sys
 import time
 from pathlib import Path
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+FRAMEWORK_DIR = SCRIPT_DIR.parent
+SRC_DIR = FRAMEWORK_DIR / "src"
+if str(SRC_DIR) not in sys.path:
+    sys.path.insert(0, str(SRC_DIR))
 
 # ==============================
 # External and project imports
@@ -39,8 +46,6 @@ from utils import (
 # Paths and generic helpers
 # ==============================
 
-SCRIPT_DIR = Path(__file__).resolve().parent
-FRAMEWORK_DIR = SCRIPT_DIR.parent
 EXPERIMENTS_DIR = FRAMEWORK_DIR / "results"
 
 
