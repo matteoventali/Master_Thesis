@@ -8,6 +8,7 @@ servers and automated checks.
 from __future__ import annotations
 
 import argparse
+import math
 import re
 import sys
 import textwrap
@@ -49,6 +50,10 @@ EVALUATION_METRICS = {
     "unbiased_eval_success_rates",
     "unbiased_eval_task_rewards",
     "unbiased_eval_completed_cycles",
+}
+PERCENTAGE_METRICS = {
+    "eval_success_rates",
+    "unbiased_eval_success_rates",
 }
 SEED_FILE_RE = re.compile(r"_seed_-?\d+\.npz$")
 EPSILON_COLOR = "#E6AB02"
@@ -521,6 +526,7 @@ def plot_comparison(
     *,
     show: bool,
     show_epsilon: bool = True,
+    panels: bool = False,
 ) -> list[TrainingSummary]:
     """Plot mean trends and a +/- one-standard-deviation variance band."""
     if not experiments:
@@ -551,6 +557,59 @@ def plot_comparison(
             "ytick.direction": "in",
         }
     )
+    if panels:
+        column_count = min(4, len(experiments))
+        row_count = math.ceil(len(experiments) / column_count)
+        figure, panel_axes = plt.subplots(
+            row_count,
+            column_count,
+            figsize=(3.2 * column_count, 2.7 * row_count),
+            sharex=True,
+            sharey=True,
+            constrained_layout=True,
+            squeeze=False,
+        )
+        axes_list = panel_axes.ravel()
+        final_step = max(float(np.nanmax(summary.steps)) for summary in summaries)
+        for index, (experiment, summary) in enumerate(zip(experiments, summaries)):
+            axis = axes_list[index]
+            color = EXPERIMENT_COLORS[index % len(EXPERIMENT_COLORS)]
+            lower = summary.mean - summary.standard_deviation
+            upper = summary.mean + summary.standard_deviation
+            axis.plot(summary.steps, summary.mean, color=color, linewidth=1.7)
+            axis.fill_between(summary.steps, lower, upper, color=color, alpha=0.18)
+            run_text = (
+                f"{summary.run_count} {'seed' if summary.run_count == 1 else 'seeds'}"
+                if summary.run_count
+                else "aggregate statistics"
+            )
+            axis.set_title(f"{experiment.name}\n({run_text})", fontsize=10)
+            axis.set_xlim(0.0, final_step)
+            if metric in PERCENTAGE_METRICS:
+                axis.set_ylim(0.0, 1.0)
+                axis.yaxis.set_major_formatter(PercentFormatter(xmax=1.0))
+            for spine in axis.spines.values():
+                spine.set_visible(True)
+                spine.set_linewidth(0.8)
+            axis.set_axisbelow(True)
+            axis.grid(axis="y", color="#d9d9d9", linewidth=0.6, alpha=0.8)
+        for axis in axes_list[len(experiments):]:
+            axis.set_visible(False)
+        figure.supxlabel(
+            "Training episode at evaluation"
+            if metric in EVALUATION_METRICS
+            else "#Episode"
+        )
+        figure.supylabel(METRIC_LABELS[metric])
+        output = _png_output_path(output)
+        output.parent.mkdir(parents=True, exist_ok=True)
+        figure.savefig(output, dpi=300, bbox_inches="tight")
+        if show:
+            plt.show()
+        else:
+            plt.close(figure)
+        return summaries
+
     figure, axes = plt.subplots(figsize=(7.2, 4.4), constrained_layout=True)
     epsilon_axis = (
         axes.twinx()
@@ -640,7 +699,7 @@ def plot_comparison(
         else "#Episode"
     )
     axes.set_ylabel(metric_label)
-    if metric in EVALUATION_METRICS:
+    if metric in PERCENTAGE_METRICS:
         axes.set_ylim(0.0, 1.0)
         axes.yaxis.set_major_formatter(PercentFormatter(xmax=1.0))
     for spine in axes.spines.values():
@@ -761,14 +820,21 @@ def launch_gui(experiments: Sequence[Experiment], results_dir: Path) -> None:
         variable=show_epsilon_var,
     ).grid(row=2, column=1, sticky="w", padx=(10, 0), pady=(8, 0))
 
+    panels_var = tk.BooleanVar(value=False)
+    ttk.Checkbutton(
+        options,
+        text="One panel per experiment",
+        variable=panels_var,
+    ).grid(row=3, column=1, sticky="w", padx=(10, 0), pady=(8, 0))
+
     output_var = tk.StringVar(
         value=str(default_output_path(results_dir, DEFAULT_METRIC))
     )
     ttk.Label(options, text="PNG file:").grid(
-        row=3, column=0, sticky="w", pady=(8, 0)
+        row=4, column=0, sticky="w", pady=(8, 0)
     )
     output_entry = ttk.Entry(options, textvariable=output_var)
-    output_entry.grid(row=3, column=1, sticky="ew", padx=(10, 8), pady=(8, 0))
+    output_entry.grid(row=4, column=1, sticky="ew", padx=(10, 8), pady=(8, 0))
 
     def choose_output() -> None:
         selected = filedialog.asksaveasfilename(
@@ -782,7 +848,7 @@ def launch_gui(experiments: Sequence[Experiment], results_dir: Path) -> None:
             output_var.set(selected)
 
     ttk.Button(options, text="Browse…", command=choose_output).grid(
-        row=3, column=2, pady=(8, 0)
+        row=4, column=2, pady=(8, 0)
     )
 
     status_var = tk.StringVar(value="Select at least two experiments to compare.")
@@ -822,6 +888,7 @@ def launch_gui(experiments: Sequence[Experiment], results_dir: Path) -> None:
                 output,
                 show=True,
                 show_epsilon=show_epsilon_var.get(),
+                panels=panels_var.get(),
             )
             status_var.set(f"Plot saved to {output}")
         except (OSError, ValueError, RuntimeError) as error:
@@ -873,6 +940,11 @@ def build_parser(framework_dir: Path) -> argparse.ArgumentParser:
         "--no-epsilon",
         action="store_true",
         help="Do not draw epsilon curves or the secondary epsilon axis.",
+    )
+    parser.add_argument(
+        "--panels",
+        action="store_true",
+        help="Draw one subplot per experiment with shared axes.",
     )
     parser.add_argument(
         "--no-gui",
@@ -934,6 +1006,7 @@ def main(framework_dir: Path | None = None) -> int:
                 output,
                 show=not args.no_gui,
                 show_epsilon=not args.no_epsilon,
+                panels=args.panels,
             )
         except (OSError, ValueError, RuntimeError) as error:
             print(f"Error: {error}", file=sys.stderr)
