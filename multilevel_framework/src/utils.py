@@ -267,11 +267,128 @@ def save_multilevel_value_functions(multilevel_mdp, output_root=None):
     return generated_files
 
 
-def save_abstract_learning_curves(multilevel_mdp, output_root=None, smoothing_window=100):
-    """Save the reward and epsilon curve for every Q-learned abstraction."""
+def load_multilevel_postprocess_data(multilevel_mdp, value_root, learning_root):
+    """Restore abstract values and learning histories without recomputing them."""
+    for level_number, abstract_mdp in enumerate(multilevel_mdp.levels, start=1):
+        abstract_mdp.upper_level_mdp = (
+            multilevel_mdp.levels[level_number]
+            if level_number < len(multilevel_mdp.levels)
+            else None
+        )
+        value_path = os.path.join(value_root, f"level{level_number}", "value_function.npz")
+        if not os.path.isfile(value_path):
+            raise FileNotFoundError(
+                f"Saved abstract value function not found for {abstract_mdp.level_name}: {value_path}"
+            )
+
+        with np.load(value_path, allow_pickle=False) as saved:
+            saved_width = int(saved["width"]) if "width" in saved else abstract_mdp.width
+            saved_height = int(saved["height"]) if "height" in saved else abstract_mdp.height
+            if (saved_width, saved_height) != (abstract_mdp.width, abstract_mdp.height):
+                raise ValueError(
+                    f"Saved grid for {abstract_mdp.level_name} is {saved_width}x{saved_height}, "
+                    f"but the archived configuration requires {abstract_mdp.width}x{abstract_mdp.height}"
+                )
+
+            dfa_states = (
+                [int(state) for state in saved["dfa_states"]]
+                if "dfa_states" in saved
+                else [int(state) for state in sorted(abstract_mdp.automaton.states)]
+            )
+            expected_dfa_states = [int(state) for state in sorted(abstract_mdp.automaton.states)]
+            if dfa_states != expected_dfa_states:
+                raise ValueError(
+                    f"Saved DFA states for {abstract_mdp.level_name} do not match the archived task"
+                )
+            q_indices = {state: index for index, state in enumerate(dfa_states)}
+            expected_v_shape = (len(dfa_states), abstract_mdp.height, abstract_mdp.width)
+
+            def restore_values(array, label):
+                dense = np.asarray(array, dtype=np.float64)
+                if dense.shape != expected_v_shape:
+                    raise ValueError(
+                        f"Saved {label} V-function for {abstract_mdp.level_name} has shape "
+                        f"{dense.shape}, expected {expected_v_shape}"
+                    )
+                if not np.isfinite(dense).all():
+                    raise ValueError(
+                        f"Saved {label} V-function for {abstract_mdp.level_name} contains non-finite values"
+                    )
+                return {
+                    (x, y, q): float(dense[q_indices[q], y, x])
+                    for x in range(abstract_mdp.width)
+                    for y in range(abstract_mdp.height)
+                    for q in dfa_states
+                }
+
+            value_key = next(
+                (key for key in ("v_function_unbiased", "unbiased_values", "values") if key in saved),
+                None,
+            )
+            if value_key is None:
+                raise ValueError(f"No unbiased V-function found in {value_path}")
+            abstract_mdp.unbiased_v_star = restore_values(saved[value_key], "unbiased")
+            abstract_mdp.v_star = abstract_mdp.unbiased_v_star
+            abstract_mdp.biased_v_star = (
+                restore_values(saved["biased_values"], "biased")
+                if "biased_values" in saved
+                else None
+            )
+
+            if "q_function_unbiased" in saved:
+                dense_q = np.asarray(saved["q_function_unbiased"], dtype=np.float64)
+                expected_q_shape = expected_v_shape + (len(abstract_mdp.actions),)
+                if dense_q.shape != expected_q_shape or not np.isfinite(dense_q).all():
+                    raise ValueError(
+                        f"Saved unbiased Q-function for {abstract_mdp.level_name} is invalid: "
+                        f"shape {dense_q.shape}, expected {expected_q_shape}"
+                    )
+                abstract_mdp.unbiased_q = [
+                    dense_q[q_indices[q], y, x, :].tolist()
+                    for x, y, q in abstract_mdp.states
+                ]
+            else:
+                abstract_mdp.unbiased_q = None
+
+            def saved_text(key, default):
+                return str(np.asarray(saved[key]).item()) if key in saved else default
+
+            abstract_mdp.solution_algorithm = saved_text("solution_algorithm", "value_iteration")
+            abstract_mdp.value_function_method = saved_text(
+                "value_function_method", abstract_mdp.value_function_method
+            )
+
+        history_path = os.path.join(
+            learning_root, f"level{level_number}", "reward_epsilon_data.npz"
+        )
+        if abstract_mdp.solution_algorithm == "learning":
+            if not os.path.isfile(history_path):
+                raise FileNotFoundError(
+                    f"Saved abstract learning history not found for {abstract_mdp.level_name}: "
+                    f"{history_path}"
+                )
+            with np.load(history_path, allow_pickle=False) as saved_history:
+                abstract_mdp.learning_history = {
+                    key: np.asarray(saved_history[key], dtype=np.float64).copy()
+                    for key in saved_history.files
+                }
+        else:
+            abstract_mdp.learning_history = None
+        print(f" -> Loaded abstract post-processing data: {value_path}")
+
+
+def save_abstract_learning_curves(
+    multilevel_mdp,
+    output_root=None,
+    data_root=None,
+    smoothing_window=100,
+    save_data=True,
+):
+    """Save plots and persistent histories for every Q-learned abstraction."""
     if smoothing_window <= 0:
         raise ValueError("smoothing_window must be greater than zero")
     output_root = output_root or os.path.join("img", "abstract_learning")
+    data_root = data_root or os.path.join("results", "abstract_learning")
     generated_files = []
     for level_number, abstract_mdp in enumerate(multilevel_mdp.levels, start=1):
         learning_history = abstract_mdp.learning_history
@@ -283,8 +400,11 @@ def save_abstract_learning_curves(multilevel_mdp, output_root=None, smoothing_wi
             obsolete_path = os.path.join(level_directory, obsolete_name)
             if os.path.isfile(obsolete_path):
                 os.remove(obsolete_path)
-        data_path = os.path.join(level_directory, "reward_epsilon_data.npz")
-        np.savez_compressed(data_path, **{key: np.asarray(values, dtype=np.float64) for key, values in learning_history.items()})
+        data_directory = os.path.join(data_root, f"level{level_number}")
+        data_path = os.path.join(data_directory, "reward_epsilon_data.npz")
+        if save_data:
+            os.makedirs(data_directory, exist_ok=True)
+            np.savez_compressed(data_path, **{key: np.asarray(values, dtype=np.float64) for key, values in learning_history.items()})
 
         episodes = np.asarray(learning_history["episodes"], dtype=np.float64)
 
@@ -308,8 +428,35 @@ def save_abstract_learning_curves(multilevel_mdp, output_root=None, smoothing_wi
         reward_path = os.path.join(level_directory, "reward_epsilon.png")
         reward_figure.savefig(reward_path, dpi=300, bbox_inches="tight")
         plt.close(reward_figure)
-        generated_files.extend([reward_path, data_path])
+        generated_files.append(reward_path)
+        if save_data:
+            generated_files.append(data_path)
         print(f" -> Abstract reward/epsilon curve saved to: {reward_path}")
+
+        evaluation_steps = np.asarray(learning_history.get("evaluation_steps", []), dtype=np.float64)
+        unbiased_success = np.asarray(
+            learning_history.get("unbiased_full_eval_success_rates", []), dtype=np.float64
+        )
+        if len(evaluation_steps) and len(unbiased_success) == len(evaluation_steps):
+            reward_series = {
+                "Unbiased greedy policy": unbiased_success * abstract_mdp.goal_reward
+            }
+            biased_success = np.asarray(
+                learning_history.get("biased_full_eval_success_rates", []), dtype=np.float64
+            )
+            if len(biased_success) == len(evaluation_steps):
+                reward_series = {
+                    "Biased greedy policy": biased_success * abstract_mdp.goal_reward,
+                    **reward_series,
+                }
+            evaluation_path = os.path.join(level_directory, "evaluation_performance.png")
+            plot_abstract_evaluation_performance(
+                evaluation_steps,
+                reward_series,
+                filename=evaluation_path,
+                title=f"Abstract Greedy Evaluation — {abstract_mdp.level_name}",
+            )
+            generated_files.append(evaluation_path)
     return generated_files
 
 # ==============================
@@ -455,55 +602,70 @@ def plot_tabular_training_diagnostics(table_sizes, updated_state_actions, state_
 
 def plot_evaluation_performance(
     evaluation_steps,
-    success_rates,
     task_rewards,
-    episode_lengths,
     filename="img/evaluation_performance.png",
     title="Greedy Evaluation Performance",
 ):
-    """Plot greedy-evaluation metrics, aggregating multiple seeds when present."""
+    """Plot greedy task reward, aggregating multiple seeds when present."""
     steps = np.asarray(evaluation_steps)
-    success_runs = np.atleast_2d(np.asarray(success_rates, dtype=np.float64))
     reward_runs = np.atleast_2d(np.asarray(task_rewards, dtype=np.float64))
-    length_runs = np.atleast_2d(np.asarray(episode_lengths, dtype=np.float64))
     if steps.ndim == 2:
         if not np.all(steps == steps[0]):
             raise ValueError("evaluation steps must be identical across seeds")
         steps = steps[0]
     if steps.ndim != 1 or len(steps) == 0:
         raise ValueError("evaluation_steps must be a non-empty vector")
-    expected_shape = success_runs.shape
-    if reward_runs.shape != expected_shape or length_runs.shape != expected_shape:
-        raise ValueError("evaluation metrics must share shape (num_seeds, evaluations)")
-    if expected_shape[1] != len(steps):
-        raise ValueError("evaluation metrics must contain one value per evaluation step")
+    if reward_runs.shape[1] != len(steps):
+        raise ValueError("task rewards must contain one value per evaluation step")
 
     _prepare_plot_path(filename)
-    fig, axes = plt.subplots(3, 1, figsize=(7.2, 8.0), sharex=True, constrained_layout=True)
-    series = (
-        (success_runs, "Success rate", (0.0, 1.0), LEARNING_REWARD_COLOR),
-        (reward_runs, "Mean task reward", None, TASK_REWARD_COLOR),
-        (length_runs, "Mean episode length", None, SERIES_COLORS[2]),
-    )
-    for axis, (runs, ylabel, limits, color) in zip(axes, series):
-        mean = np.mean(runs, axis=0)
-        std = np.std(runs, axis=0)
-        axis.plot(steps, mean, color=color, linewidth=1.8)
-        if runs.shape[0] > 1:
-            lower = mean - std
-            upper = mean + std
-            if limits is not None:
-                lower = np.clip(lower, *limits)
-                upper = np.clip(upper, *limits)
-            axis.fill_between(steps, lower, upper, color=color, alpha=0.18, linewidth=0)
-        axis.set_ylabel(ylabel)
-        if limits is not None:
-            axis.set_ylim(*limits)
-        _style_paper_axis(axis)
-    axes[-1].set_xlabel("#Training episode")
+    fig, axis = plt.subplots(figsize=(7.2, 4.4), constrained_layout=True)
+    mean = np.mean(reward_runs, axis=0)
+    std = np.std(reward_runs, axis=0)
+    axis.plot(steps, mean, color=TASK_REWARD_COLOR, linewidth=1.8)
+    if reward_runs.shape[0] > 1:
+        axis.fill_between(steps, mean - std, mean + std, color=TASK_REWARD_COLOR, alpha=0.18, linewidth=0)
+    axis.set_xlabel("#Training episode")
+    axis.set_ylabel("Mean task reward")
+    _style_paper_axis(axis)
     fig.suptitle(title)
     fig.savefig(filename, dpi=300, bbox_inches="tight")
     print(f"\n>>> Evaluation performance plot saved to: {filename}")
+    plt.close(fig)
+
+
+def plot_abstract_evaluation_performance(
+    evaluation_steps,
+    reward_series,
+    filename="img/evaluation_performance.png",
+    title="Abstract Greedy Evaluation Performance",
+):
+    """Plot full-task greedy rewards from the automaton's initial state."""
+    steps = np.asarray(evaluation_steps, dtype=np.float64)
+    if steps.ndim != 1 or len(steps) == 0:
+        raise ValueError("evaluation_steps must be a non-empty vector")
+    if not reward_series:
+        raise ValueError("reward_series must contain at least one policy")
+    _prepare_plot_path(filename)
+    fig, axis = plt.subplots(figsize=(7.2, 4.4), constrained_layout=True)
+    for index, (label, rewards) in enumerate(reward_series.items()):
+        values = np.asarray(rewards, dtype=np.float64)
+        if values.shape != steps.shape:
+            raise ValueError(f"{label} rewards must contain one value per evaluation step")
+        axis.plot(
+            steps,
+            values,
+            color=SERIES_COLORS[index % len(SERIES_COLORS)],
+            linewidth=1.8,
+            label=label,
+        )
+    axis.set_xlabel("#Abstract training episode")
+    axis.set_ylabel("Mean task reward")
+    _style_paper_axis(axis)
+    axis.legend(frameon=False)
+    fig.suptitle(title)
+    fig.savefig(filename, dpi=300, bbox_inches="tight")
+    print(f" -> Abstract evaluation performance saved to: {filename}")
     plt.close(fig)
 
 def plot_buffer_variance(buffer_histories_runs, window_size=100, filename="img/buffer_variance.png", state_labels=None, title="Replay Buffer Composition Across Seeds"):

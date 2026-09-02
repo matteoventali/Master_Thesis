@@ -26,6 +26,7 @@ from agent import HierarchicalDQNLearner, TabularQLearner
 from automaton_validator import validate_automaton
 from spatial_regions import load_task_propositions
 from utils import (
+    load_multilevel_postprocess_data,
     phi_mapping_sequential,
     plot_buffer_fractions,
     plot_buffer_variance,
@@ -824,16 +825,28 @@ def main(args):
         bellman_summary += f" (alpha={args.bellman_alpha})"
     print( "=== TEMPORAL TASK TRAINING (single epsilon) ===\n" f"Learner: {args.learner}\n" f"Task type: {automaton.task_type}\n" f"Task: {automaton.formula_str}\n" f"Regions: { {name: region.as_dict() for name, region in regions.items()} }\n" f"Predicates: { {name: predicate.as_dict() for name, predicate in spatial_predicates.items()} }\n" f"Abstractions: {level_summary}\n" "Inter-level shaping: gamma*Phi(next)-Phi(state)\n" f"Training gamma_shaping: {args.gamma_shaping}\n" f"Stochastic Bellman update: {bellman_summary}\n" "Automaton coordinates and training potential: level1\n" f"Automaton: states={automaton.states}, initial={automaton.initial_state}, " f"accepting={sorted(automaton.accepting_states)}, failure={sorted(automaton.failure_states)}, continuing={automaton.is_continuing}\n" "Gym reward is ignored by design.\n" f"{validation_report.format()}" )
 
-    if not args.post_process:
-        automaton.render_graph(directory=image_dir)
+    automaton.render_graph(directory=image_dir)
 
-    # Heatmaps depend only on the saved task configuration, not on agent training.
+    # Build the hierarchy, then either solve it or restore its saved outputs.
     multilevel_mdp = MultiLevelWaypointMDP( regions=task_propositions, ltlf_automaton=automaton, abstraction_config=abstraction_config, gamma=gamma, goal_reward=goal_reward, )
-    multilevel_mdp.compute_value_functions(learning_log_dir=os.path.join(log_dir, "abstract_learning"))
-    save_multilevel_value_functions(multilevel_mdp, output_root=os.path.join(data_dir, "abstract_value_functions"))
+    if args.post_process:
+        load_multilevel_postprocess_data(
+            multilevel_mdp,
+            value_root=os.path.join(data_dir, "abstract_value_functions"),
+            learning_root=os.path.join(data_dir, "abstract_learning"),
+        )
+    else:
+        multilevel_mdp.compute_value_functions(learning_log_dir=os.path.join(log_dir, "abstract_learning"))
+        save_multilevel_value_functions(multilevel_mdp, output_root=os.path.join(data_dir, "abstract_value_functions"))
+    save_abstract_learning_curves(
+        multilevel_mdp,
+        output_root=os.path.join(image_dir, "abstract_learning"),
+        data_root=os.path.join(data_dir, "abstract_learning"),
+        smoothing_window=args.plot_window,
+        save_data=not args.post_process,
+    )
     if not args.no_heatmaps:
         save_multilevel_heatmaps( multilevel_mdp, filename_prefix="single_epsilon_exp", output_root=os.path.join(image_dir, "heatmaps"), annotate_cells=args.heatmap_annotation, )
-    save_abstract_learning_curves(multilevel_mdp, output_root=os.path.join(image_dir, "abstract_learning"), smoothing_window=args.plot_window)
     abstract_mdp = multilevel_mdp.primary_mdp
 
     if not args.post_process:
@@ -875,16 +888,12 @@ def main(args):
         key in data
         for key in (
             "evaluation_steps",
-            "eval_success_rates",
             "eval_task_rewards",
-            "eval_episode_lengths",
         )
     )
     if has_evaluations:
         evaluation_steps_runs = data["evaluation_steps_runs"] if "evaluation_steps_runs" in data else data["evaluation_steps"][np.newaxis, ...]
-        eval_success_runs = data["eval_success_rates_runs"] if "eval_success_rates_runs" in data else data["eval_success_rates"][np.newaxis, ...]
         eval_reward_runs = data["eval_task_rewards_runs"] if "eval_task_rewards_runs" in data else data["eval_task_rewards"][np.newaxis, ...]
-        eval_length_runs = data["eval_episode_lengths_runs"] if "eval_episode_lengths_runs" in data else data["eval_episode_lengths"][np.newaxis, ...]
     for obsolete_name in ("buffer_fractions_single_epsilon.png", "reward_breakdown_single_epsilon.png"):
         (Path(plot_dir) / obsolete_name).unlink(missing_ok=True)
     for run_index, (run_seed, task_rewards, learning_rewards, epsilon_history) in enumerate(zip(seed_values, task_reward_runs, learning_reward_runs, epsilon_runs)):
@@ -892,12 +901,12 @@ def main(args):
         os.makedirs(seed_plot_dir, exist_ok=True)
         plot_shaping_reward_breakdown(task_rewards, learning_rewards, epsilon_history, window_size=args.plot_window, filename=f"{seed_plot_dir}/reward_breakdown_single_epsilon.png", title=f"Reward Breakdown — Seed {int(run_seed)}")
         if has_evaluations:
-            plot_evaluation_performance(evaluation_steps_runs[run_index], eval_success_runs[run_index], eval_reward_runs[run_index], eval_length_runs[run_index], filename=f"{seed_plot_dir}/evaluation_performance.png", title=f"Greedy Evaluation — Seed {int(run_seed)}")
+            plot_evaluation_performance(evaluation_steps_runs[run_index], eval_reward_runs[run_index], filename=f"{seed_plot_dir}/evaluation_performance.png", title=f"Greedy Evaluation — Seed {int(run_seed)}")
         if run_index < len(buffer_runs):
             plot_buffer_fractions(buffer_runs[run_index], filename=f"{seed_plot_dir}/buffer_fractions_single_epsilon.png", window_size=args.plot_window, state_labels=data["automaton_states"], title=f"Replay Buffer Composition — Seed {int(run_seed)}")
     plot_training_variance( learning_reward_runs, window_size=args.plot_window, filename=f"{plot_dir}/training_variance_single_epsilon.png", epsilon_histories=epsilon_runs, )
     if has_evaluations:
-        plot_evaluation_performance(evaluation_steps_runs, eval_success_runs, eval_reward_runs, eval_length_runs, filename=f"{plot_dir}/evaluation_performance.png", title="Greedy Evaluation Across Seeds")
+        plot_evaluation_performance(evaluation_steps_runs, eval_reward_runs, filename=f"{plot_dir}/evaluation_performance.png", title="Greedy Evaluation Across Seeds")
     plot_buffer_variance(buffer_runs, window_size=args.plot_window, filename=f"{plot_dir}/buffer_variance_single_epsilon.png", state_labels=data["automaton_states"])
     tabular_table_runs = data["tabular_table_sizes_runs"] if "tabular_table_sizes_runs" in data else data["tabular_table_sizes"][np.newaxis, ...] if "tabular_table_sizes" in data else None
     if tabular_table_runs is not None and np.isfinite(tabular_table_runs).any():
