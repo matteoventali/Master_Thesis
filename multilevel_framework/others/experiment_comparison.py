@@ -620,6 +620,8 @@ def plot_comparison(
             )
 
     metric_label = METRIC_LABELS[metric]
+    final_step = max(float(np.nanmax(summary.steps)) for summary in summaries)
+    axes.set_xlim(0.0, final_step)
     axes.set_xlabel(
         "Training episode at evaluation"
         if metric in EVALUATION_METRICS
