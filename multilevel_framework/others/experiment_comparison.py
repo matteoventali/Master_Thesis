@@ -29,6 +29,11 @@ METRIC_LABELS = {
     "abstract_changes": "Abstract-state changes",
     "dfa_transitions": "DFA transitions",
     "eval_success_rates": "Evaluation task success rate",
+    "eval_task_rewards": "Evaluation task reward",
+    "eval_completed_cycles": "Evaluation completed cycles",
+    "unbiased_eval_success_rates": "Unbiased evaluation success rate",
+    "unbiased_eval_task_rewards": "Unbiased evaluation task reward",
+    "unbiased_eval_completed_cycles": "Unbiased evaluation completed cycles",
 }
 DEFAULT_METRIC = "learning_rewards"
 METRICS_WITH_EPSILON = {
@@ -37,7 +42,14 @@ METRICS_WITH_EPSILON = {
     "successes",
     "completed_cycles",
 }
-EVALUATION_METRICS = {"eval_success_rates"}
+EVALUATION_METRICS = {
+    "eval_success_rates",
+    "eval_task_rewards",
+    "eval_completed_cycles",
+    "unbiased_eval_success_rates",
+    "unbiased_eval_task_rewards",
+    "unbiased_eval_completed_cycles",
+}
 SEED_FILE_RE = re.compile(r"_seed_-?\d+\.npz$")
 EPSILON_COLOR = "#E6AB02"
 EXPERIMENT_COLORS = (

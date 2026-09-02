@@ -43,9 +43,10 @@ class ReplayBuffer:
         self.phase_counts = np.zeros(num_phases, dtype=np.int64)
         self.position = 0
 
-    def push(self, state, action, reward, next_state, done):
+    def push(self, state, action, reward, next_state, done, task_reward=None):
         """Insert a transition and update DFA-state counts in constant time."""
-        transition = (state, action, reward, next_state, done)
+        task_reward = reward if task_reward is None else task_reward
+        transition = (state, action, reward, task_reward, next_state, done)
         phase_index = (
             int(np.argmax(state[-self.num_phases:]))
             if self.num_phases > 0
@@ -69,8 +70,13 @@ class ReplayBuffer:
     def sample(self, batch_size):
         """Sample transitions efficiently from the indexable ring buffer."""
         batch = ran.sample(self.buffer, batch_size)
-        state, action, reward, next_state, done = map(np.array, zip(*batch))
+        state, action, reward, _task_reward, next_state, done = map(np.array, zip(*batch))
         return state, action, reward, next_state, done
+
+    def sample_dual(self, batch_size):
+        """Sample one batch containing shaped and original task rewards."""
+        batch = ran.sample(self.buffer, batch_size)
+        return tuple(map(np.array, zip(*batch)))
 
     def __len__(self):
         return len(self.buffer)
@@ -144,10 +150,13 @@ class HierarchicalDQNLearner:
                 q_values = self.policy_net(state_tensor)
                 return q_values.argmax(dim=1).item()
 
-    def optimize_model(self):
-        if len(self.memory) < self.batch_size: return
-            
-        states, actions, rewards, next_states, dones = self.memory.sample(self.batch_size)
+    def optimize_model(self, batch=None):
+        if batch is None:
+            if len(self.memory) < self.batch_size:
+                return
+            batch = self.memory.sample(self.batch_size)
+
+        states, actions, rewards, next_states, dones = batch
         
         states = torch.FloatTensor(states).to(self.device)
         actions = torch.LongTensor(actions).unsqueeze(1).to(self.device)

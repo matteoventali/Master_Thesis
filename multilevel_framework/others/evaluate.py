@@ -42,7 +42,7 @@ from utils import (
 
 EXPERIMENTS_DIR = FRAMEWORK_DIR / "results"
 SEEDED_POLICY_RE = re.compile(
-    r"^(best|last)_policy(?:_seed_(-?\d+))?\.(?:pt|pth|ckpt|pkl)$",
+    r"^(best|last)(?:_(unbiased))?_policy(?:_seed_(-?\d+))?\.(?:pt|pth|ckpt|pkl)$",
     re.IGNORECASE,
 )
 
@@ -66,6 +66,8 @@ def _resolve_policy_path(policy, policy_dir):
         policy_root / supplied_path,
         policy_root / "best" / supplied_path,
         policy_root / "last" / supplied_path,
+        policy_root / "unbiased" / "best" / supplied_path,
+        policy_root / "unbiased" / "last" / supplied_path,
     ):
         if policy_path.is_file():
             return policy_path.resolve()
@@ -279,8 +281,14 @@ def plot_comparison(results, window_size, output_dir):
 
 def print_best_last_summary(results, task_description):
     """Print the task-appropriate aggregate metric across training seeds."""
-    groups = {"best": [], "last": []}
-    seeds = {"best": set(), "last": set()}
+    groups = {
+        "primary": {"best": [], "last": []},
+        "unbiased": {"best": [], "last": []},
+    }
+    seeds = {
+        "primary": {"best": set(), "last": set()},
+        "unbiased": {"best": set(), "last": set()},
+    }
     is_continuing = bool(results[0]["is_continuing"])
     if any(bool(result["is_continuing"]) != is_continuing for result in results):
         raise ValueError("All policies in one aggregate evaluation must use the same task type")
@@ -288,57 +296,70 @@ def print_best_last_summary(results, task_description):
         match = SEEDED_POLICY_RE.fullmatch(result["policy"])
         if match is None:
             continue
-        group, seed_text = match.groups()
-        group = group.lower()
+        category, unbiased_marker, seed_text = match.groups()
+        category = category.lower()
+        learner = "unbiased" if unbiased_marker else "primary"
         episode_count = len(result["task_returns"])
         metric = (
             float(np.mean(result["completed_cycles"]))
             if is_continuing
             else float(result["successes"]) / episode_count
         )
-        groups[group].append(metric)
+        groups[learner][category].append(metric)
         if seed_text is not None:
-            seeds[group].add(int(seed_text))
+            seeds[learner][category].add(int(seed_text))
 
-    if not groups["best"] or not groups["last"]:
+    available_learners = [
+        learner for learner, categories in groups.items()
+        if categories["best"] or categories["last"]
+    ]
+    if not available_learners:
         return
-    if len(groups["best"]) != len(groups["last"]):
-        raise ValueError(
-            "Best and last aggregate evaluation must contain the same number of policies: "
-            f"best={len(groups['best'])}, last={len(groups['last'])}"
-        )
-    if seeds["best"] or seeds["last"]:
-        if seeds["best"] != seeds["last"]:
+    for learner in available_learners:
+        learner_groups = groups[learner]
+        learner_seeds = seeds[learner]
+        if len(learner_groups["best"]) != len(learner_groups["last"]):
             raise ValueError(
-                "Best and last aggregate evaluation must contain the same training seeds: "
-                f"best={sorted(seeds['best'])}, last={sorted(seeds['last'])}"
+                f"{learner.capitalize()} best and last evaluation must contain the same "
+                f"number of policies: best={len(learner_groups['best'])}, "
+                f"last={len(learner_groups['last'])}"
             )
+        if learner_seeds["best"] or learner_seeds["last"]:
+            if learner_seeds["best"] != learner_seeds["last"]:
+                raise ValueError(
+                    f"{learner.capitalize()} best and last evaluation must contain the same "
+                    f"training seeds: best={sorted(learner_seeds['best'])}, "
+                    f"last={sorted(learner_seeds['last'])}"
+                )
 
     def aggregate(values):
         values = np.asarray(values, dtype=np.float64)
         return float(np.mean(values)), float(np.std(values))
 
-    best_mean, best_std = aggregate(groups["best"])
-    last_mean, last_std = aggregate(groups["last"])
-    run_count = len(groups["best"])
     table_task = task_description.replace("|", "\\|")
     metric_label = "mean cycles per episode" if is_continuing else "success rate"
-    if is_continuing:
-        best_value = f"{best_mean:.3f} ± {best_std:.3f}"
-        last_value = f"{last_mean:.3f} ± {last_std:.3f}"
-    else:
-        best_value = f"{best_mean:.2%} ± {best_std:.2%}"
-        last_value = f"{last_mean:.2%} ± {last_std:.2%}"
     print("\n=== AGGREGATE POLICY EVALUATION ===")
     print(
-        f"| Task | Training seeds | Best policy {metric_label} | "
+        f"| Task | Learner | Training seeds | Best policy {metric_label} | "
         f"Last policy {metric_label} |"
     )
-    print("|---|---:|---:|---:|")
-    print(
-        f"| {table_task} | {run_count} | "
-        f"{best_value} | {last_value} |"
-    )
+    print("|---|---|---:|---:|---:|")
+    for learner in available_learners:
+        best_mean, best_std = aggregate(groups[learner]["best"])
+        last_mean, last_std = aggregate(groups[learner]["last"])
+        if is_continuing:
+            best_value = f"{best_mean:.3f} ± {best_std:.3f}"
+            last_value = f"{last_mean:.3f} ± {last_std:.3f}"
+        else:
+            best_value = f"{best_mean:.2%} ± {best_std:.2%}"
+            last_value = f"{last_mean:.2%} ± {last_std:.2%}"
+        learner_label = "Unbiased" if learner == "unbiased" else (
+            "Biased" if "unbiased" in available_learners else "Primary"
+        )
+        print(
+            f"| {table_task} | {learner_label} | {len(groups[learner]['best'])} | "
+            f"{best_value} | {last_value} |"
+        )
 
 
 # ==============================
@@ -436,29 +457,32 @@ def _discover_policies(experiment_dir):
     """Return all best and last checkpoints stored by the trainer."""
     extensions = {".pt", ".pth", ".ckpt", ".pkl"}
     policies = []
-    for category in ("best", "last"):
-        directory = experiment_dir / "policy" / category
-        if directory.is_dir():
-            policies.extend(
-                sorted(
-                    path for path in directory.iterdir()
-                    if path.is_file() and path.suffix.lower() in extensions
+    for learner_directory in (experiment_dir / "policy", experiment_dir / "policy" / "unbiased"):
+        for category in ("best", "last"):
+            directory = learner_directory / category
+            if directory.is_dir():
+                policies.extend(
+                    sorted(
+                        path for path in directory.iterdir()
+                        if path.is_file() and path.suffix.lower() in extensions
+                    )
                 )
-            )
     if not policies:
         raise FileNotFoundError(f"No best/last policies found under {experiment_dir / 'policy'}")
     return policies
 
 
 def _is_aggregate_policy_selection(policies):
-    """Return true when every selected checkpoint belongs to best/last groups."""
-    groups = set()
+    """Return true when every represented learner has both best and last policies."""
+    groups = {"primary": set(), "unbiased": set()}
     for policy in policies:
         match = SEEDED_POLICY_RE.fullmatch(Path(policy).name)
         if match is None:
             return False
-        groups.add(match.group(1).lower())
-    return groups == {"best", "last"}
+        learner = "unbiased" if match.group(2) else "primary"
+        groups[learner].add(match.group(1).lower())
+    represented_groups = [categories for categories in groups.values() if categories]
+    return bool(represented_groups) and all(categories == {"best", "last"} for categories in represented_groups)
 
 
 def parse_args():

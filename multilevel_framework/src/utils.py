@@ -603,10 +603,11 @@ def plot_tabular_training_diagnostics(table_sizes, updated_state_actions, state_
 def plot_evaluation_performance(
     evaluation_steps,
     task_rewards,
+    unbiased_task_rewards=None,
     filename="img/evaluation_performance.png",
     title="Greedy Evaluation Performance",
 ):
-    """Plot greedy task reward, aggregating multiple seeds when present."""
+    """Plot greedy task reward for the behavior learner and optional observer."""
     steps = np.asarray(evaluation_steps)
     reward_runs = np.atleast_2d(np.asarray(task_rewards, dtype=np.float64))
     if steps.ndim == 2:
@@ -618,16 +619,28 @@ def plot_evaluation_performance(
     if reward_runs.shape[1] != len(steps):
         raise ValueError("task rewards must contain one value per evaluation step")
 
+    unbiased_runs = None
+    if unbiased_task_rewards is not None:
+        unbiased_runs = np.atleast_2d(np.asarray(unbiased_task_rewards, dtype=np.float64))
+        if unbiased_runs.shape != reward_runs.shape:
+            raise ValueError("biased and unbiased task rewards must have the same shape")
+
     _prepare_plot_path(filename)
     fig, axis = plt.subplots(figsize=(7.2, 4.4), constrained_layout=True)
-    mean = np.mean(reward_runs, axis=0)
-    std = np.std(reward_runs, axis=0)
-    axis.plot(steps, mean, color=TASK_REWARD_COLOR, linewidth=1.8)
-    if reward_runs.shape[0] > 1:
-        axis.fill_between(steps, mean - std, mean + std, color=TASK_REWARD_COLOR, alpha=0.18, linewidth=0)
+    series = [("Biased greedy policy" if unbiased_runs is not None else None, reward_runs, LEARNING_REWARD_COLOR if unbiased_runs is not None else TASK_REWARD_COLOR)]
+    if unbiased_runs is not None:
+        series.append(("Unbiased greedy policy", unbiased_runs, TASK_REWARD_COLOR))
+    for label, runs, color in series:
+        mean = np.mean(runs, axis=0)
+        std = np.std(runs, axis=0)
+        axis.plot(steps, mean, color=color, linewidth=1.8, label=label)
+        if runs.shape[0] > 1:
+            axis.fill_between(steps, mean - std, mean + std, color=color, alpha=0.18, linewidth=0)
     axis.set_xlabel("#Training episode")
     axis.set_ylabel("Mean task reward")
     _style_paper_axis(axis)
+    if unbiased_runs is not None:
+        axis.legend(frameon=False)
     fig.suptitle(title)
     fig.savefig(filename, dpi=300, bbox_inches="tight")
     print(f"\n>>> Evaluation performance plot saved to: {filename}")

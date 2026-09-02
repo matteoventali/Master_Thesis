@@ -236,7 +236,7 @@ def _write_log(message, log_handle=None):
         log_handle.flush()
 
 
-def _write_run_header(log_handle, episodes, use_shaping, goal_reward, abstract_mdp, automaton_states, gamma_shaping, eval_interval, eval_episodes, eval_seed):
+def _write_run_header(log_handle, episodes, use_shaping, goal_reward, abstract_mdp, automaton_states, gamma_shaping, eval_interval, eval_episodes, eval_seed, has_unbiased_learner):
     """Write the configuration and DFA metadata at the beginning of a training run."""
     if not log_handle:
         return
@@ -246,6 +246,7 @@ def _write_run_header(log_handle, episodes, use_shaping, goal_reward, abstract_m
         "\n=== NEW RUN ===\n"
         f"episodes={episodes}, shaping={use_shaping}, goal_reward={goal_reward}, gamma={abstract_mdp.gamma}\n"
         f"gamma_shaping={gamma_shaping}, shaping_formula={shaping_formula}\n"
+        f"ground_unbiased_learner={has_unbiased_learner}\n"
         f"eval_interval={eval_interval}, eval_episodes={eval_episodes}, eval_seed={eval_seed}\n"
         f"inter_level_shaping={abstract_mdp.upper_level_mdp is not None}, "
         "inter_level_formula=gamma*Phi(next)-Phi(state)\n"
@@ -314,7 +315,7 @@ def _build_training_log(episode, episodes, log_interval, automaton_states, agent
 
 def _save_named_policy(agent, policy_name):
     """Save the current policy using a stable descriptive filename."""
-    category = "best" if policy_name.startswith("best_policy") else "last"
+    category = "best" if policy_name.startswith("best_") else "last"
     os.makedirs(os.path.join(agent.policy_dir, category), exist_ok=True)
     agent.policy_name = os.path.join(category, policy_name)
     agent._save_policy()
@@ -423,9 +424,9 @@ def _validate_training_setup(automaton, state_to_index, episodes, log_interval, 
         raise ValueError("eval_episodes must be greater than zero")
 
 
-def _build_training_results(histories, initial_acceptance_history, buffer_histories, automaton_states, best_mean_reward, best_policy_episode, gamma_shaping):
+def _build_training_results(histories, initial_acceptance_history, buffer_histories, automaton_states, best_mean_reward, best_policy_episode, gamma_shaping, include_unbiased=False, best_unbiased_mean_reward=-np.inf, best_unbiased_policy_episode=0):
     """Select and name the numeric histories returned by the training loop."""
-    return {
+    results = {
         "task_rewards": histories["task_rewards"],
         "learning_rewards": histories["learning_rewards"],
         "shaping_rewards": histories["shaping_rewards"],
@@ -457,6 +458,17 @@ def _build_training_results(histories, initial_acceptance_history, buffer_histor
         "tabular_state_action_coverage": histories["tabular_state_action_coverage"],
         "tabular_positive_updates": histories["tabular_positive_updates"],
     }
+    if include_unbiased:
+        results.update({
+            "best_unbiased_mean_eval_task_reward": best_unbiased_mean_reward,
+            "best_unbiased_policy_episode": best_unbiased_policy_episode,
+            "unbiased_eval_success_rates": histories["unbiased_eval_success_rates"],
+            "unbiased_eval_task_rewards": histories["unbiased_eval_task_rewards"],
+            "unbiased_eval_episode_lengths": histories["unbiased_eval_episode_lengths"],
+            "unbiased_eval_completed_cycles": histories["unbiased_eval_completed_cycles"],
+            "unbiased_eval_known_state_fractions": histories["unbiased_eval_known_state_fractions"],
+        })
+    return results
 
 
 # ==============================
@@ -469,6 +481,7 @@ class TrainingContext:
 
     env: object
     agent: object
+    unbiased_agent: object
     abstract_mdp: object
     automaton: object
     automaton_states: list
@@ -496,6 +509,9 @@ class TrainingContext:
     best_evaluation_score: tuple | None = None
     best_mean_reward: float = -np.inf
     best_policy_episode: int = 0
+    best_unbiased_evaluation_score: tuple | None = None
+    best_unbiased_mean_reward: float = -np.inf
+    best_unbiased_policy_episode: int = 0
 
 
 @dataclass(frozen=True)
@@ -547,11 +563,14 @@ def _create_training_histories(automaton_states):
         "tabular_updated_state_actions": [], "tabular_state_action_coverage": [], "tabular_positive_updates": [],
         "evaluation_steps": [], "eval_success_rates": [], "eval_task_rewards": [],
         "eval_episode_lengths": [], "eval_completed_cycles": [], "eval_known_state_fractions": [],
+        "unbiased_eval_success_rates": [], "unbiased_eval_task_rewards": [],
+        "unbiased_eval_episode_lengths": [], "unbiased_eval_completed_cycles": [],
+        "unbiased_eval_known_state_fractions": [],
     }
     return histories, [], [[] for _ in automaton_states]
 
 
-def _initialize_training_context(env, agent, abstract_mdp, episodes, goal_reward, save_policy, use_shaping, gamma_shaping, log_file, log_interval, eval_interval, eval_episodes, eval_seed, policy_suffix):
+def _initialize_training_context(env, agent, abstract_mdp, episodes, goal_reward, save_policy, use_shaping, gamma_shaping, log_file, log_interval, eval_interval, eval_episodes, eval_seed, policy_suffix, unbiased_agent):
     """Validate one run and allocate the state shared by all training phases."""
     automaton = abstract_mdp.automaton
     automaton_states = list(automaton.states)
@@ -560,9 +579,17 @@ def _initialize_training_context(env, agent, abstract_mdp, episodes, goal_reward
     if not 0.0 < gamma_shaping <= 1.0:
         raise ValueError("gamma_shaping must be in the interval (0, 1]")
     histories, initial_acceptance_history, buffer_histories = _create_training_histories(automaton_states)
+    if unbiased_agent is not None:
+        if not use_shaping:
+            raise ValueError("An unbiased observer is redundant when the primary learner does not use shaping")
+        if isinstance(agent, TabularQLearner) != isinstance(unbiased_agent, TabularQLearner):
+            raise TypeError("The biased and unbiased ground learners must use the same algorithm")
+        if not isinstance(agent, TabularQLearner) and agent.batch_size != unbiased_agent.batch_size:
+            raise ValueError("The biased and unbiased ground learners must use the same batch size")
+        unbiased_agent.memory = agent.memory
     log_handle = open(log_file, "a", encoding="utf-8") if log_file else None
-    context = TrainingContext(env=env, agent=agent, abstract_mdp=abstract_mdp, automaton=automaton, automaton_states=automaton_states, state_to_index=state_to_index, episodes=episodes, goal_reward=float(goal_reward), save_policy=save_policy, use_shaping=use_shaping, gamma_shaping=gamma_shaping, log_interval=log_interval, eval_interval=eval_interval, eval_episodes=eval_episodes, eval_seed=eval_seed, policy_suffix=policy_suffix, histories=histories, initial_acceptance_history=initial_acceptance_history, buffer_histories=buffer_histories, cumulative_state_visits=Counter(), cumulative_state_entries=Counter(), cumulative_transitions=Counter(), log_handle=log_handle)
-    _write_run_header(log_handle, episodes, use_shaping, goal_reward, abstract_mdp, automaton_states, gamma_shaping, eval_interval, eval_episodes, eval_seed)
+    context = TrainingContext(env=env, agent=agent, unbiased_agent=unbiased_agent, abstract_mdp=abstract_mdp, automaton=automaton, automaton_states=automaton_states, state_to_index=state_to_index, episodes=episodes, goal_reward=float(goal_reward), save_policy=save_policy, use_shaping=use_shaping, gamma_shaping=gamma_shaping, log_interval=log_interval, eval_interval=eval_interval, eval_episodes=eval_episodes, eval_seed=eval_seed, policy_suffix=policy_suffix, histories=histories, initial_acceptance_history=initial_acceptance_history, buffer_histories=buffer_histories, cumulative_state_visits=Counter(), cumulative_state_entries=Counter(), cumulative_transitions=Counter(), log_handle=log_handle)
+    _write_run_header(log_handle, episodes, use_shaping, goal_reward, abstract_mdp, automaton_states, gamma_shaping, eval_interval, eval_episodes, eval_seed, unbiased_agent is not None)
     return context
 
 
@@ -604,9 +631,23 @@ def _perform_training_step(context, raw_state, augmented_state, q):
         shaping_signal = context.gamma_shaping * phi_next_state - phi_state
 
     learning_reward = synthetic_goal_reward + shaping_signal
-    context.agent.memory.push(augmented_state, action, learning_reward, next_augmented_state, bootstrap_terminal)
+    context.agent.memory.push(
+        augmented_state,
+        action,
+        learning_reward,
+        next_augmented_state,
+        bootstrap_terminal,
+        task_reward=synthetic_goal_reward,
+    )
     if isinstance(context.agent, TabularQLearner):
         context.agent.update(augmented_state, action, learning_reward, next_augmented_state, bootstrap_terminal)
+        if context.unbiased_agent is not None:
+            context.unbiased_agent.update(augmented_state, action, synthetic_goal_reward, next_augmented_state, bootstrap_terminal)
+    elif context.unbiased_agent is not None:
+        if len(context.agent.memory) >= context.agent.batch_size:
+            states, actions, biased_rewards, task_rewards, next_states, dones = context.agent.memory.sample_dual(context.agent.batch_size)
+            context.agent.optimize_model((states, actions, biased_rewards, next_states, dones))
+            context.unbiased_agent.optimize_model((states, actions, task_rewards, next_states, dones))
     else:
         context.agent.optimize_model()
 
@@ -735,18 +776,78 @@ def _run_periodic_training_evaluation(context, episode):
             _save_named_policy(context.agent, f"best_policy{context.policy_suffix}.{_policy_extension(context.agent)}")
         _write_log(f"Best policy updated from autonomous greedy evaluation at episode {context.best_policy_episode}.\n", context.log_handle)
 
+    if context.unbiased_agent is not None:
+        unbiased_evaluation = _evaluate_agent_greedily(
+            context.unbiased_agent,
+            context.abstract_mdp,
+            context.eval_episodes,
+            context.goal_reward,
+            context.eval_seed,
+        )
+        context.histories["unbiased_eval_success_rates"].append(unbiased_evaluation["success_rate"])
+        context.histories["unbiased_eval_task_rewards"].append(unbiased_evaluation["mean_task_reward"])
+        context.histories["unbiased_eval_episode_lengths"].append(unbiased_evaluation["mean_episode_length"])
+        context.histories["unbiased_eval_completed_cycles"].append(unbiased_evaluation["mean_completed_cycles"])
+        context.histories["unbiased_eval_known_state_fractions"].append(unbiased_evaluation["known_state_fraction"])
+        unbiased_known_line = f", known states={unbiased_evaluation['known_state_fraction']:.1%}" if isinstance(context.unbiased_agent, TabularQLearner) else ""
+        unbiased_cycle_line = f", cycles={unbiased_evaluation['mean_completed_cycles']:.3f}" if context.automaton.is_continuing else ""
+        _write_log(
+            f"[Unbiased greedy evaluation at episode {episode + 1} | {context.eval_episodes} fixed-seed episodes]\n"
+            f"success={unbiased_evaluation['success_rate']:.1%}, failure={unbiased_evaluation['failure_rate']:.1%}, "
+            f"task reward={unbiased_evaluation['mean_task_reward']:.3f}{unbiased_cycle_line}, "
+            f"length={unbiased_evaluation['mean_episode_length']:.1f}{unbiased_known_line}\n"
+            f"DFA transitions: {_format_counter(unbiased_evaluation['transition_counts'])}\n",
+            context.log_handle,
+        )
+        unbiased_score = _evaluation_score(unbiased_evaluation)
+        if context.best_unbiased_evaluation_score is None or unbiased_score > context.best_unbiased_evaluation_score:
+            context.best_unbiased_evaluation_score = unbiased_score
+            context.best_unbiased_mean_reward = unbiased_evaluation["mean_task_reward"]
+            context.best_unbiased_policy_episode = episode + 1
+            if context.save_policy:
+                _save_named_policy(
+                    context.unbiased_agent,
+                    f"best_unbiased_policy{context.policy_suffix}.{_policy_extension(context.unbiased_agent)}",
+                )
+            _write_log(
+                f"Best unbiased policy updated at episode {context.best_unbiased_policy_episode}.\n",
+                context.log_handle,
+            )
+
 
 def _finalize_training(context):
     """Save the last policy and return the numeric histories exposed by the API."""
     if context.save_policy:
         _save_named_policy(context.agent, f"last_policy{context.policy_suffix}.{_policy_extension(context.agent)}")
         _write_log(f"Last policy saved after episode {context.episodes}. Best greedy evaluation: episode {context.best_policy_episode}, mean task reward={context.best_mean_reward:.3f}\n", context.log_handle)
-    return _build_training_results(context.histories, context.initial_acceptance_history, context.buffer_histories, context.automaton_states, context.best_mean_reward, context.best_policy_episode, context.gamma_shaping)
+        if context.unbiased_agent is not None:
+            _save_named_policy(
+                context.unbiased_agent,
+                f"last_unbiased_policy{context.policy_suffix}.{_policy_extension(context.unbiased_agent)}",
+            )
+            _write_log(
+                f"Last unbiased policy saved after episode {context.episodes}. "
+                f"Best unbiased evaluation: episode {context.best_unbiased_policy_episode}, "
+                f"mean task reward={context.best_unbiased_mean_reward:.3f}\n",
+                context.log_handle,
+            )
+    return _build_training_results(
+        context.histories,
+        context.initial_acceptance_history,
+        context.buffer_histories,
+        context.automaton_states,
+        context.best_mean_reward,
+        context.best_policy_episode,
+        context.gamma_shaping,
+        include_unbiased=context.unbiased_agent is not None,
+        best_unbiased_mean_reward=context.best_unbiased_mean_reward,
+        best_unbiased_policy_episode=context.best_unbiased_policy_episode,
+    )
 
 
-def train(env, agent, abstract_mdp, episodes, goal_reward=10000, save_policy=True, use_shaping=True, gamma_shaping=1.0, log_file=None, log_interval=100, eval_interval=1000, eval_episodes=1000, eval_seed=100000, seed=None, policy_suffix=""):
+def train(env, agent, abstract_mdp, episodes, goal_reward=10000, save_policy=True, use_shaping=True, gamma_shaping=1.0, log_file=None, log_interval=100, eval_interval=1000, eval_episodes=1000, eval_seed=100000, seed=None, policy_suffix="", unbiased_agent=None):
     """Train one learner while delegating each lifecycle phase to a focused helper."""
-    context = _initialize_training_context(env, agent, abstract_mdp, episodes, goal_reward, save_policy, use_shaping, gamma_shaping, log_file, log_interval, eval_interval, eval_episodes, eval_seed, policy_suffix)
+    context = _initialize_training_context(env, agent, abstract_mdp, episodes, goal_reward, save_policy, use_shaping, gamma_shaping, log_file, log_interval, eval_interval, eval_episodes, eval_seed, policy_suffix, unbiased_agent)
     try:
         for episode in range(episodes):
             evaluation_due = _is_evaluation_due(episode, episodes, eval_interval)
@@ -773,6 +874,8 @@ def main(args):
         raise ValueError("num_seeds must be greater than zero")
     if args.learner == "tabular" and args.stochastic_bellman_update:
         raise ValueError("--stochastic-bellman-update is only valid with --learner ddqn; use --tabular-alpha for tabular Q-learning")
+    if args.ground_unbiased_learner and args.no_shaping:
+        raise ValueError("--ground-unbiased-learner requires shaping; without shaping the primary learner is already unbiased")
     # Keep every artifact isolated under results/<experiment-name>/.
     experiment_dir = os.path.join(FRAMEWORK_DIR, "results", args.experiment_name)
     if args.post_process and not os.path.isdir(experiment_dir):
@@ -823,7 +926,7 @@ def main(args):
     bellman_summary = "not applicable" if args.learner == "tabular" else str(args.stochastic_bellman_update)
     if args.learner == "ddqn" and args.stochastic_bellman_update:
         bellman_summary += f" (alpha={args.bellman_alpha})"
-    print( "=== TEMPORAL TASK TRAINING (single epsilon) ===\n" f"Learner: {args.learner}\n" f"Task type: {automaton.task_type}\n" f"Task: {automaton.formula_str}\n" f"Regions: { {name: region.as_dict() for name, region in regions.items()} }\n" f"Predicates: { {name: predicate.as_dict() for name, predicate in spatial_predicates.items()} }\n" f"Abstractions: {level_summary}\n" "Inter-level shaping: gamma*Phi(next)-Phi(state)\n" f"Training gamma_shaping: {args.gamma_shaping}\n" f"Stochastic Bellman update: {bellman_summary}\n" "Automaton coordinates and training potential: level1\n" f"Automaton: states={automaton.states}, initial={automaton.initial_state}, " f"accepting={sorted(automaton.accepting_states)}, failure={sorted(automaton.failure_states)}, continuing={automaton.is_continuing}\n" "Gym reward is ignored by design.\n" f"{validation_report.format()}" )
+    print( "=== TEMPORAL TASK TRAINING (single epsilon) ===\n" f"Learner: {args.learner}\n" f"Ground unbiased learner: {args.ground_unbiased_learner}\n" f"Task type: {automaton.task_type}\n" f"Task: {automaton.formula_str}\n" f"Regions: { {name: region.as_dict() for name, region in regions.items()} }\n" f"Predicates: { {name: predicate.as_dict() for name, predicate in spatial_predicates.items()} }\n" f"Abstractions: {level_summary}\n" "Inter-level shaping: gamma*Phi(next)-Phi(state)\n" f"Training gamma_shaping: {args.gamma_shaping}\n" f"Stochastic Bellman update: {bellman_summary}\n" "Automaton coordinates and training potential: level1\n" f"Automaton: states={automaton.states}, initial={automaton.initial_state}, " f"accepting={sorted(automaton.accepting_states)}, failure={sorted(automaton.failure_states)}, continuing={automaton.is_continuing}\n" "Gym reward is ignored by design.\n" f"{validation_report.format()}" )
 
     automaton.render_graph(directory=image_dir)
 
@@ -861,10 +964,12 @@ def main(args):
                 _set_training_seed(run_seed, env)
                 if args.learner == "tabular":
                     agent = TabularQLearner(env=env, num_phases=len(automaton.states), eps_decay=args.eps_decay, gamma=gamma, alpha=args.tabular_alpha, policy_dir=policy_dir, random_seed=run_seed)
+                    unbiased_agent = TabularQLearner(env=env, num_phases=len(automaton.states), eps_decay=args.eps_decay, gamma=gamma, alpha=args.tabular_alpha, policy_dir=os.path.join(policy_dir, "unbiased"), random_seed=run_seed) if args.ground_unbiased_learner else None
                 else:
                     agent = HierarchicalDQNLearner(env=env, max_episodes=args.episodes, eps_decay=args.eps_decay, gamma=gamma, extra_state_dims=len(automaton.states), use_polyak=args.polyak, tau=args.polyak_tau, target_update_freq=args.target_update_freq, network_type=args.network_type, policy_dir=policy_dir, stochastic_bellman_update=args.stochastic_bellman_update, bellman_alpha=args.bellman_alpha)
+                    unbiased_agent = HierarchicalDQNLearner(env=env, max_episodes=args.episodes, eps_decay=args.eps_decay, gamma=gamma, extra_state_dims=len(automaton.states), use_polyak=args.polyak, tau=args.polyak_tau, target_update_freq=args.target_update_freq, network_type=args.network_type, policy_dir=os.path.join(policy_dir, "unbiased"), stochastic_bellman_update=args.stochastic_bellman_update, bellman_alpha=args.bellman_alpha) if args.ground_unbiased_learner else None
                 policy_suffix = "" if args.num_seeds == 1 else f"_seed_{run_seed}"
-                metrics = train(env=env, agent=agent, abstract_mdp=abstract_mdp, episodes=args.episodes, goal_reward=goal_reward, use_shaping=not args.no_shaping, gamma_shaping=args.gamma_shaping, log_file=f"{log_dir}/single_epsilon_training_seed_{run_seed}.log", log_interval=args.log_interval, eval_interval=args.eval_interval, eval_episodes=args.eval_episodes, eval_seed=args.eval_seed, seed=run_seed, policy_suffix=policy_suffix)
+                metrics = train(env=env, agent=agent, abstract_mdp=abstract_mdp, episodes=args.episodes, goal_reward=goal_reward, use_shaping=not args.no_shaping, gamma_shaping=args.gamma_shaping, log_file=f"{log_dir}/single_epsilon_training_seed_{run_seed}.log", log_interval=args.log_interval, eval_interval=args.eval_interval, eval_episodes=args.eval_episodes, eval_seed=args.eval_seed, seed=run_seed, policy_suffix=policy_suffix, unbiased_agent=unbiased_agent)
                 seed_metrics.append(metrics)
                 save_training_data(f"{data_dir}/single_epsilon_data_seed_{run_seed}.npz", **metrics)
             finally:
@@ -894,6 +999,12 @@ def main(args):
     if has_evaluations:
         evaluation_steps_runs = data["evaluation_steps_runs"] if "evaluation_steps_runs" in data else data["evaluation_steps"][np.newaxis, ...]
         eval_reward_runs = data["eval_task_rewards_runs"] if "eval_task_rewards_runs" in data else data["eval_task_rewards"][np.newaxis, ...]
+        has_unbiased_evaluations = (
+            "unbiased_eval_task_rewards_runs" in data
+            and data["unbiased_eval_task_rewards_runs"].shape == eval_reward_runs.shape
+            and data["unbiased_eval_task_rewards_runs"].shape[-1] > 0
+        )
+        unbiased_eval_reward_runs = data["unbiased_eval_task_rewards_runs"] if has_unbiased_evaluations else None
     for obsolete_name in ("buffer_fractions_single_epsilon.png", "reward_breakdown_single_epsilon.png"):
         (Path(plot_dir) / obsolete_name).unlink(missing_ok=True)
     for run_index, (run_seed, task_rewards, learning_rewards, epsilon_history) in enumerate(zip(seed_values, task_reward_runs, learning_reward_runs, epsilon_runs)):
@@ -901,12 +1012,12 @@ def main(args):
         os.makedirs(seed_plot_dir, exist_ok=True)
         plot_shaping_reward_breakdown(task_rewards, learning_rewards, epsilon_history, window_size=args.plot_window, filename=f"{seed_plot_dir}/reward_breakdown_single_epsilon.png", title=f"Reward Breakdown — Seed {int(run_seed)}")
         if has_evaluations:
-            plot_evaluation_performance(evaluation_steps_runs[run_index], eval_reward_runs[run_index], filename=f"{seed_plot_dir}/evaluation_performance.png", title=f"Greedy Evaluation — Seed {int(run_seed)}")
+            plot_evaluation_performance(evaluation_steps_runs[run_index], eval_reward_runs[run_index], unbiased_task_rewards=unbiased_eval_reward_runs[run_index] if has_unbiased_evaluations else None, filename=f"{seed_plot_dir}/evaluation_performance.png", title=f"Greedy Evaluation — Seed {int(run_seed)}")
         if run_index < len(buffer_runs):
             plot_buffer_fractions(buffer_runs[run_index], filename=f"{seed_plot_dir}/buffer_fractions_single_epsilon.png", window_size=args.plot_window, state_labels=data["automaton_states"], title=f"Replay Buffer Composition — Seed {int(run_seed)}")
     plot_training_variance( learning_reward_runs, window_size=args.plot_window, filename=f"{plot_dir}/training_variance_single_epsilon.png", epsilon_histories=epsilon_runs, )
     if has_evaluations:
-        plot_evaluation_performance(evaluation_steps_runs, eval_reward_runs, filename=f"{plot_dir}/evaluation_performance.png", title="Greedy Evaluation Across Seeds")
+        plot_evaluation_performance(evaluation_steps_runs, eval_reward_runs, unbiased_task_rewards=unbiased_eval_reward_runs, filename=f"{plot_dir}/evaluation_performance.png", title="Greedy Evaluation Across Seeds")
     plot_buffer_variance(buffer_runs, window_size=args.plot_window, filename=f"{plot_dir}/buffer_variance_single_epsilon.png", state_labels=data["automaton_states"])
     tabular_table_runs = data["tabular_table_sizes_runs"] if "tabular_table_sizes_runs" in data else data["tabular_table_sizes"][np.newaxis, ...] if "tabular_table_sizes" in data else None
     if tabular_table_runs is not None and np.isfinite(tabular_table_runs).any():
@@ -946,6 +1057,7 @@ if __name__ == "__main__":
     parser.add_argument( "--bellman-alpha", type=float, default=0.1, help="Alpha used by --stochastic-bellman-update (default: 0.1).", )
     parser.add_argument( "--gamma-shaping", type=_discount_factor, default=1.0, help="Discount used in Phi shaping (default: 1.0).", )
     parser.add_argument("--no-shaping", action="store_true")
+    parser.add_argument("--ground-unbiased-learner", action="store_true", help="Train an additional original-task-reward learner on the same batches collected by the shaped behavior policy.")
     parser.add_argument("--no-heatmaps", action="store_true", help="Skip abstract-potential heatmap generation.")
     parser.add_argument("--heatmap-annotation", action="store_true", help="Annotate heatmap cells with V-function values and DFA state changes (default: disabled).")
     parser.add_argument("--post-process", action="store_true")
