@@ -17,7 +17,7 @@ else
 fi
 
 if (( $# == 0 )); then
-  printf 'Usage: %s <policy> [<policy> ...] [evaluate.py options]\n' "$0" >&2
+  printf 'Usage: %s --experiment <name-or-path> [policy ...] [evaluate.py options]\n' "$0" >&2
   exit 2
 fi
 
