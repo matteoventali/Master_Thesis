@@ -13,12 +13,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-FRAMEWORK_DIR = Path(__file__).resolve().parent
+FRAMEWORK_DIR = Path(__file__).resolve().parent.parent
 SRC_DIR = FRAMEWORK_DIR / "src"
 if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
-from abstract_mdps import LTLfAutomaton, LTLfWaypointMDP
+from abstract_mdps import LTLfWaypointMDP, build_task_automaton
 from spatial_regions import load_task_propositions
 
 
@@ -99,7 +99,7 @@ def load_value_archive(path, role):
         raise ValueError(f"{role} {value_key} has shape {values.shape}, expected {expected_shape}")
     if not np.isfinite(values).all():
         raise ValueError(f"{role} {value_key} contains NaN or infinite values")
-    archive = {"path": path, "data": data, "values": values, "dfa_states": dfa_states, "width": expected_shape[2], "height": expected_shape[1], "gamma": float(scalar(data, "gamma")), "goal_reward": float(scalar(data, "goal_reward"))}
+    archive = {"path": path, "data": data, "values": values, "dfa_states": dfa_states, "width": expected_shape[2], "height": expected_shape[1], "gamma": float(scalar(data, "gamma")), "goal_reward": float(scalar(data, "goal_reward")), "task_type": str(data["task_type"].item()) if "task_type" in data.files else None}
     if "biased_values" in data.files:
         biased_values = np.asarray(data["biased_values"], dtype=np.float64)
         if biased_values.shape != expected_shape or not np.isfinite(biased_values).all():
@@ -109,6 +109,8 @@ def load_value_archive(path, role):
 
 
 def align_candidate(reference, candidate):
+    if reference["task_type"] is not None and candidate["task_type"] is not None and reference["task_type"] != candidate["task_type"]:
+        raise ValueError(f"Task-type mismatch: reference={reference['task_type']!r}, candidate={candidate['task_type']!r}")
     for key in ("width", "height"):
         if reference[key] != candidate[key]:
             raise ValueError(f"Grid mismatch: reference {key}={reference[key]}, candidate {key}={candidate[key]}")
@@ -199,7 +201,7 @@ def analyze_transitions(mdp, reference_values, variants, dfa_states, gamma_shapi
         reference_targets = []
         candidate_targets = {variant: [] for variant in variants}
         for action in actions:
-            next_state, reward, terminal = mdp.get_transitions(state, action)
+            next_state, reward, terminal, _ = mdp.get_transition_outcome(state, action)
             next_x, next_y, next_q = next_state
             next_q_index = q_indices[next_q]
             reference_target = reward if terminal else reward + mdp.gamma * reference_values[next_q_index, next_y, next_x]
@@ -351,7 +353,9 @@ def main():
     variants = align_candidate(reference, candidate)
     with trajectory_path.open(encoding="utf-8") as trajectory_file:
         trajectory = json.load(trajectory_file)
-    automaton = LTLfAutomaton(trajectory.get("formula", "F(goal)"))
+    automaton = build_task_automaton(trajectory)
+    if reference["task_type"] is not None and reference["task_type"] != automaton.task_type:
+        raise ValueError(f"trajectory task_type {automaton.task_type!r} does not match reference archive {reference['task_type']!r}")
     _, _, task_propositions = load_task_propositions(trajectory.get("regions"), trajectory.get("predicates"))
     mdp = LTLfWaypointMDP(regions=task_propositions, ltlf_automaton=automaton, width=reference["width"], height=reference["height"], gamma=reference["gamma"], goal_reward=reference["goal_reward"], level_name="comparison")
     reference_states = [int(q) for q in reference["dfa_states"]]

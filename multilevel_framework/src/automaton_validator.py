@@ -64,7 +64,7 @@ class AutomatonValidationReport:
         lines = [
             "=== AUTOMATON VALIDATION ===",
             f"Status: {status}",
-            f"Formula propositions: {self.propositions}",
+            f"Task propositions: {self.propositions}",
             f"Statistics: {self.statistics}",
         ]
         if self.errors:
@@ -87,6 +87,24 @@ class AutomatonValidationReport:
 
 def validate_automaton(automaton, spatial_propositions, max_propositions=12, raise_on_error=True):
     """Validate DFA structure, guards, reachability, and spatial propositions."""
+    if getattr(automaton, "task_type", "ltlf") == "cyclic_waypoints":
+        report = AutomatonValidationReport(automaton.formula_str, list(automaton.waypoint_cycle))
+        declared_propositions = set(spatial_propositions)
+        missing = sorted(automaton.required_propositions - declared_propositions)
+        unused = sorted(declared_propositions - automaton.required_propositions)
+        if missing:
+            report.add_error(f"Cycle waypoints without spatial definitions: {missing}")
+        if unused:
+            report.add_warning(f"Spatial propositions not used by the cycle: {unused}")
+        report.statistics = {
+            "states": len(automaton.states),
+            "waypoints": len(automaton.waypoint_cycle),
+            "continuing": True,
+        }
+        if raise_on_error:
+            report.raise_if_invalid()
+        return report
+
     propositions = _extract_formula_propositions(automaton.formula_str)
     report = AutomatonValidationReport(automaton.formula_str, propositions)
     states = set(automaton.states)

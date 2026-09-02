@@ -18,7 +18,7 @@ docker run -d --rm \
   --workdir /workspace \
   --entrypoint python \
   "$image_name" \
-  /workspace/benchmark_value_iteration.py \
+  /workspace/others/benchmark_value_iteration.py \
   --initial-size 3 \
   --timeout 3600 \
   --theta 0.001 \

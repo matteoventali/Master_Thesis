@@ -873,7 +873,7 @@ def main(framework_dir: Path | None = None) -> int:
     framework_dir = (
         Path(framework_dir).resolve()
         if framework_dir is not None
-        else Path(__file__).resolve().parent
+        else Path(__file__).resolve().parent.parent
     )
     args = build_parser(framework_dir).parse_args()
     results_dir = args.results_dir.expanduser().resolve()

@@ -5,6 +5,9 @@ import re
 import time
 import warnings
 from collections import Counter, defaultdict
+from collections.abc import Mapping, Sequence
+from dataclasses import dataclass
+from pathlib import Path
 
 import numpy as np
 
@@ -16,6 +19,42 @@ from spatial_regions import (
     truth_assignment_from_observation,
 )
 
+
+@dataclass(frozen=True)
+class AutomatonStep:
+    """Outcome of consuming one spatial valuation."""
+
+    next_state: int
+    accepted: bool = False
+    failed: bool = False
+    completed_cycle: bool = False
+    reached_proposition: str | None = None
+
+    @property
+    def succeeded(self):
+        return self.accepted or self.completed_cycle
+
+    @property
+    def terminal(self):
+        return self.accepted or self.failed
+
+
+def build_task_automaton(config):
+    """Build an LTLf or continuing cyclic automaton from a task config."""
+    task_type = config.get("task_type")
+    if task_type is None:
+        task_type = "cyclic_waypoints" if "waypoint_cycle" in config else "ltlf"
+    if task_type == "ltlf":
+        if "waypoint_cycle" in config:
+            raise ValueError("An LTLf task must not define waypoint_cycle")
+        return LTLfAutomaton(config.get("formula", "F(goal)"))
+    if task_type == "cyclic_waypoints":
+        if "formula" in config:
+            raise ValueError("A cyclic_waypoints task must not define formula")
+        return CyclicWaypointsAutomaton(config.get("waypoint_cycle"))
+    raise ValueError("task_type must be either 'ltlf' or 'cyclic_waypoints'")
+
+
 class LTLfAutomaton:
     """
     Wrap ltlf2dfa and expose its DFA as a graph that can be traversed by the MDP.
@@ -25,6 +64,8 @@ class LTLfAutomaton:
         from ltlf2dfa.parser.ltlf import LTLfParser
 
         self.formula_str = formula_str
+        self.task_type = "ltlf"
+        self.is_continuing = False
         
         # Parse the formula and generate its DFA in DOT format.
         parser = LTLfParser()
@@ -122,6 +163,15 @@ class LTLfAutomaton:
                 
         return current_q
 
+    def advance(self, current_q, truth_assignment):
+        """Consume one valuation and expose success/failure as explicit events."""
+        next_q = self.get_next_q(current_q, truth_assignment)
+        return AutomatonStep(
+            next_state=next_q,
+            accepted=self.is_goal_reached(next_q),
+            failed=self.is_failure(next_q),
+        )
+
     def _eval_guard(self, guard, truth_assignment):
         """
         Convert a DOT guard such as "wp1 & ~wp2" to Python syntax and evaluate
@@ -161,10 +211,99 @@ class LTLfAutomaton:
             print(f"[Graphviz error] Could not render the automaton graph: {e}")
 
 
+class CyclicWaypointsAutomaton:
+    """Continuing automaton that repeatedly visits an ordered waypoint cycle."""
+
+    def __init__(self, waypoint_cycle: Sequence[str] | None):
+        if waypoint_cycle is None:
+            raise ValueError("A cyclic_waypoints task must define waypoint_cycle")
+        if isinstance(waypoint_cycle, (str, bytes)) or not isinstance(waypoint_cycle, Sequence):
+            raise TypeError("waypoint_cycle must be a sequence of proposition names")
+        cycle = tuple(waypoint_cycle)
+        if not cycle:
+            raise ValueError("waypoint_cycle must contain at least one waypoint")
+        if any(not isinstance(name, str) or not name for name in cycle):
+            raise ValueError("Waypoint proposition names must be non-empty strings")
+        if len(set(cycle)) != len(cycle):
+            raise ValueError("waypoint_cycle cannot contain duplicate propositions")
+
+        self.task_type = "cyclic_waypoints"
+        self.is_continuing = True
+        self.waypoint_cycle = cycle
+        self.states = list(range(len(cycle)))
+        self.initial_state = self.states[0]
+        self.accepting_states = set()
+        self.failure_states = set()
+        self.num_phases = len(self.states)
+        self.formula_str = "cycle(" + ", ".join(cycle) + ")"
+        self.transitions = {}
+
+    @property
+    def required_propositions(self):
+        return frozenset(self.waypoint_cycle)
+
+    def get_initial_q(self):
+        return self.initial_state
+
+    def is_goal_reached(self, current_q):
+        self._validate_state(current_q)
+        return False
+
+    def is_failure(self, current_q):
+        self._validate_state(current_q)
+        return False
+
+    def is_terminal(self, current_q):
+        self._validate_state(current_q)
+        return False
+
+    def advance(self, current_q, truth_assignment: Mapping[str, bool]):
+        self._validate_state(current_q)
+        expected = self.waypoint_cycle[current_q]
+        if not bool(truth_assignment.get(expected, False)):
+            return AutomatonStep(next_state=current_q)
+        completed_cycle = current_q == self.states[-1]
+        next_q = self.initial_state if completed_cycle else current_q + 1
+        return AutomatonStep(
+            next_state=next_q,
+            completed_cycle=completed_cycle,
+            reached_proposition=expected,
+        )
+
+    def get_next_q(self, current_q, truth_assignment):
+        return self.advance(current_q, truth_assignment).next_state
+
+    def validate_propositions(self, propositions):
+        missing = sorted(self.required_propositions - set(propositions))
+        if missing:
+            raise ValueError(f"Missing required cycle propositions: {missing}")
+
+    def render_graph(self, filename="cyclic_waypoints_automaton", directory="img"):
+        try:
+            from graphviz import Source
+
+            lines = ["digraph cyclic_waypoints {", "    rankdir=LR;", "    node [shape=circle];", "    start [shape=point];", f"    start -> {self.initial_state};"]
+            for state, waypoint in enumerate(self.waypoint_cycle):
+                destination = self.initial_state if state == self.states[-1] else state + 1
+                escaped = waypoint.replace("\\", "\\\\").replace('"', '\\"')
+                suffix = " / reward" if state == self.states[-1] else ""
+                lines.append(f'    {state} -> {destination} [label="{escaped}{suffix}"];')
+                lines.append(f'    {state} -> {state} [label="not {escaped}"];')
+            lines.append("}")
+            Source("\n".join(lines)).render(filename=filename, directory=str(Path(directory)), format="png", cleanup=True)
+            print(f"Automaton graph saved to: {directory}/{filename}.png")
+        except Exception as error:
+            print(f"[Graphviz error] Could not render the automaton graph: {error}")
+
+    def _validate_state(self, state):
+        if state not in self.states:
+            raise ValueError(f"Unknown automaton state {state!r}")
+
+
 class LTLfWaypointMDP:
     """
-    Abstract MDP guided by an LTLf automaton.
-    Each abstract state is (x, y, q), where q is the DFA state identifier.
+    Abstract product MDP guided by an LTLf or cyclic task automaton.
+    Each abstract state is (x, y, q), where q is the automaton state.
     """
     DONE_ACTION = 8
 
@@ -176,7 +315,7 @@ class LTLfWaypointMDP:
         self.level_name = level_name
         self.gamma = gamma
         self.movement_actions = [0, 1, 2, 3, 4, 5, 6, 7] # Include diagonal movements.
-        self.actions = self.movement_actions + [self.DONE_ACTION]
+        self.actions = self.movement_actions if ltlf_automaton.is_continuing else self.movement_actions + [self.DONE_ACTION]
         
         self.regions = regions
         self.region_cells = rasterize_regions(regions, width, height)
@@ -216,14 +355,20 @@ class LTLfWaypointMDP:
         """Return only done at success/failure terminals, movements elsewhere."""
         return [self.DONE_ACTION] if self.automaton.is_terminal(state[2]) else self.movement_actions
 
-    def get_transitions(self, state, action):
+    def get_transition_outcome(self, state, action):
+        """Apply an abstract action and retain the automaton event metadata."""
         x, y, q = state
         available_actions = self.get_available_actions(state)
         if action not in available_actions:
             raise ValueError(f"Action {action} is not available in state {state}; expected one of {available_actions}")
         if action == self.DONE_ACTION:
             reward = self.goal_reward if self.automaton.is_goal_reached(q) else 0.0
-            return state, reward, True
+            step = AutomatonStep(
+                next_state=q,
+                accepted=self.automaton.is_goal_reached(q),
+                failed=self.automaton.is_failure(q),
+            )
+            return state, reward, True, step
         
         # Apply the abstract physical movement.
         next_y = y
@@ -238,9 +383,9 @@ class LTLfWaypointMDP:
         truth_assignment = self._get_truth_assignment(next_x, next_y)
         
         # Advance the automaton using the arrival-state valuation.
-        next_q = self.automaton.get_next_q(q, truth_assignment)
-
-        return (next_x, next_y, next_q), 0.0, False
+        step = self.automaton.advance(q, truth_assignment)
+        reward = self.goal_reward if step.completed_cycle else 0.0
+        return (next_x, next_y, step.next_state), reward, False, step
 
     def map_state_to_upper_level(self, state):
         """Map a state spatially while preserving its real-trace DFA state.
@@ -301,7 +446,7 @@ class LTLfWaypointMDP:
                     best_value = -float("inf")
 
                     for a in self.get_available_actions(state):
-                        next_state, reward, terminal = self.get_transitions(state, a)
+                        next_state, reward, terminal, _ = self.get_transition_outcome(state, a)
                         shaping_reward = 0.0 if terminal else self.get_inter_level_shaping_reward(state, next_state)
                         value = reward if terminal else reward + shaping_reward + self.gamma * self.v_star[next_state]
 
@@ -334,7 +479,7 @@ class LTLfWaypointMDP:
             for s in self.states:
                 v_actions = []
                 for action in self.get_available_actions(s):
-                    next_state, reward, terminal = self.get_transitions(s, action)
+                    next_state, reward, terminal, _ = self.get_transition_outcome(s, action)
                     v_actions.append(reward if terminal else reward + self.gamma * self.v_star[next_state])
                 best_v = max(v_actions)
                 delta = max(delta, abs(best_v - self.v_star[s]))
@@ -389,7 +534,7 @@ class LTLfWaypointMDP:
             delta = 0.0
             new_values = values.copy()
             for state in self.states:
-                next_state, reward, terminal = self.get_transitions(state, policy[state])
+                next_state, reward, terminal, _ = self.get_transition_outcome(state, policy[state])
                 value = reward if terminal else reward + self.gamma * values[next_state]
                 delta = max(delta, abs(value - values[state]))
                 new_values[state] = value
@@ -412,6 +557,13 @@ class LTLfWaypointMDP:
             v_values = np.asarray(checkpoint[value_key], dtype=np.float64)
             saved_dfa_states = [int(q) for q in np.asarray(checkpoint["dfa_states"]).tolist()]
             saved_value_function_method = str(checkpoint["value_function_method"].item()) if "value_function_method" in checkpoint.files else "checkpoint"
+            saved_task_type = str(checkpoint["task_type"].item()) if "task_type" in checkpoint.files else None
+
+        if saved_task_type is not None and saved_task_type != self.automaton.task_type:
+            raise ValueError(
+                f"Checkpoint task_type {saved_task_type!r} does not match "
+                f"the current task_type {self.automaton.task_type!r}"
+            )
 
         expected_q_shape = (len(saved_dfa_states), self.height, self.width, len(self.actions))
         expected_v_shape = (len(saved_dfa_states), self.height, self.width)
@@ -470,19 +622,22 @@ class LTLfWaypointMDP:
         q_unbiased = [[0.0 for _ in self.actions] for _ in self.states]
         q_biased = [[0.0 for _ in self.actions] for _ in self.states] if uses_shaping else q_unbiased
         restart_states = self.states
-        reverse_dfa_edges = defaultdict(set)
-        for source_q, guarded_destinations in self.automaton.transitions.items():
-            for _, destination_q in guarded_destinations:
-                reverse_dfa_edges[destination_q].add(source_q)
-        acceptance_reachable_q = set(self.automaton.accepting_states)
-        reachability_frontier = list(self.automaton.accepting_states)
-        while reachability_frontier:
-            destination_q = reachability_frontier.pop()
-            for source_q in reverse_dfa_edges[destination_q]:
-                if source_q not in acceptance_reachable_q:
-                    acceptance_reachable_q.add(source_q)
-                    reachability_frontier.append(source_q)
-        recoverable_non_accepting_q = acceptance_reachable_q.difference(self.automaton.accepting_states)
+        if self.automaton.is_continuing:
+            recoverable_non_accepting_q = set(self.automaton.states)
+        else:
+            reverse_dfa_edges = defaultdict(set)
+            for source_q, guarded_destinations in self.automaton.transitions.items():
+                for _, destination_q in guarded_destinations:
+                    reverse_dfa_edges[destination_q].add(source_q)
+            acceptance_reachable_q = set(self.automaton.accepting_states)
+            reachability_frontier = list(self.automaton.accepting_states)
+            while reachability_frontier:
+                destination_q = reachability_frontier.pop()
+                for source_q in reverse_dfa_edges[destination_q]:
+                    if source_q not in acceptance_reachable_q:
+                        acceptance_reachable_q.add(source_q)
+                        reachability_frontier.append(source_q)
+            recoverable_non_accepting_q = acceptance_reachable_q.difference(self.automaton.accepting_states)
         evaluation_restart_states = [state for state in self.states if state[2] in recoverable_non_accepting_q]
         full_formula_restart_states = [(x, y, self.automaton.get_initial_q()) for x in range(self.width) for y in range(self.height)]
         evaluation_rng = random.Random(config.eval_seed)
@@ -549,12 +704,13 @@ class LTLfWaypointMDP:
                     evaluation_actions = self.get_available_actions(evaluation_state)
                     evaluation_action = max(evaluation_actions, key=lambda candidate: (q_table[evaluation_state_i][action_index[candidate]], -candidate))
                     previous_q = evaluation_state[2]
-                    evaluation_state, _, evaluation_terminal = self.get_transitions(evaluation_state, evaluation_action)
+                    evaluation_state, _, evaluation_terminal, automaton_step = self.get_transition_outcome(evaluation_state, evaluation_action)
                     if evaluation_state[2] != previous_q:
                         transition_counts[(previous_q, evaluation_state[2])] += 1
                     evaluation_steps += 1
-                    if evaluation_terminal:
-                        evaluation_succeeded = self.automaton.is_goal_reached(evaluation_state[2])
+                    if automaton_step.succeeded:
+                        evaluation_succeeded = True
+                    if evaluation_terminal or evaluation_succeeded:
                         successes += int(evaluation_succeeded)
                         break
                 total_steps += evaluation_steps
@@ -598,7 +754,7 @@ class LTLfWaypointMDP:
                     candidates = [candidate for candidate in available_actions if abs(state_row[action_index[candidate]] - best) <= 1e-12]
                     action = rng.choice(candidates)
 
-                next_state, reward, terminal = self.get_transitions(state, action)
+                next_state, reward, terminal, automaton_step = self.get_transition_outcome(state, action)
                 episode_steps += 1
                 if next_state[2] != state[2]:
                     episode_dfa_transitions += 1
@@ -631,8 +787,8 @@ class LTLfWaypointMDP:
                     biased_td_max = max(biased_td_max, abs(biased_td_error))
                 updates += 1
                 state = next_state
+                episode_succeeded = episode_succeeded or automaton_step.succeeded
                 if terminal:
-                    episode_succeeded = self.automaton.is_goal_reached(state[2])
                     break
 
             learning_history["episodes"].append(episode)
@@ -710,7 +866,7 @@ class LTLfWaypointMDP:
 
 
 class MultiLevelWaypointMDP:
-    """Ordered hierarchy of grid MDPs sharing one LTLf automaton.
+    """Ordered hierarchy of grid MDPs sharing one temporal-task automaton.
 
     The coarsest level can use VI or classic Q-learning. Every lower
     abstraction is learned with biased exploration and exports its unbiased

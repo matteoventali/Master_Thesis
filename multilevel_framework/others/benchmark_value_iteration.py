@@ -28,7 +28,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 
-DEFAULT_FRAMEWORK = Path(__file__).resolve().parent
+DEFAULT_FRAMEWORK = Path(__file__).resolve().parent.parent
 
 
 class EvaluationTimeout(BaseException):
@@ -202,7 +202,7 @@ def evaluate_grid(
     old_handler = None
     try:
         config = abstraction_config_class(
-            (grid_level_class(width=size, height=size, name="level1"),)
+            (grid_level_class(width=size, height=size, name="level1", algorithm="value_iteration"),)
         )
         mdp = multilevel_mdp_class(
             regions=regions,
@@ -287,17 +287,16 @@ def main() -> int:
     sys.path.insert(0, str(src_dir))
 
     from abstraction import AbstractionConfig, GridLevel
-    from abstract_mdps import LTLfAutomaton, MultiLevelWaypointMDP
+    from abstract_mdps import MultiLevelWaypointMDP, build_task_automaton
     from spatial_regions import load_task_propositions
 
     trajectory = load_json(trajectory_path)
     initial_size = args.initial_size
 
-    formula = trajectory.get("formula", "F(goal)")
     regions, predicates, task_propositions = load_task_propositions(trajectory.get("regions"), trajectory.get("predicates"))
     gamma = args.gamma if args.gamma is not None else float(trajectory.get("gamma", 0.99))
     goal_reward = float(trajectory.get("goal_reward", 10000))
-    automaton = LTLfAutomaton(formula)
+    automaton = build_task_automaton(trajectory)
     config_hash = configuration_hash(trajectory, gamma, args.theta, args.timeout)
     cached = {} if args.no_resume else read_cached_results(csv_path, config_hash)
 

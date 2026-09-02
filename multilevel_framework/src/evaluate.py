@@ -1,4 +1,4 @@
-"""Evaluate one or more LTLf-guided LunarLander DQN policies."""
+"""Evaluate LTLf or cyclic-waypoint LunarLander policies."""
 
 # ==============================
 # Standard library imports
@@ -19,7 +19,7 @@ import numpy as np
 import torch
 
 from abstraction import AbstractionConfig
-from abstract_mdps import LTLfAutomaton, LTLfWaypointMDP
+from abstract_mdps import LTLfWaypointMDP, build_task_automaton
 from agent import DuelingQNetwork, QNetwork, TabularQLearner
 from grid_overlay import (
     abstract_cell_to_pixel,
@@ -90,19 +90,22 @@ def _abstract_position(observation, q, grid_w, grid_h):
 # Policy evaluation
 # ==============================
 
-def evaluate_policy(policy, policy_dir, episodes, render, formula, regions, goal_reward, grid_w, grid_h, seed, trace_episodes=0, network_type="standard"):
-    """Load and evaluate one policy using the same DFA semantics as training."""
+def evaluate_policy(policy, policy_dir, episodes, render, task_config, regions, goal_reward, grid_w, grid_h, seed, trace_episodes=0, network_type="standard", no_limit=False):
+    """Load and evaluate one policy using the same task semantics as training."""
     # Rebuild the same automaton and abstract MDP used during training.
     policy_path = _resolve_policy_path(policy, policy_dir)
     policy_name = policy_path.name
-    automaton = LTLfAutomaton(formula)
+    automaton = build_task_automaton(task_config)
     abstract_mdp = LTLfWaypointMDP(regions=regions, ltlf_automaton=automaton, width=grid_w, height=grid_h, goal_reward=goal_reward)
     automaton_states = list(automaton.states)
     state_to_index = {q: index for index, q in enumerate(automaton_states)}
 
     # Create the environment and a network with one extra feature per DFA state.
     render_mode = "human" if render else ("rgb_array" if trace_episodes else None)
-    env = gym.make("LunarLander-v3", continuous=False, render_mode=render_mode)
+    environment_options = {"continuous": False, "render_mode": render_mode}
+    if no_limit:
+        environment_options["max_episode_steps"] = 5000
+    env = gym.make("LunarLander-v3", **environment_options)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     if network_type not in {"standard", "dueling"}:
         raise ValueError("network_type must be one of: standard, dueling")
@@ -128,6 +131,7 @@ def evaluate_policy(policy, policy_dir, episodes, render, formula, regions, goal
     episode_lengths = []
     successes = 0
     failures = 0
+    completed_cycles = []
     state_reach_counts = {q: 0 for q in automaton_states}
     grid_traces = []
     trace_frames = []
@@ -158,8 +162,9 @@ def evaluate_policy(policy, policy_dir, episodes, render, formula, regions, goal
             terminated = truncated = False
             environment_return = 0.0
             steps = 0
+            episode_completed_cycles = 0
 
-            while not (success or failed or terminated or truncated):
+            while not (failed or terminated or truncated or (success and not automaton.is_continuing)):
                 # Append the current DFA state as a one-hot vector.
                 one_hot = np.zeros(len(automaton_states), dtype=np.float32)
                 one_hot[state_to_index[q]] = 1.0
@@ -182,25 +187,29 @@ def evaluate_policy(policy, policy_dir, episodes, render, formula, regions, goal
                 if tracing and (x, y) != cell_trace[-1]:
                     cell_trace.append((x, y))
                 truth_assignment = abstract_mdp.get_environment_truth_assignment(next_observation)
-                next_q = automaton.get_next_q(q, truth_assignment)
+                automaton_step = automaton.advance(q, truth_assignment)
+                next_q = automaton_step.next_state
                 if next_q not in state_to_index:
                     raise RuntimeError(f"DFA returned unknown state {next_q!r}")
 
                 # Report every effective DFA transition during evaluation.
                 if next_q != q:
-                    if automaton.is_goal_reached(next_q):
+                    if automaton_step.accepted:
                         print(f"[{policy_name} | Episode {episode + 1}] DFA transition {q} -> {next_q}: final goal reached.")
-                    elif automaton.is_failure(next_q):
+                    elif automaton_step.failed:
                         print(f"[{policy_name} | Episode {episode + 1}] DFA transition {q} -> {next_q}: irreversible task failure.")
                     else:
                         print(f"[{policy_name} | Episode {episode + 1}] DFA transition {q} -> {next_q}: intermediate waypoint reached.")
+                if automaton_step.completed_cycle:
+                    episode_completed_cycles += 1
+                    print(f"[{policy_name} | Episode {episode + 1}] cycle {episode_completed_cycles} completed; continuing from q={next_q}.")
 
                 reached_states.add(next_q)
 
                 observation = next_observation
                 q = next_q
-                success = automaton.is_goal_reached(q)
-                failed = automaton.is_failure(q)
+                success = success or automaton_step.succeeded
+                failed = failed or automaton_step.failed
 
                 if render:
                     time.sleep(0.02)
@@ -208,9 +217,10 @@ def evaluate_policy(policy, policy_dir, episodes, render, formula, regions, goal
             # Store episode-level metrics and count every DFA state reached at least once.
             successes += int(success)
             failures += int(failed)
+            completed_cycles.append(episode_completed_cycles)
             for reached_q in reached_states:
                 state_reach_counts[reached_q] += 1
-            task_returns.append(float(goal_reward) if success else 0.0)
+            task_returns.append(float(goal_reward) * (episode_completed_cycles if automaton.is_continuing else int(success)))
             environment_returns.append(environment_return)
             episode_lengths.append(steps)
             if tracing:
@@ -226,6 +236,7 @@ def evaluate_policy(policy, policy_dir, episodes, render, formula, regions, goal
         "episode_lengths": episode_lengths,
         "successes": successes,
         "failures": failures,
+        "completed_cycles": completed_cycles,
         "state_reach_counts": state_reach_counts,
         "grid_traces": grid_traces,
         "trace_frames": trace_frames,
@@ -378,6 +389,7 @@ def parse_args():
     parser.add_argument("--window", type=_positive_int, default=10)
     parser.add_argument("--seed", type=int, default=None)
     parser.add_argument("--render", action="store_true")
+    parser.add_argument("--no-limit", action="store_true", help="Increase the environment episode limit to 5000 steps.")
     parser.add_argument( "--trace-grid", action="store_true", help="Save the sequence of abstract cells visited during evaluation.", )
     parser.add_argument( "--trace-episodes", type=_positive_int, default=1, help="Number of episodes to trace when --trace-grid is enabled (default: 1).", )
     parser.add_argument("--output-dir", type=Path, default=FRAMEWORK_DIR / "results" / "evaluation")
@@ -407,7 +419,6 @@ def main():
         config = json.load(config_file)
     abstraction_config = AbstractionConfig.load(args.abstraction_config.expanduser())
 
-    formula = config["formula"]
     regions, _, task_propositions = load_task_propositions(config.get("regions"), config.get("predicates"))
     grid_w = abstraction_config.primary.width
     grid_h = abstraction_config.primary.height
@@ -417,7 +428,7 @@ def main():
     results = []
     for policy in args.policies:
         traced_episodes = min(args.trace_episodes, args.episodes) if args.trace_grid else 0
-        result = evaluate_policy( policy, args.policy_dir, args.episodes, args.render, formula, task_propositions, goal_reward, grid_w, grid_h, args.seed, trace_episodes=traced_episodes, network_type=args.network_type, )
+        result = evaluate_policy( policy, args.policy_dir, args.episodes, args.render, config, task_propositions, goal_reward, grid_w, grid_h, args.seed, trace_episodes=traced_episodes, network_type=args.network_type, no_limit=args.no_limit, )
         results.append(result)
 
     # Print the summary and create one plot for each evaluated policy.
@@ -427,8 +438,9 @@ def main():
         failure_rate = result["failures"] / args.episodes
         mean_gym_return = np.mean(result["environment_returns"])
         mean_length = np.mean(result["episode_lengths"])
+        cycle_summary = f", mean cycles={np.mean(result['completed_cycles']):.2f}" if "waypoint_cycle" in config or config.get("task_type") == "cyclic_waypoints" else ""
         reached = ", ".join(f"q={q}: {count}/{args.episodes}" for q, count in result["state_reach_counts"].items())
-        print(f"[{result['policy']}] success={success_rate:.1%}, failure={failure_rate:.1%}, mean Gym return={mean_gym_return:.2f}, mean length={mean_length:.1f} | reached: {reached}")
+        print(f"[{result['policy']}] success={success_rate:.1%}, failure={failure_rate:.1%}{cycle_summary}, mean Gym return={mean_gym_return:.2f}, mean length={mean_length:.1f} | reached: {reached}")
         print(f"Plot saved to: {plot_policy(result, args.window, args.output_dir)}")
         if args.trace_grid:
             trace_paths = plot_grid_traces( result, regions, grid_w, grid_h, args.output_dir )

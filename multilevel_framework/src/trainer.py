@@ -21,7 +21,7 @@ import numpy as np
 import torch
 
 from abstraction import AbstractionConfig
-from abstract_mdps import LTLfAutomaton, MultiLevelWaypointMDP
+from abstract_mdps import MultiLevelWaypointMDP, build_task_automaton
 from agent import HierarchicalDQNLearner, TabularQLearner
 from automaton_validator import validate_automaton
 from spatial_regions import load_task_propositions
@@ -203,14 +203,14 @@ def _abstract_position(observation, abstract_mdp):
 
 
 def _augment_state(observation, q, state_to_index):
-    """Append a one-hot encoding of the current DFA state to an observation."""
+    """Append a one-hot encoding of the current automaton state."""
     one_hot = np.zeros(len(state_to_index), dtype=np.float32)
     one_hot[state_to_index[q]] = 1.0
     return np.concatenate((observation, one_hot)).astype(np.float32)
 
 
 def _evaluate_initial_automaton_state(observation, abstract_mdp):
-    """Consume the initial observation from the DFA pre-trace state and return the first active state."""
+    """Consume the initial observation and return the first active task state."""
     initial_truth_assignment = abstract_mdp.get_environment_truth_assignment(observation)
     pre_trace_q = abstract_mdp.automaton.get_initial_q()
     return abstract_mdp.automaton.get_next_q(pre_trace_q, initial_truth_assignment)
@@ -248,7 +248,7 @@ def _write_run_header(log_handle, episodes, use_shaping, goal_reward, abstract_m
         f"eval_interval={eval_interval}, eval_episodes={eval_episodes}, eval_seed={eval_seed}\n"
         f"inter_level_shaping={abstract_mdp.upper_level_mdp is not None}, "
         "inter_level_formula=gamma*Phi(next)-Phi(state)\n"
-        f"formula={automaton.formula_str}\n"
+        f"task_type={automaton.task_type}, task={automaton.formula_str}\n"
         f"regions={{{', '.join(f'{name}: {region.as_dict()}' for name, region in abstract_mdp.regions.items())}}}\n"
         f"dfa_states={automaton_states}, pre_trace={automaton.get_initial_q()}, accepting={sorted(automaton.accepting_states)}, failure={sorted(automaton.failure_states)}\n"
     )
@@ -290,6 +290,7 @@ def _build_training_log(episode, episodes, log_interval, automaton_states, agent
         f"[Episode {episode + 1}/{episodes} | last {window}]\n"
         f"success rate                : {np.mean(histories['successes'][recent_slice]):.1%} (cumulative {np.mean(histories['successes']):.1%})\n"
         f"failure rate                : {np.mean(histories['failures'][recent_slice]):.1%} (cumulative {np.mean(histories['failures']):.1%})\n"
+        f"completed cycles / episode  : {np.mean(histories['completed_cycles'][recent_slice]):.3f}\n"
         f"synthetic task reward       : {np.mean(histories['task_rewards'][recent_slice]):.3f}\n"
         f"shaping reward              : {np.mean(histories['shaping_rewards'][recent_slice]):.3f}\n"
         f"learning reward             : {np.mean(histories['learning_rewards'][recent_slice]):.3f}\n"
@@ -347,6 +348,7 @@ def _evaluate_agent_greedily(agent, abstract_mdp, episodes, goal_reward, seed):
     failures = 0
     task_rewards = []
     episode_lengths = []
+    completed_cycles = []
     transition_counts = Counter()
     evaluation_env = gym.make("LunarLander-v3", continuous=False)
     is_neural = hasattr(agent, "policy_net")
@@ -366,25 +368,29 @@ def _evaluate_agent_greedily(agent, abstract_mdp, episodes, goal_reward, seed):
             failed = automaton.is_failure(q)
             terminated = truncated = False
             steps = 0
-            while not (succeeded or failed or terminated or truncated):
+            episode_cycles = 0
+            while not (failed or terminated or truncated or (succeeded and not automaton.is_continuing)):
                 augmented_state = _augment_state(raw_state, q, state_to_index)
                 action, known = _greedy_action(agent, augmented_state, return_known=True)
                 known_states += int(known)
                 evaluated_states += 1
                 next_raw_state, _ignored_reward, terminated, truncated, _ = evaluation_env.step(action)
                 previous_q = q
-                q = automaton.get_next_q(previous_q, abstract_mdp.get_environment_truth_assignment(next_raw_state))
+                automaton_step = automaton.advance(previous_q, abstract_mdp.get_environment_truth_assignment(next_raw_state))
+                q = automaton_step.next_state
                 if q not in state_to_index:
                     raise RuntimeError(f"DFA returned unknown evaluation state {q!r}")
                 if q != previous_q:
                     transition_counts[(previous_q, q)] += 1
-                succeeded = automaton.is_goal_reached(q)
-                failed = automaton.is_failure(q)
+                succeeded = succeeded or automaton_step.succeeded
+                failed = failed or automaton_step.failed
+                episode_cycles += int(automaton_step.completed_cycle)
                 raw_state = next_raw_state
                 steps += 1
             successes += int(succeeded)
             failures += int(failed)
-            task_rewards.append(float(goal_reward) if succeeded else 0.0)
+            completed_cycles.append(episode_cycles)
+            task_rewards.append(float(goal_reward) * (episode_cycles if automaton.is_continuing else int(succeeded)))
             episode_lengths.append(steps)
     finally:
         if is_neural and was_training:
@@ -392,7 +398,7 @@ def _evaluate_agent_greedily(agent, abstract_mdp, episodes, goal_reward, seed):
         if tabular_rng_state is not None:
             agent.random_rng.setstate(tabular_rng_state)
         evaluation_env.close()
-    return {"success_rate": successes / episodes, "failure_rate": failures / episodes, "mean_task_reward": float(np.mean(task_rewards)), "mean_episode_length": float(np.mean(episode_lengths)), "transition_counts": transition_counts, "known_state_fraction": known_states / evaluated_states if evaluated_states else 1.0}
+    return {"success_rate": successes / episodes, "failure_rate": failures / episodes, "mean_task_reward": float(np.mean(task_rewards)), "mean_episode_length": float(np.mean(episode_lengths)), "mean_completed_cycles": float(np.mean(completed_cycles)), "transition_counts": transition_counts, "known_state_fraction": known_states / evaluated_states if evaluated_states else 1.0}
 
 
 def _evaluation_score(metrics):
@@ -401,7 +407,7 @@ def _evaluation_score(metrics):
 
 
 def _validate_training_setup(automaton, state_to_index, episodes, log_interval, eval_interval, eval_episodes):
-    """Validate DFA consistency and the numeric parameters required by training."""
+    """Validate automaton consistency and numeric training parameters."""
     if automaton.get_initial_q() not in state_to_index:
         raise ValueError("The DFA initial state is missing from automaton.states")
     if not automaton.accepting_states.issubset(state_to_index):
@@ -428,6 +434,7 @@ def _build_training_results(histories, initial_acceptance_history, buffer_histor
         "state_entry_histories": histories["state_entries"],
         "successes": histories["successes"],
         "failures": histories["failures"],
+        "completed_cycles": histories["completed_cycles"],
         "initial_acceptances": initial_acceptance_history,
         "episode_lengths": histories["episode_lengths"],
         "abstract_changes": histories["abstract_changes"],
@@ -441,6 +448,7 @@ def _build_training_results(histories, initial_acceptance_history, buffer_histor
         "eval_success_rates": histories["eval_success_rates"],
         "eval_task_rewards": histories["eval_task_rewards"],
         "eval_episode_lengths": histories["eval_episode_lengths"],
+        "eval_completed_cycles": histories["eval_completed_cycles"],
         "eval_known_state_fractions": histories["eval_known_state_fractions"],
         "tabular_table_sizes": histories["tabular_table_sizes"],
         "tabular_visited_states": histories["tabular_visited_states"],
@@ -501,6 +509,7 @@ class TrainingStepResult:
     episode_done: bool
     succeeded: bool
     failed: bool
+    completed_cycle: bool
     env_terminated: bool
     env_truncated: bool
     abstract_changed: bool
@@ -516,6 +525,7 @@ class TrainingEpisodeResult:
     length: int
     succeeded: bool
     failed: bool
+    completed_cycles: int
     abstract_changes: int
     dfa_transitions: int
     state_visits: list
@@ -530,12 +540,12 @@ def _create_training_histories(automaton_states):
     state_entry_histories = [[] for _ in automaton_states]
     histories = {
         "task_rewards": [], "learning_rewards": [], "shaping_rewards": [], "epsilons": [],
-        "episode_lengths": [], "successes": [], "failures": [], "abstract_changes": [],
+        "episode_lengths": [], "successes": [], "failures": [], "completed_cycles": [], "abstract_changes": [],
         "dfa_transitions": [], "transition_counters": [], "state_visits": state_visit_histories,
         "state_entries": state_entry_histories, "tabular_table_sizes": [], "tabular_visited_states": [],
         "tabular_updated_state_actions": [], "tabular_state_action_coverage": [], "tabular_positive_updates": [],
         "evaluation_steps": [], "eval_success_rates": [], "eval_task_rewards": [],
-        "eval_episode_lengths": [], "eval_known_state_fractions": [],
+        "eval_episode_lengths": [], "eval_completed_cycles": [], "eval_known_state_fractions": [],
     }
     return histories, [], [[] for _ in automaton_states]
 
@@ -568,19 +578,20 @@ def _perform_training_step(context, raw_state, augmented_state, q):
     abstract_next_state_without_q = (next_x, next_y)
 
     truth_assignment = context.abstract_mdp.get_environment_truth_assignment(next_raw_state)
-    next_q = context.automaton.get_next_q(q, truth_assignment)
+    automaton_step = context.automaton.advance(q, truth_assignment)
+    next_q = automaton_step.next_state
     if next_q not in context.state_to_index:
         raise RuntimeError(f"DFA returned unknown state {next_q!r} from state {q!r}")
     abstract_next_state = (*abstract_next_state_without_q, next_q)
 
-    succeeded = context.automaton.is_goal_reached(next_q)
-    failed = context.automaton.is_failure(next_q)
+    succeeded = automaton_step.succeeded
+    failed = automaton_step.failed
     synthetic_goal_reward = context.goal_reward if succeeded else 0.0
 
     # A Gym truncation stops data collection but still permits bootstrap. True
     # environment terminals and DFA terminals do not have a continuation value.
-    episode_done = env_terminated or env_truncated or succeeded or failed
-    bootstrap_terminal = env_terminated or succeeded or failed
+    episode_done = env_terminated or env_truncated or automaton_step.terminal
+    bootstrap_terminal = env_terminated or automaton_step.terminal
     next_augmented_state = _augment_state(next_raw_state, next_q, context.state_to_index)
 
     # Potential-based shaping is evaluated even on the last collected step.
@@ -598,7 +609,7 @@ def _perform_training_step(context, raw_state, augmented_state, q):
     else:
         context.agent.optimize_model()
 
-    return TrainingStepResult(next_raw_state=next_raw_state, next_augmented_state=next_augmented_state, next_q=next_q, synthetic_goal_reward=synthetic_goal_reward, shaping_signal=shaping_signal, episode_done=episode_done, succeeded=succeeded, failed=failed, env_terminated=env_terminated, env_truncated=env_truncated, abstract_changed=abstract_state != abstract_next_state, dfa_changed=q != next_q)
+    return TrainingStepResult(next_raw_state=next_raw_state, next_augmented_state=next_augmented_state, next_q=next_q, synthetic_goal_reward=synthetic_goal_reward, shaping_signal=shaping_signal, episode_done=episode_done, succeeded=succeeded, failed=failed, completed_cycle=automaton_step.completed_cycle, env_terminated=env_terminated, env_truncated=env_truncated, abstract_changed=abstract_state != abstract_next_state, dfa_changed=q != next_q)
 
 
 def _run_training_episode(context, reset_seed=None):
@@ -618,6 +629,7 @@ def _run_training_episode(context, reset_seed=None):
     steps = 0
     abstract_changes = 0
     dfa_transitions = 0
+    completed_cycles = 0
     state_visits = [0] * len(context.automaton_states)
     state_entries = [0] * len(context.automaton_states)
     state_visits[context.state_to_index[q]] = 1
@@ -648,8 +660,9 @@ def _run_training_episode(context, reset_seed=None):
         task_reward += step.synthetic_goal_reward
         shaping_reward += step.shaping_signal
         steps += 1
-        succeeded = step.succeeded
-        failed = step.failed
+        succeeded = succeeded or step.succeeded
+        failed = failed or step.failed
+        completed_cycles += int(step.completed_cycle)
         episode_done = step.episode_done
         raw_state = step.next_raw_state
         augmented_state = step.next_augmented_state
@@ -661,7 +674,7 @@ def _run_training_episode(context, reset_seed=None):
     # the same epsilon and the stored value applies to the following episode.
     next_epsilon = max(context.agent.eps_min, context.agent.eps * context.agent.eps_decay)
     context.agent.eps = next_epsilon
-    return TrainingEpisodeResult(task_reward=task_reward, shaping_reward=shaping_reward, length=steps, succeeded=succeeded, failed=failed, abstract_changes=abstract_changes, dfa_transitions=dfa_transitions, state_visits=state_visits, state_entries=state_entries, transitions=transitions, next_epsilon=next_epsilon)
+    return TrainingEpisodeResult(task_reward=task_reward, shaping_reward=shaping_reward, length=steps, succeeded=succeeded, failed=failed, completed_cycles=completed_cycles, abstract_changes=abstract_changes, dfa_transitions=dfa_transitions, state_visits=state_visits, state_entries=state_entries, transitions=transitions, next_epsilon=next_epsilon)
 
 
 def _record_training_episode(context, result):
@@ -674,6 +687,7 @@ def _record_training_episode(context, result):
     histories["episode_lengths"].append(result.length)
     histories["successes"].append(int(result.succeeded))
     histories["failures"].append(int(result.failed))
+    histories["completed_cycles"].append(result.completed_cycles)
     histories["abstract_changes"].append(result.abstract_changes)
     histories["dfa_transitions"].append(result.dfa_transitions)
     histories["transition_counters"].append(result.transitions)
@@ -705,9 +719,11 @@ def _run_periodic_training_evaluation(context, episode):
     context.histories["eval_success_rates"].append(evaluation["success_rate"])
     context.histories["eval_task_rewards"].append(evaluation["mean_task_reward"])
     context.histories["eval_episode_lengths"].append(evaluation["mean_episode_length"])
+    context.histories["eval_completed_cycles"].append(evaluation["mean_completed_cycles"])
     context.histories["eval_known_state_fractions"].append(evaluation["known_state_fraction"])
     known_line = f", known states={evaluation['known_state_fraction']:.1%}" if isinstance(context.agent, TabularQLearner) else ""
-    _write_log(f"[Greedy evaluation at episode {episode + 1} | {context.eval_episodes} fixed-seed episodes]\nsuccess={evaluation['success_rate']:.1%}, failure={evaluation['failure_rate']:.1%}, task reward={evaluation['mean_task_reward']:.3f}, length={evaluation['mean_episode_length']:.1f}{known_line}\nDFA transitions: {_format_counter(evaluation['transition_counts'])}\n", context.log_handle)
+    cycle_line = f", cycles={evaluation['mean_completed_cycles']:.3f}" if context.automaton.is_continuing else ""
+    _write_log(f"[Greedy evaluation at episode {episode + 1} | {context.eval_episodes} fixed-seed episodes]\nsuccess={evaluation['success_rate']:.1%}, failure={evaluation['failure_rate']:.1%}, task reward={evaluation['mean_task_reward']:.3f}{cycle_line}, length={evaluation['mean_episode_length']:.1f}{known_line}\nDFA transitions: {_format_counter(evaluation['transition_counts'])}\n", context.log_handle)
 
     score = _evaluation_score(evaluation)
     if context.best_evaluation_score is None or score > context.best_evaluation_score:
@@ -727,7 +743,7 @@ def _finalize_training(context):
     return _build_training_results(context.histories, context.initial_acceptance_history, context.buffer_histories, context.automaton_states, context.best_mean_reward, context.best_policy_episode, context.gamma_shaping)
 
 
-def run_sequential_training(env, agent, abstract_mdp, episodes, goal_reward=10000, save_policy=True, use_shaping=True, gamma_shaping=1.0, log_file=None, log_interval=100, eval_interval=1000, eval_episodes=1000, eval_seed=100000, seed=None, policy_suffix=""):
+def train(env, agent, abstract_mdp, episodes, goal_reward=10000, save_policy=True, use_shaping=True, gamma_shaping=1.0, log_file=None, log_interval=100, eval_interval=1000, eval_episodes=1000, eval_seed=100000, seed=None, policy_suffix=""):
     """Train one learner while delegating each lifecycle phase to a focused helper."""
     context = _initialize_training_context(env, agent, abstract_mdp, episodes, goal_reward, save_policy, use_shaping, gamma_shaping, log_file, log_interval, eval_interval, eval_episodes, eval_seed, policy_suffix)
     try:
@@ -791,12 +807,11 @@ def main(args):
         _archive_config(config_path, experiment_dir, "trajectory.json")
         _archive_config(abstraction_config_path, experiment_dir, "abstraction.json")
 
-    formula = config.get("formula", "F(goal)")
     regions, spatial_predicates, task_propositions = load_task_propositions(config.get("regions"), config.get("predicates"))
     gamma = float(config.get("gamma", 0.99))
     goal_reward = float(config.get("goal_reward", 10000))
     # Build the DFA once for both training and post-processing.
-    automaton = LTLfAutomaton(formula)
+    automaton = build_task_automaton(config)
     validation_report = validate_automaton( automaton, task_propositions, )
     level_summary = ", ".join(
         f"{index}:{level.name}={level.width}x{level.height}[checkpoint={level.checkpoint}]"
@@ -807,7 +822,7 @@ def main(args):
     bellman_summary = "not applicable" if args.learner == "tabular" else str(args.stochastic_bellman_update)
     if args.learner == "ddqn" and args.stochastic_bellman_update:
         bellman_summary += f" (alpha={args.bellman_alpha})"
-    print( "=== LTLf TRAINING (single epsilon) ===\n" f"Learner: {args.learner}\n" f"Formula: {formula}\n" f"Regions: { {name: region.as_dict() for name, region in regions.items()} }\n" f"Predicates: { {name: predicate.as_dict() for name, predicate in spatial_predicates.items()} }\n" f"Abstractions: {level_summary}\n" "Inter-level shaping: gamma*Phi(next)-Phi(state)\n" f"Training gamma_shaping: {args.gamma_shaping}\n" f"Stochastic Bellman update: {bellman_summary}\n" "Automaton coordinates and training potential: level1\n" f"DFA: states={automaton.states}, pre-trace={automaton.initial_state}, " f"accepting={sorted(automaton.accepting_states)}, failure={sorted(automaton.failure_states)}\n" "Gym reward is ignored by design.\n" f"{validation_report.format()}" )
+    print( "=== TEMPORAL TASK TRAINING (single epsilon) ===\n" f"Learner: {args.learner}\n" f"Task type: {automaton.task_type}\n" f"Task: {automaton.formula_str}\n" f"Regions: { {name: region.as_dict() for name, region in regions.items()} }\n" f"Predicates: { {name: predicate.as_dict() for name, predicate in spatial_predicates.items()} }\n" f"Abstractions: {level_summary}\n" "Inter-level shaping: gamma*Phi(next)-Phi(state)\n" f"Training gamma_shaping: {args.gamma_shaping}\n" f"Stochastic Bellman update: {bellman_summary}\n" "Automaton coordinates and training potential: level1\n" f"Automaton: states={automaton.states}, initial={automaton.initial_state}, " f"accepting={sorted(automaton.accepting_states)}, failure={sorted(automaton.failure_states)}, continuing={automaton.is_continuing}\n" "Gym reward is ignored by design.\n" f"{validation_report.format()}" )
 
     if not args.post_process:
         automaton.render_graph(directory=image_dir)
@@ -836,7 +851,7 @@ def main(args):
                 else:
                     agent = HierarchicalDQNLearner(env=env, max_episodes=args.episodes, eps_decay=args.eps_decay, gamma=gamma, extra_state_dims=len(automaton.states), use_polyak=args.polyak, tau=args.polyak_tau, target_update_freq=args.target_update_freq, network_type=args.network_type, policy_dir=policy_dir, stochastic_bellman_update=args.stochastic_bellman_update, bellman_alpha=args.bellman_alpha)
                 policy_suffix = "" if args.num_seeds == 1 else f"_seed_{run_seed}"
-                metrics = run_sequential_training(env=env, agent=agent, abstract_mdp=abstract_mdp, episodes=args.episodes, goal_reward=goal_reward, use_shaping=not args.no_shaping, gamma_shaping=args.gamma_shaping, log_file=f"{log_dir}/single_epsilon_training_seed_{run_seed}.log", log_interval=args.log_interval, eval_interval=args.eval_interval, eval_episodes=args.eval_episodes, eval_seed=args.eval_seed, seed=run_seed, policy_suffix=policy_suffix)
+                metrics = train(env=env, agent=agent, abstract_mdp=abstract_mdp, episodes=args.episodes, goal_reward=goal_reward, use_shaping=not args.no_shaping, gamma_shaping=args.gamma_shaping, log_file=f"{log_dir}/single_epsilon_training_seed_{run_seed}.log", log_interval=args.log_interval, eval_interval=args.eval_interval, eval_episodes=args.eval_episodes, eval_seed=args.eval_seed, seed=run_seed, policy_suffix=policy_suffix)
                 seed_metrics.append(metrics)
                 save_training_data(f"{data_dir}/single_epsilon_data_seed_{run_seed}.npz", **metrics)
             finally:

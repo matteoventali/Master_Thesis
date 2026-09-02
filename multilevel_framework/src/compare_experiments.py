@@ -5,9 +5,9 @@ import sys
 
 SOURCE_DIR = Path(__file__).resolve().parent
 FRAMEWORK_DIR = SOURCE_DIR.parent
-sys.path.insert(0, str(FRAMEWORK_DIR.parent))
+sys.path.insert(0, str(FRAMEWORK_DIR))
 
-from experiment_comparison import main  # noqa: E402
+from others.experiment_comparison import main  # noqa: E402
 
 
 if __name__ == "__main__":
