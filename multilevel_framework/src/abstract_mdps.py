@@ -710,7 +710,12 @@ class LTLfWaypointMDP:
                     evaluation_steps += 1
                     if automaton_step.succeeded:
                         evaluation_succeeded = True
-                    if evaluation_terminal or evaluation_succeeded:
+                    # Finite LTLf tasks retain the abstract DONE transition,
+                    # which is where their reward and terminal flag live.
+                    # Continuing tasks have no DONE action, so their greedy
+                    # diagnostic stops after observing the first full cycle.
+                    cycle_completed = self.automaton.is_continuing and automaton_step.completed_cycle
+                    if evaluation_terminal or cycle_completed:
                         successes += int(evaluation_succeeded)
                         break
                 total_steps += evaluation_steps
