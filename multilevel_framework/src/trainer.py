@@ -286,6 +286,9 @@ def _build_training_log(episode, episodes, log_interval, automaton_states, agent
     tabular_metrics = agent.metrics_snapshot() if isinstance(agent, TabularQLearner) else None
     tabular_diagnostics = agent.consume_diagnostics() if isinstance(agent, TabularQLearner) else None
     tabular_line = f"tabular Q-table             : {tabular_metrics['table_size']} states, {tabular_metrics['updated_state_actions']} updated pairs, coverage={tabular_metrics['state_action_coverage']:.3%}, positive updates={tabular_metrics['positive_updates']}\ntabular updates in window   : {tabular_diagnostics['updates']}, |TD error| mean/max={tabular_diagnostics['mean_abs_td_error']:.4g}/{tabular_diagnostics['max_abs_td_error']:.4g}, positive={tabular_diagnostics['positive_update_fraction']:.3%}\n" if tabular_metrics is not None else ""
+    recent_steps = sum(histories["episode_lengths"][recent_slice])
+    recent_same_steps = sum(histories["same_abstract_state_steps"][recent_slice])
+    recent_same_fraction = recent_same_steps / recent_steps if recent_steps else 0.0
 
     return (
         "\n"
@@ -298,6 +301,10 @@ def _build_training_log(episode, episodes, log_interval, automaton_states, agent
         f"learning reward             : {np.mean(histories['learning_rewards'][recent_slice]):.3f}\n"
         f"episode length              : {np.mean(histories['episode_lengths'][recent_slice]):.1f}\n"
         f"abstract changes / episode  : {np.mean(histories['abstract_changes'][recent_slice]):.1f}\n"
+        f"same abstract-state steps   : {recent_same_fraction:.1%}\n"
+        f"same-state shaping / episode: {np.mean(histories['same_state_shaping_rewards'][recent_slice]):.3f}\n"
+        f"changed-state shaping / ep. : {np.mean(histories['changed_state_shaping_rewards'][recent_slice]):.3f}\n"
+        f"terminal shaping / episode  : {np.mean(histories['terminal_shaping_rewards'][recent_slice]):.3f}\n"
         f"DFA transitions / episode   : {np.mean(histories['dfa_transitions'][recent_slice]):.2f}\n"
         f"DFA transitions in window   : {_format_counter(recent_transitions)}\n"
         f"epsilon (next episode)       : {histories['epsilons'][-1]:.5f}\n"
@@ -440,6 +447,14 @@ def _build_training_results(histories, initial_acceptance_history, buffer_histor
         "initial_acceptances": initial_acceptance_history,
         "episode_lengths": histories["episode_lengths"],
         "abstract_changes": histories["abstract_changes"],
+        "same_abstract_state_steps": histories["same_abstract_state_steps"],
+        "changed_abstract_state_steps": histories["changed_abstract_state_steps"],
+        "same_state_shaping_rewards": histories["same_state_shaping_rewards"],
+        "changed_state_shaping_rewards": histories["changed_state_shaping_rewards"],
+        "terminal_shaping_rewards": histories["terminal_shaping_rewards"],
+        "spatial_only_changes": histories["spatial_only_changes"],
+        "dfa_only_changes": histories["dfa_only_changes"],
+        "spatial_and_dfa_changes": histories["spatial_and_dfa_changes"],
         "dfa_transitions": histories["dfa_transitions"],
         "automaton_states": automaton_states,
         "best_mean_learning_reward": best_mean_reward,
@@ -529,8 +544,67 @@ class TrainingStepResult:
     completed_cycle: bool
     env_terminated: bool
     env_truncated: bool
+    bootstrap_terminal: bool
     abstract_changed: bool
+    spatial_changed: bool
     dfa_changed: bool
+
+
+@dataclass
+class ShapingTransitionStatistics:
+    """Episode-local decomposition of shaping by abstract transition type."""
+
+    same_abstract_state_steps: int = 0
+    changed_abstract_state_steps: int = 0
+    same_state_shaping_reward: float = 0.0
+    changed_state_shaping_reward: float = 0.0
+    terminal_shaping_reward: float = 0.0
+    spatial_only_changes: int = 0
+    dfa_only_changes: int = 0
+    spatial_and_dfa_changes: int = 0
+
+
+def _collect_shaping_transition_statistics(statistics, step):
+    """Classify one ground transition and accumulate its shaping contribution."""
+    if step.abstract_changed:
+        statistics.changed_abstract_state_steps += 1
+        statistics.changed_state_shaping_reward += step.shaping_signal
+        if step.spatial_changed and step.dfa_changed:
+            statistics.spatial_and_dfa_changes += 1
+        elif step.spatial_changed:
+            statistics.spatial_only_changes += 1
+        elif step.dfa_changed:
+            statistics.dfa_only_changes += 1
+        else:
+            raise AssertionError("An abstract change must be spatial, DFA, or both")
+    else:
+        statistics.same_abstract_state_steps += 1
+        statistics.same_state_shaping_reward += step.shaping_signal
+    if step.bootstrap_terminal:
+        statistics.terminal_shaping_reward += step.shaping_signal
+
+
+def _validate_shaping_transition_statistics(statistics, episode_steps, shaping_reward):
+    """Enforce the count and reward decomposition invariants for one episode."""
+    classified_steps = (
+        statistics.same_abstract_state_steps
+        + statistics.changed_abstract_state_steps
+    )
+    classified_changes = (
+        statistics.spatial_only_changes
+        + statistics.dfa_only_changes
+        + statistics.spatial_and_dfa_changes
+    )
+    if classified_steps != episode_steps:
+        raise AssertionError("Shaping statistics do not cover every episode step")
+    if classified_changes != statistics.changed_abstract_state_steps:
+        raise AssertionError("Abstract-change categories are not exhaustive")
+    decomposed_reward = (
+        statistics.same_state_shaping_reward
+        + statistics.changed_state_shaping_reward
+    )
+    if not np.isclose(decomposed_reward, shaping_reward, rtol=1e-12, atol=1e-9):
+        raise AssertionError("Shaping reward decomposition does not match episode total")
 
 
 @dataclass(frozen=True)
@@ -544,6 +618,14 @@ class TrainingEpisodeResult:
     failed: bool
     completed_cycles: int
     abstract_changes: int
+    same_abstract_state_steps: int
+    changed_abstract_state_steps: int
+    same_state_shaping_reward: float
+    changed_state_shaping_reward: float
+    terminal_shaping_reward: float
+    spatial_only_changes: int
+    dfa_only_changes: int
+    spatial_and_dfa_changes: int
     dfa_transitions: int
     state_visits: list
     state_entries: list
@@ -558,6 +640,9 @@ def _create_training_histories(automaton_states):
     histories = {
         "task_rewards": [], "learning_rewards": [], "shaping_rewards": [], "epsilons": [],
         "episode_lengths": [], "successes": [], "failures": [], "completed_cycles": [], "abstract_changes": [],
+        "same_abstract_state_steps": [], "changed_abstract_state_steps": [],
+        "same_state_shaping_rewards": [], "changed_state_shaping_rewards": [], "terminal_shaping_rewards": [],
+        "spatial_only_changes": [], "dfa_only_changes": [], "spatial_and_dfa_changes": [],
         "dfa_transitions": [], "transition_counters": [], "state_visits": state_visit_histories,
         "state_entries": state_entry_histories, "tabular_table_sizes": [], "tabular_visited_states": [],
         "tabular_updated_state_actions": [], "tabular_state_action_coverage": [], "tabular_positive_updates": [],
@@ -651,7 +736,7 @@ def _perform_training_step(context, raw_state, augmented_state, q):
     else:
         context.agent.optimize_model()
 
-    return TrainingStepResult(next_raw_state=next_raw_state, next_augmented_state=next_augmented_state, next_q=next_q, synthetic_goal_reward=synthetic_goal_reward, shaping_signal=shaping_signal, episode_done=episode_done, succeeded=succeeded, failed=failed, completed_cycle=automaton_step.completed_cycle, env_terminated=env_terminated, env_truncated=env_truncated, abstract_changed=abstract_state != abstract_next_state, dfa_changed=q != next_q)
+    return TrainingStepResult(next_raw_state=next_raw_state, next_augmented_state=next_augmented_state, next_q=next_q, synthetic_goal_reward=synthetic_goal_reward, shaping_signal=shaping_signal, episode_done=episode_done, succeeded=succeeded, failed=failed, completed_cycle=automaton_step.completed_cycle, env_terminated=env_terminated, env_truncated=env_truncated, bootstrap_terminal=bootstrap_terminal, abstract_changed=abstract_state != abstract_next_state, spatial_changed=(x, y) != (next_x, next_y), dfa_changed=q != next_q)
 
 
 def _run_training_episode(context, reset_seed=None):
@@ -677,6 +762,7 @@ def _run_training_episode(context, reset_seed=None):
     state_visits[context.state_to_index[q]] = 1
     state_entries[context.state_to_index[q]] = 1
     transitions = Counter()
+    shaping_statistics = ShapingTransitionStatistics()
 
     # The initial observation is an entry from the virtual pre-trace state.
     context.cumulative_state_visits[q] += 1
@@ -687,6 +773,7 @@ def _run_training_episode(context, reset_seed=None):
     while not episode_done:
         previous_q = q
         step = _perform_training_step(context, raw_state, augmented_state, previous_q)
+        _collect_shaping_transition_statistics(shaping_statistics, step)
         state_visits[context.state_to_index[step.next_q]] += 1
         context.cumulative_state_visits[step.next_q] += 1
         abstract_changes += int(step.abstract_changed)
@@ -712,11 +799,13 @@ def _run_training_episode(context, reset_seed=None):
         context.cumulative_env_terminated += int(step.env_terminated)
         context.cumulative_env_truncated += int(step.env_truncated)
 
+    _validate_shaping_transition_statistics(shaping_statistics, steps, shaping_reward)
+
     # Exploration decays exactly once, so every transition in an episode uses
     # the same epsilon and the stored value applies to the following episode.
     next_epsilon = max(context.agent.eps_min, context.agent.eps * context.agent.eps_decay)
     context.agent.eps = next_epsilon
-    return TrainingEpisodeResult(task_reward=task_reward, shaping_reward=shaping_reward, length=steps, succeeded=succeeded, failed=failed, completed_cycles=completed_cycles, abstract_changes=abstract_changes, dfa_transitions=dfa_transitions, state_visits=state_visits, state_entries=state_entries, transitions=transitions, next_epsilon=next_epsilon)
+    return TrainingEpisodeResult(task_reward=task_reward, shaping_reward=shaping_reward, length=steps, succeeded=succeeded, failed=failed, completed_cycles=completed_cycles, abstract_changes=abstract_changes, same_abstract_state_steps=shaping_statistics.same_abstract_state_steps, changed_abstract_state_steps=shaping_statistics.changed_abstract_state_steps, same_state_shaping_reward=shaping_statistics.same_state_shaping_reward, changed_state_shaping_reward=shaping_statistics.changed_state_shaping_reward, terminal_shaping_reward=shaping_statistics.terminal_shaping_reward, spatial_only_changes=shaping_statistics.spatial_only_changes, dfa_only_changes=shaping_statistics.dfa_only_changes, spatial_and_dfa_changes=shaping_statistics.spatial_and_dfa_changes, dfa_transitions=dfa_transitions, state_visits=state_visits, state_entries=state_entries, transitions=transitions, next_epsilon=next_epsilon)
 
 
 def _record_training_episode(context, result):
@@ -731,6 +820,14 @@ def _record_training_episode(context, result):
     histories["failures"].append(int(result.failed))
     histories["completed_cycles"].append(result.completed_cycles)
     histories["abstract_changes"].append(result.abstract_changes)
+    histories["same_abstract_state_steps"].append(result.same_abstract_state_steps)
+    histories["changed_abstract_state_steps"].append(result.changed_abstract_state_steps)
+    histories["same_state_shaping_rewards"].append(result.same_state_shaping_reward)
+    histories["changed_state_shaping_rewards"].append(result.changed_state_shaping_reward)
+    histories["terminal_shaping_rewards"].append(result.terminal_shaping_reward)
+    histories["spatial_only_changes"].append(result.spatial_only_changes)
+    histories["dfa_only_changes"].append(result.dfa_only_changes)
+    histories["spatial_and_dfa_changes"].append(result.spatial_and_dfa_changes)
     histories["dfa_transitions"].append(result.dfa_transitions)
     histories["transition_counters"].append(result.transitions)
     context.initial_acceptance_history.append(int(result.length == 0 and result.succeeded))
