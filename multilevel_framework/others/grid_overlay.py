@@ -312,6 +312,7 @@ def generate_overlay(
     abstraction_config_path: str | Path = DEFAULT_ABSTRACTION_CONFIG,
     level: int = 1,
     show_grid: bool = False,
+    show_regions: bool = True,
 ) -> Path:
     """Reset LunarLander and save one annotated RGB frame as a PNG."""
     config_path = Path(config_path)
@@ -337,7 +338,7 @@ def generate_overlay(
             geometry=geometry,
             grid_w=selected_level.width,
             grid_h=selected_level.height,
-            regions=task_propositions,
+            regions=task_propositions if show_regions else None,
             observation=observation,
             title=(
                 f"LunarLander — level{level} ({selected_level.name}, "
@@ -371,6 +372,11 @@ def main() -> None:
     parser.add_argument("--output", type=Path)
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--show-grid", action="store_true", help="Draw abstract grid lines, coordinates, current cell, and rasterized proposition cells.")
+    parser.add_argument(
+        "--grid-only",
+        action="store_true",
+        help="Draw the abstract grid without task regions or rasterized proposition cells.",
+    )
     args = parser.parse_args()
     output_path = args.output or FRAMEWORK_DIR / "results" / "abstract_grid_overlay.png"
     saved_path = generate_overlay(
@@ -379,7 +385,8 @@ def main() -> None:
         args.seed,
         args.abstraction_config,
         args.level,
-        args.show_grid,
+        args.show_grid or args.grid_only,
+        not args.grid_only,
     )
     print(f"Image saved to: {saved_path}")
 
