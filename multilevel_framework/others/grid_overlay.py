@@ -200,7 +200,17 @@ def draw_abstract_grid(
     # Every proposition first highlights the abstract cells it intersects. Its
     # exact continuous geometry is then drawn on top: circles as ellipses,
     # boxes as rectangles, and half-planes as a shaded side of a threshold.
-    region_palette = ("#ffca28", "#7c4dff", "#00c853", "#ff6d00", "#00b8d4")
+    # Highly saturated colours keep overlapping task regions recognisable on
+    # top of both the dark sky and the bright LunarLander terrain.
+    region_palette = (
+        "#ffea00",  # vivid yellow
+        "#d500f9",  # electric purple
+        "#00e676",  # neon green
+        "#ff3d00",  # vivid orange-red
+        "#00e5ff",  # electric cyan
+        "#2979ff",  # vivid blue
+        "#ff1744",  # vivid red
+    )
     rasterized = rasterize_regions(regions, grid_w, grid_h) if show_grid and regions else {}
     for region_index, (name, region) in enumerate((regions or {}).items()):
         color = region_palette[region_index % len(region_palette)]
@@ -208,7 +218,7 @@ def draw_abstract_grid(
             cell_mask = np.zeros((grid_h, grid_w), dtype=np.uint8)
             for grid_x, grid_y in rasterized[name]:
                 cell_mask[grid_y, grid_x] = 1
-            cell_colormap = ListedColormap(((0.0, 0.0, 0.0, 0.0), to_rgba(color, alpha=0.16)))
+            cell_colormap = ListedColormap(((0.0, 0.0, 0.0, 0.0), to_rgba(color, alpha=0.48)))
             axis.pcolormesh(x_lines, y_lines, cell_mask, shading="flat", cmap=cell_colormap, vmin=0, vmax=1, zorder=2)
         if isinstance(region, CircularRegion):
             center = observation_to_pixel((region.center_x, region.center_y), geometry)
@@ -217,7 +227,7 @@ def draw_abstract_grid(
             axis.add_patch(
                 Ellipse(
                     center, 2 * radius_x, 2 * radius_y,
-                    facecolor=color, edgecolor="black", linewidth=1.8, alpha=0.38,
+                    facecolor=color, edgecolor="black", linewidth=3.2, alpha=0.78,
                     label=f"{name}: circle", zorder=4,
                 )
             )
@@ -229,7 +239,7 @@ def draw_abstract_grid(
             axis.add_patch(
                 Rectangle(
                     (pixel_x_min, pixel_y_min), pixel_x_max - pixel_x_min, pixel_y_max - pixel_y_min,
-                    facecolor=color, edgecolor="black", linewidth=1.8, alpha=0.30,
+                    facecolor=color, edgecolor="black", linewidth=3.2, alpha=0.74,
                     label=f"{name}: box", zorder=4,
                 )
             )
@@ -257,17 +267,19 @@ def draw_abstract_grid(
                 axis.add_patch(
                     Rectangle(
                         (pixel_x_min, pixel_y_min), pixel_x_max - pixel_x_min, pixel_y_max - pixel_y_min,
-                        facecolor=color, edgecolor="none", alpha=0.20,
+                        facecolor=color, edgecolor=color, linewidth=2.4, alpha=0.58,
                         label=f"{name}: {region.axis} {region.operator} {region.threshold:g}", zorder=3,
                     )
                 )
 
             if region.axis == "x" and OBSERVATION_X_BOUNDS[0] <= region.threshold <= OBSERVATION_X_BOUNDS[1]:
                 threshold_pixel = observation_to_pixel((region.threshold, 0.0), geometry)[0]
-                axis.axvline(threshold_pixel, color=color, linestyle="--", linewidth=2.6, alpha=0.95, zorder=5)
+                axis.axvline(threshold_pixel, color="black", linewidth=5.2, alpha=0.9, zorder=5)
+                axis.axvline(threshold_pixel, color=color, linestyle="--", linewidth=3.4, alpha=1.0, zorder=6)
             if region.axis == "y" and OBSERVATION_Y_BOUNDS[0] <= region.threshold <= OBSERVATION_Y_BOUNDS[1]:
                 threshold_pixel = observation_to_pixel((0.0, region.threshold), geometry)[1]
-                axis.axhline(threshold_pixel, color=color, linestyle="--", linewidth=2.6, alpha=0.95, zorder=5)
+                axis.axhline(threshold_pixel, color="black", linewidth=5.2, alpha=0.9, zorder=5)
+                axis.axhline(threshold_pixel, color=color, linestyle="--", linewidth=3.4, alpha=1.0, zorder=6)
         else:
             raise TypeError(f"Unsupported spatial proposition {name!r}: {type(region).__name__}")
 
