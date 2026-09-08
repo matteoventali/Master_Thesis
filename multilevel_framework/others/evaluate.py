@@ -5,6 +5,7 @@
 # ==============================
 
 import argparse
+import csv
 import json
 import re
 import sys
@@ -75,6 +76,33 @@ def _resolve_policy_path(policy, policy_dir):
     raise FileNotFoundError(f"Policy '{policy}' not found either as an explicit path or under '{policy_dir}'.")
 
 
+class EvaluationProgress:
+    """Dependency-free progress bar over all policy/episode evaluations."""
+
+    def __init__(self, total):
+        self.total = total
+        self.completed = 0
+        self.width = 36
+        self.update_interval = max(1, total // 200)
+
+    def update(self, policy_name):
+        self.completed += 1
+        if self.completed != self.total and self.completed % self.update_interval:
+            return
+        fraction = self.completed / self.total
+        filled = min(self.width, int(self.width * fraction))
+        bar = "#" * filled + "-" * (self.width - filled)
+        print(
+            f"\rEvaluation [{bar}] {fraction:6.1%} "
+            f"({self.completed}/{self.total}) — {policy_name}",
+            end="",
+            flush=True,
+        )
+
+    def finish(self):
+        print()
+
+
 def _load_state_dict(policy_path, device):
     """Load both plain state dictionaries and common wrapped checkpoints."""
     checkpoint = torch.load(policy_path, map_location=device, weights_only=True)
@@ -89,7 +117,7 @@ def _load_state_dict(policy_path, device):
 # Policy evaluation
 # ==============================
 
-def evaluate_policy(policy, policy_dir, episodes, render, task_config, regions, goal_reward, seed, network_type="standard", no_limit=False, verbose=True):
+def evaluate_policy(policy, policy_dir, episodes, render, task_config, regions, goal_reward, seed, network_type="standard", no_limit=False, verbose=True, progress=None):
     """Load and evaluate one policy using the same task semantics as training."""
     # Rebuild the same automaton and abstract MDP used during training.
     policy_path = _resolve_policy_path(policy, policy_dir)
@@ -210,6 +238,8 @@ def evaluate_policy(policy, policy_dir, episodes, render, task_config, regions, 
             task_returns.append(float(goal_reward) * (episode_completed_cycles if automaton.is_continuing else int(success)))
             environment_returns.append(environment_return)
             episode_lengths.append(steps)
+            if progress is not None:
+                progress.update(policy_name)
     finally:
         env.close()
 
@@ -279,8 +309,8 @@ def plot_comparison(results, window_size, output_dir):
     return output_path
 
 
-def print_best_last_summary(results, task_description):
-    """Print the task-appropriate aggregate metric across training seeds."""
+def best_last_summary_rows(results, task_description, experiment_name):
+    """Build machine-readable best/last aggregates across training seeds."""
     groups = {
         "primary": {"best": [], "last": []},
         "unbiased": {"best": [], "last": []},
@@ -289,6 +319,7 @@ def print_best_last_summary(results, task_description):
         "primary": {"best": set(), "last": set()},
         "unbiased": {"best": set(), "last": set()},
     }
+    episode_counts = {"primary": set(), "unbiased": set()}
     is_continuing = bool(results[0]["is_continuing"])
     if any(bool(result["is_continuing"]) != is_continuing for result in results):
         raise ValueError("All policies in one aggregate evaluation must use the same task type")
@@ -306,6 +337,7 @@ def print_best_last_summary(results, task_description):
             else float(result["successes"]) / episode_count
         )
         groups[learner][category].append(metric)
+        episode_counts[learner].add(episode_count)
         if seed_text is not None:
             seeds[learner][category].add(int(seed_text))
 
@@ -314,7 +346,7 @@ def print_best_last_summary(results, task_description):
         if categories["best"] or categories["last"]
     ]
     if not available_learners:
-        return
+        return []
     for learner in available_learners:
         learner_groups = groups[learner]
         learner_seeds = seeds[learner]
@@ -336,28 +368,67 @@ def print_best_last_summary(results, task_description):
         values = np.asarray(values, dtype=np.float64)
         return float(np.mean(values)), float(np.std(values))
 
-    table_task = task_description.replace("|", "\\|")
-    metric_label = "mean cycles per episode" if is_continuing else "success rate"
+    metric_name = "mean_cycles_per_episode" if is_continuing else "success_rate"
+    rows = []
+    for learner in available_learners:
+        best_mean, best_std = aggregate(groups[learner]["best"])
+        last_mean, last_std = aggregate(groups[learner]["last"])
+        if len(episode_counts[learner]) != 1:
+            raise ValueError(
+                "All policies in one aggregate evaluation must use the same "
+                "number of evaluation episodes"
+            )
+        rows.append(
+            {
+                "experiment": experiment_name,
+                "task": task_description,
+                "learner": "unbiased" if learner == "unbiased" else "primary",
+                "training_seeds": len(groups[learner]["best"]),
+                "evaluation_episodes_per_policy": next(iter(episode_counts[learner])),
+                "metric": metric_name,
+                "best_mean": best_mean,
+                "best_std": best_std,
+                "last_mean": last_mean,
+                "last_std": last_std,
+            }
+        )
+    return rows
+
+
+def save_best_last_summary_csv(rows, output_dir):
+    """Save aggregate evaluation rows without presentation-specific formatting."""
+    if not rows:
+        return None
+    output_path = output_dir / "evaluation_summary.csv"
+    with output_path.open("w", newline="", encoding="utf-8") as csv_file:
+        writer = csv.DictWriter(csv_file, fieldnames=tuple(rows[0]))
+        writer.writeheader()
+        writer.writerows(rows)
+    return output_path
+
+
+def print_best_last_summary(rows):
+    """Print a human-readable view of machine-readable aggregate rows."""
+    if not rows:
+        return
+    table_task = rows[0]["task"].replace("|", "\\|")
+    metric_label = rows[0]["metric"].replace("_", " ")
     print("\n=== AGGREGATE POLICY EVALUATION ===")
     print(
         f"| Task | Learner | Training seeds | Best policy {metric_label} | "
         f"Last policy {metric_label} |"
     )
     print("|---|---|---:|---:|---:|")
-    for learner in available_learners:
-        best_mean, best_std = aggregate(groups[learner]["best"])
-        last_mean, last_std = aggregate(groups[learner]["last"])
-        if is_continuing:
-            best_value = f"{best_mean:.3f} ± {best_std:.3f}"
-            last_value = f"{last_mean:.3f} ± {last_std:.3f}"
+    for row in rows:
+        if row["metric"] == "mean_cycles_per_episode":
+            best_value = f"{row['best_mean']:.3f} ± {row['best_std']:.3f}"
+            last_value = f"{row['last_mean']:.3f} ± {row['last_std']:.3f}"
         else:
-            best_value = f"{best_mean:.2%} ± {best_std:.2%}"
-            last_value = f"{last_mean:.2%} ± {last_std:.2%}"
-        learner_label = "Unbiased" if learner == "unbiased" else (
-            "Biased" if "unbiased" in available_learners else "Primary"
-        )
+            best_value = f"{row['best_mean']:.2%} ± {row['best_std']:.2%}"
+            last_value = f"{row['last_mean']:.2%} ± {row['last_std']:.2%}"
+        learner_label = row["learner"].capitalize()
         print(
-            f"| {table_task} | {learner_label} | {len(groups[learner]['best'])} | "
+            f"| {table_task} | {learner_label} | {row['training_seeds']} | "
             f"{best_value} | {last_value} |"
         )
 
@@ -491,10 +562,20 @@ def parse_args():
     parser.add_argument("policies", nargs="*", help="Optional checkpoint names or paths; by default all best/last policies are evaluated.")
     parser.add_argument("--experiment", help="Experiment name below results/ or an explicit experiment directory.")
     parser.add_argument("--gui", action="store_true", help="Select an experiment directory graphically.")
-    parser.add_argument("--episodes", type=_positive_int, default=100)
+    parser.add_argument("--episodes", type=_positive_int, default=1000)
     parser.add_argument("--window", type=_positive_int, default=10)
     parser.add_argument("--seed", type=int, default=None)
     parser.add_argument("--render", action="store_true")
+    parser.add_argument(
+        "--no-plots",
+        action="store_true",
+        help="Save the aggregate CSV without generating evaluation PNG files.",
+    )
+    parser.add_argument(
+        "--no-progress",
+        action="store_true",
+        help="Do not display the aggregate policy/episode progress bar.",
+    )
     parser.add_argument("--no-limit", action="store_true", help="Increase the environment episode limit to 5000 steps.")
     parser.add_argument("--output-dir", type=Path, default=None)
     parser.add_argument( "--network-type", choices=["standard", "dueling"], default="standard", help="Q-network architecture used by the checkpoint.", )
@@ -535,9 +616,14 @@ def main():
 
     # Evaluate policies one at a time to keep rendering and output deterministic.
     results = []
-    for policy in policies:
-        result = evaluate_policy( policy, policy_dir, args.episodes, args.render, config, task_propositions, goal_reward, args.seed, network_type=args.network_type, no_limit=args.no_limit, verbose=not aggregate_mode, )
-        results.append(result)
+    progress = None if args.no_progress else EvaluationProgress(len(policies) * args.episodes)
+    try:
+        for policy in policies:
+            result = evaluate_policy( policy, policy_dir, args.episodes, args.render, config, task_propositions, goal_reward, args.seed, network_type=args.network_type, no_limit=args.no_limit, verbose=not aggregate_mode, progress=progress, )
+            results.append(result)
+    finally:
+        if progress is not None:
+            progress.finish()
 
     # Print the summary and create one plot for each evaluated policy.
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -550,16 +636,25 @@ def main():
         reached = ", ".join(f"q={q}: {count}/{args.episodes}" for q, count in result["state_reach_counts"].items())
         if not aggregate_mode:
             print(f"[{result['policy']}] success={success_rate:.1%}, failure={failure_rate:.1%}{cycle_summary}, mean Gym return={mean_gym_return:.2f}, mean length={mean_length:.1f} | reached: {reached}")
-        policy_plot = plot_policy(result, args.window, output_dir)
-        if not aggregate_mode:
-            print(f"Plot saved to: {policy_plot}")
+        if not args.no_plots:
+            policy_plot = plot_policy(result, args.window, output_dir)
+            if not aggregate_mode:
+                print(f"Plot saved to: {policy_plot}")
 
     # Add a combined comparison when more than one policy was requested.
-    if len(results) > 1:
+    if not args.no_plots and len(results) > 1:
         comparison_plot = plot_comparison(results, args.window, output_dir)
         if not aggregate_mode:
             print(f"Comparison saved to: {comparison_plot}")
-    print_best_last_summary(results, results[0]["task_description"])
+    summary_rows = best_last_summary_rows(
+        results,
+        results[0]["task_description"],
+        experiment_dir.name,
+    )
+    print_best_last_summary(summary_rows)
+    summary_csv = save_best_last_summary_csv(summary_rows, output_dir)
+    if summary_csv is not None:
+        print(f"Evaluation summary saved to: {summary_csv}")
 
 
 if __name__ == "__main__":

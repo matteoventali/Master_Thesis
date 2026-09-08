@@ -72,6 +72,24 @@ EXPERIMENT_COLORS = (
 EPSILON_LINESTYLES = ("--", (0, (5, 2, 1, 2)), ":", "-.")
 
 
+def _natural_name_key(value: str) -> tuple[object, ...]:
+    """Sort names case-insensitively while treating digit runs numerically."""
+    return tuple(
+        int(part) if part.isdigit() else part.casefold()
+        for part in re.split(r"(\d+)", value)
+    )
+
+
+def _ordered_experiments(
+    experiments: Sequence["Experiment"],
+) -> list["Experiment"]:
+    """Return experiments in stable, human-friendly name order."""
+    return sorted(
+        experiments,
+        key=lambda experiment: _natural_name_key(experiment.name),
+    )
+
+
 def _place_comparison_legend(figure, axes, handles, labels):
     """Place a two-column legend below fixed-size comparison axes."""
     if not labels:
@@ -177,7 +195,7 @@ def discover_experiments(results_dir: Path) -> list[Experiment]:
     experiments: list[Experiment] = []
     for directory in sorted(
         (item for item in results_dir.iterdir() if item.is_dir()),
-        key=lambda item: item.name.casefold(),
+        key=lambda item: _natural_name_key(item.name),
     ):
         files = tuple(sorted(directory.rglob("*.npz")))
         metrics: set[str] = set()
@@ -194,7 +212,10 @@ def discover_experiments(results_dir: Path) -> list[Experiment]:
             )
 
     # Keep compatibility with old layouts that wrote NPZ files directly in results/.
-    for path in sorted(results_dir.glob("*.npz")):
+    for path in sorted(
+        results_dir.glob("*.npz"),
+        key=lambda item: _natural_name_key(item.stem),
+    ):
         metrics = _available_metrics(path)
         if metrics:
             experiments.append(
@@ -532,6 +553,8 @@ def plot_comparison(
     if not experiments:
         raise ValueError("Select at least one experiment")
 
+    experiments = _ordered_experiments(experiments)
+
     if not show:
         import matplotlib
 
@@ -548,28 +571,49 @@ def plot_comparison(
         {
             "font.family": "sans-serif",
             "font.sans-serif": ["Arial", "Liberation Sans", "DejaVu Sans"],
-            "font.size": 10,
-            "axes.labelsize": 10,
-            "legend.fontsize": 9,
-            "xtick.labelsize": 9,
-            "ytick.labelsize": 9,
+            "font.size": 13,
+            "axes.labelsize": 14,
+            "legend.fontsize": 11,
+            "xtick.labelsize": 11,
+            "ytick.labelsize": 11,
             "xtick.direction": "in",
             "ytick.direction": "in",
         }
     )
     if panels:
-        column_count = min(4, len(experiments))
+        column_count = min(3, len(experiments))
         row_count = math.ceil(len(experiments) / column_count)
-        figure, panel_axes = plt.subplots(
-            row_count,
-            column_count,
-            figsize=(3.2 * column_count, 2.7 * row_count),
-            sharex=True,
-            sharey=True,
-            constrained_layout=True,
-            squeeze=False,
+        figure = plt.figure(
+            figsize=(3.8 * column_count, 3.35 * row_count),
+            constrained_layout=False,
         )
-        axes_list = panel_axes.ravel()
+        panel_grid = figure.add_gridspec(row_count, column_count * 2)
+        figure.subplots_adjust(
+            left=0.08,
+            right=0.98,
+            top=0.97,
+            bottom=max(0.12, 0.28 / row_count),
+            wspace=0.34,
+            hspace=0.62,
+        )
+        axes_list = []
+        for index in range(len(experiments)):
+            row = index // column_count
+            index_in_row = index % column_count
+            experiments_in_row = min(
+                column_count,
+                len(experiments) - row * column_count,
+            )
+            first_column = column_count - experiments_in_row
+            grid_column = first_column + 2 * index_in_row
+            shared_axis = axes_list[0] if axes_list else None
+            axes_list.append(
+                figure.add_subplot(
+                    panel_grid[row, grid_column:grid_column + 2],
+                    sharex=shared_axis,
+                    sharey=shared_axis,
+                )
+            )
         final_step = max(float(np.nanmax(summary.steps)) for summary in summaries)
         for index, (experiment, summary) in enumerate(zip(experiments, summaries)):
             axis = axes_list[index]
@@ -578,29 +622,36 @@ def plot_comparison(
             upper = summary.mean + summary.standard_deviation
             axis.plot(summary.steps, summary.mean, color=color, linewidth=1.7)
             axis.fill_between(summary.steps, lower, upper, color=color, alpha=0.18)
-            run_text = (
-                f"{summary.run_count} {'seed' if summary.run_count == 1 else 'seeds'}"
-                if summary.run_count
-                else "aggregate statistics"
+            panel_label = chr(ord("a") + index) if index < 26 else str(index + 1)
+            axis.text(
+                0.5,
+                -0.23,
+                f"({panel_label}) {experiment.name}",
+                transform=axis.transAxes,
+                ha="center",
+                va="top",
+                fontsize=12,
+                fontweight="semibold",
+                clip_on=False,
             )
-            axis.set_title(f"{experiment.name}\n({run_text})", fontsize=10)
             axis.set_xlim(0.0, final_step)
             if metric in PERCENTAGE_METRICS:
                 axis.set_ylim(0.0, 1.0)
                 axis.yaxis.set_major_formatter(PercentFormatter(xmax=1.0))
+                axis.tick_params(axis="y", labelleft=True)
             for spine in axis.spines.values():
                 spine.set_visible(True)
                 spine.set_linewidth(0.8)
             axis.set_axisbelow(True)
             axis.grid(axis="y", color="#d9d9d9", linewidth=0.6, alpha=0.8)
-        for axis in axes_list[len(experiments):]:
-            axis.set_visible(False)
         figure.supxlabel(
             "Training episode at evaluation"
             if metric in EVALUATION_METRICS
-            else "#Episode"
+            else "#Episode",
+            fontsize=14,
+            y=0.01,
         )
-        figure.supylabel(METRIC_LABELS[metric])
+        figure.supylabel(METRIC_LABELS[metric], fontsize=14, x=0.01)
         output = _png_output_path(output)
         output.parent.mkdir(parents=True, exist_ok=True)
         figure.savefig(output, dpi=300, bbox_inches="tight")
@@ -823,7 +874,7 @@ def launch_gui(experiments: Sequence[Experiment], results_dir: Path) -> None:
     panels_var = tk.BooleanVar(value=False)
     ttk.Checkbutton(
         options,
-        text="One panel per experiment",
+        text="Separate experiment panels in one image",
         variable=panels_var,
     ).grid(row=3, column=1, sticky="w", padx=(10, 0), pady=(8, 0))
 
@@ -867,7 +918,9 @@ def launch_gui(experiments: Sequence[Experiment], results_dir: Path) -> None:
             return
         try:
             window = int(window_var.get())
-            selected_experiments = [experiments[index] for index in indices]
+            selected_experiments = _ordered_experiments(
+                [experiments[index] for index in indices]
+            )
             missing = [
                 experiment.name
                 for experiment in selected_experiments
@@ -944,7 +997,10 @@ def build_parser(framework_dir: Path) -> argparse.ArgumentParser:
     parser.add_argument(
         "--panels",
         action="store_true",
-        help="Draw one subplot per experiment with shared axes.",
+        help=(
+            "Draw naturally ordered experiment panels in one image, with "
+            "a caption below each plot."
+        ),
     )
     parser.add_argument(
         "--no-gui",
@@ -994,7 +1050,7 @@ def main(framework_dir: Path | None = None) -> int:
                 file=sys.stderr,
             )
             return 2
-        selected = [by_name[name] for name in names]
+        selected = _ordered_experiments([by_name[name] for name in names])
         output = _png_output_path(
             args.output or default_output_path(results_dir, args.metric)
         )
