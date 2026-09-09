@@ -407,6 +407,39 @@ def save_best_last_summary_csv(rows, output_dir):
     return output_path
 
 
+def policy_evaluation_rows(results, evaluation_seed, experiment_name):
+    """Build the essential post-training metrics for every checkpoint."""
+    rows = []
+    for result in results:
+        match = SEEDED_POLICY_RE.fullmatch(result["policy"])
+        category = match.group(1).lower() if match else "unknown"
+        training_seed = int(match.group(3)) if match and match.group(3) else ""
+        episodes = len(result["task_returns"])
+        rows.append({
+            "experiment": experiment_name,
+            "policy": result["policy"],
+            "category": category,
+            "training_seed": training_seed,
+            "evaluation_seed": "" if evaluation_seed is None else evaluation_seed,
+            "evaluation_episodes": episodes,
+            "successes": result["successes"],
+            "success_rate": result["successes"] / episodes,
+        })
+    return rows
+
+
+def save_policy_evaluation_csv(rows, output_dir):
+    """Save per-checkpoint metrics without discarding seed-level variation."""
+    if not rows:
+        return None
+    output_path = output_dir / "evaluation_by_policy.csv"
+    with output_path.open("w", newline="", encoding="utf-8") as csv_file:
+        writer = csv.DictWriter(csv_file, fieldnames=tuple(rows[0]))
+        writer.writeheader()
+        writer.writerows(rows)
+    return output_path
+
+
 def print_best_last_summary(rows):
     """Print a human-readable view of machine-readable aggregate rows."""
     if not rows:
@@ -524,12 +557,13 @@ def _resolve_experiment_directory(experiment):
     raise FileNotFoundError(f"Experiment not found: {experiment}")
 
 
-def _discover_policies(experiment_dir):
+def _discover_policies(experiment_dir, policy_kind="all"):
     """Return all best and last checkpoints stored by the trainer."""
     extensions = {".pt", ".pth", ".ckpt", ".pkl"}
     policies = []
     for learner_directory in (experiment_dir / "policy", experiment_dir / "policy" / "unbiased"):
-        for category in ("best", "last"):
+        categories = ("best", "last") if policy_kind == "all" else (policy_kind,)
+        for category in categories:
             directory = learner_directory / category
             if directory.is_dir():
                 policies.extend(
@@ -578,6 +612,12 @@ def parse_args():
     )
     parser.add_argument("--no-limit", action="store_true", help="Increase the environment episode limit to 5000 steps.")
     parser.add_argument("--output-dir", type=Path, default=None)
+    parser.add_argument(
+        "--policy-kind",
+        choices=("all", "best", "last"),
+        default="all",
+        help="When policies are auto-discovered, evaluate all checkpoints or only best/last ones.",
+    )
     parser.add_argument( "--network-type", choices=["standard", "dueling"], default="standard", help="Q-network architecture used by the checkpoint.", )
     return parser.parse_args()
 
@@ -603,8 +643,11 @@ def main():
     experiment_dir = _resolve_experiment_directory(selected_experiment)
     config_path = experiment_dir / "trajectory.json"
     policy_dir = experiment_dir / "policy"
-    policies = selected_policies or _discover_policies(experiment_dir)
+    policies = selected_policies or _discover_policies(experiment_dir, args.policy_kind)
     aggregate_mode = _is_aggregate_policy_selection(policies)
+    batch_mode = len(policies) > 1 and all(
+        SEEDED_POLICY_RE.fullmatch(Path(policy).name) for policy in policies
+    )
     output_dir = args.output_dir.expanduser() if args.output_dir else experiment_dir / "evaluation"
 
     # Load the LTLf task shared with the trainer.
@@ -619,7 +662,7 @@ def main():
     progress = None if args.no_progress else EvaluationProgress(len(policies) * args.episodes)
     try:
         for policy in policies:
-            result = evaluate_policy( policy, policy_dir, args.episodes, args.render, config, task_propositions, goal_reward, args.seed, network_type=args.network_type, no_limit=args.no_limit, verbose=not aggregate_mode, progress=progress, )
+            result = evaluate_policy( policy, policy_dir, args.episodes, args.render, config, task_propositions, goal_reward, args.seed, network_type=args.network_type, no_limit=args.no_limit, verbose=not batch_mode, progress=progress, )
             results.append(result)
     finally:
         if progress is not None:
@@ -646,11 +689,14 @@ def main():
         comparison_plot = plot_comparison(results, args.window, output_dir)
         if not aggregate_mode:
             print(f"Comparison saved to: {comparison_plot}")
+    detail_rows = policy_evaluation_rows(results, args.seed, experiment_dir.name)
+    detail_csv = save_policy_evaluation_csv(detail_rows, output_dir)
+    if detail_csv is not None:
+        print(f"Per-policy evaluation saved to: {detail_csv}")
+
     summary_rows = best_last_summary_rows(
-        results,
-        results[0]["task_description"],
-        experiment_dir.name,
-    )
+        results, results[0]["task_description"], experiment_dir.name
+    ) if aggregate_mode else []
     print_best_last_summary(summary_rows)
     summary_csv = save_best_last_summary_csv(summary_rows, output_dir)
     if summary_csv is not None:
