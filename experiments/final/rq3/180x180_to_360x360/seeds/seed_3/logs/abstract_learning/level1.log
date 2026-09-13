@@ -1,0 +1,4134 @@
+Q-learning [level1: 360x360, dual-table inter-level PBRS, episodes=1000000]...
+Configuration: max_steps=600, alpha=0.1, epsilon_start=1.0, epsilon_min=0.05, epsilon_decay=0.999995, gamma_shaping=1.0, seed=3, states=388800, eval_interval=10000, eval_episodes=1000, eval_seed=100000
+
+[Abstract level1 | Episode 1/1000000 | last 1]
+success rate (biased)       : 0.0% (cumulative 0.0%)
+synthetic task reward       : 0.000
+shaping reward              : 47.281
+learning reward             : 47.281
+episode length (non-goal)   : 600.0
+DFA transitions / episode   : 0.00
+epsilon (next episode)      : 0.99999
+Q updates cumulative        : 600
+unbiased |TD| mean/max     : 0/0
+biased |TD| mean/max       : 9.274/24.49
+unbiased positive Q pairs   : 0/2203200 (0.00%)
+accepting-state restarts    : 0
+elapsed                     : 0.0s
+
+[Abstract greedy evaluation at episode 1 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=4.7%, length=576.1
+success by initial q (shaping-guided biased Q) :
+  start q1: 0/496 = 0.0%, length=600.0
+  start q2: 47/504 = 9.3%, length=552.5
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 34
+  2 -> 3 : 47
+original-reward unbiased Q  : success=4.7%, length=576.1
+success by initial q (original-reward unbiased Q) :
+  start q1: 0/496 = 0.0%, length=600.0
+  start q2: 47/504 = 9.3%, length=552.5
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 34
+  2 -> 3 : 47
+
+[Abstract greedy evaluation at episode 1 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=0.0%, length=600.0
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 76
+original-reward unbiased Q  : success=0.0%, length=600.0
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 76
+
+[Abstract level1 | Episode 10000/1000000 | last 10000]
+success rate (biased)       : 2.6% (cumulative 2.6%)
+synthetic task reward       : 260.646
+shaping reward              : 203.746
+learning reward             : 464.391
+episode length (non-goal)   : 589.8
+DFA transitions / episode   : 0.05
+epsilon (next episode)      : 0.95123
+Q updates cumulative        : 3895745
+unbiased |TD| mean/max     : 9.16/1e+04
+biased |TD| mean/max       : 21.07/1e+04
+unbiased positive Q pairs   : 3650/2203200 (0.17%)
+accepting-state restarts    : 3401
+elapsed                     : 48.1s
+
+[Abstract greedy evaluation at episode 10000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=58.2%, length=370.2
+success by initial q (shaping-guided biased Q) :
+  start q1: 108/496 = 21.8%, length=548.2
+  start q2: 474/504 = 94.0%, length=195.0
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 403
+  2 -> 3 : 582
+original-reward unbiased Q  : success=5.3%, length=573.1
+success by initial q (original-reward unbiased Q) :
+  start q1: 0/496 = 0.0%, length=600.0
+  start q2: 53/504 = 10.5%, length=546.6
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 34
+  2 -> 3 : 53
+
+[Abstract greedy evaluation at episode 10000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=23.1%, length=546.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 812
+  2 -> 3 : 231
+original-reward unbiased Q  : success=0.0%, length=600.0
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 76
+
+[Abstract level1 | Episode 20000/1000000 | last 10000]
+success rate (biased)       : 4.8% (cumulative 3.7%)
+synthetic task reward       : 483.483
+shaping reward              : 640.491
+learning reward             : 1123.974
+episode length (non-goal)   : 584.3
+DFA transitions / episode   : 0.09
+epsilon (next episode)      : 0.90484
+Q updates cumulative        : 7790405
+unbiased |TD| mean/max     : 9.411/1e+04
+biased |TD| mean/max       : 22.24/1e+04
+unbiased positive Q pairs   : 20685/2203200 (0.94%)
+accepting-state restarts    : 6741
+elapsed                     : 97.3s
+
+[Abstract greedy evaluation at episode 20000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=281.0
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=406.8
+  start q2: 504/504 = 100.0%, length=157.1
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=9.0%, length=554.3
+success by initial q (original-reward unbiased Q) :
+  start q1: 0/496 = 0.0%, length=600.0
+  start q2: 90/504 = 17.9%, length=509.4
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 34
+  2 -> 3 : 90
+
+[Abstract greedy evaluation at episode 20000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=404.0
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=0.0%, length=600.0
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 76
+
+[Abstract level1 | Episode 30000/1000000 | last 10000]
+success rate (biased)       : 7.8% (cumulative 5.1%)
+synthetic task reward       : 783.424
+shaping reward              : 1059.461
+learning reward             : 1842.885
+episode length (non-goal)   : 575.9
+DFA transitions / episode   : 0.15
+epsilon (next episode)      : 0.86071
+Q updates cumulative        : 11601568
+unbiased |TD| mean/max     : 10.66/1e+04
+biased |TD| mean/max       : 26.34/1e+04
+unbiased positive Q pairs   : 58084/2203200 (2.64%)
+accepting-state restarts    : 10129
+elapsed                     : 144.8s
+
+[Abstract greedy evaluation at episode 30000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=279.3
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=404.2
+  start q2: 504/504 = 100.0%, length=156.4
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=14.2%, length=529.3
+success by initial q (original-reward unbiased Q) :
+  start q1: 0/496 = 0.0%, length=600.0
+  start q2: 142/504 = 28.2%, length=459.6
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 34
+  2 -> 3 : 142
+
+[Abstract greedy evaluation at episode 30000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=401.6
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=0.0%, length=600.0
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 76
+
+[Abstract level1 | Episode 40000/1000000 | last 10000]
+success rate (biased)       : 11.8% (cumulative 6.8%)
+synthetic task reward       : 1177.708
+shaping reward              : 1476.319
+learning reward             : 2654.027
+episode length (non-goal)   : 565.3
+DFA transitions / episode   : 0.22
+epsilon (next episode)      : 0.81873
+Q updates cumulative        : 15368014
+unbiased |TD| mean/max     : 13.89/1e+04
+biased |TD| mean/max       : 34.88/1e+04
+unbiased positive Q pairs   : 104147/2203200 (4.73%)
+accepting-state restarts    : 13472
+elapsed                     : 192.7s
+
+[Abstract greedy evaluation at episode 40000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=278.0
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=402.2
+  start q2: 504/504 = 100.0%, length=155.9
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=18.0%, length=510.1
+success by initial q (original-reward unbiased Q) :
+  start q1: 0/496 = 0.0%, length=600.0
+  start q2: 180/504 = 35.7%, length=421.6
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 34
+  2 -> 3 : 180
+
+[Abstract greedy evaluation at episode 40000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=399.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=0.0%, length=600.0
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 76
+
+[Abstract level1 | Episode 50000/1000000 | last 10000]
+success rate (biased)       : 15.0% (cumulative 8.4%)
+synthetic task reward       : 1503.288
+shaping reward              : 1860.734
+learning reward             : 3364.021
+episode length (non-goal)   : 558.1
+DFA transitions / episode   : 0.28
+epsilon (next episode)      : 0.77880
+Q updates cumulative        : 19106073
+unbiased |TD| mean/max     : 23.63/1e+04
+biased |TD| mean/max       : 51.36/1e+04
+unbiased positive Q pairs   : 162877/2203200 (7.39%)
+accepting-state restarts    : 16780
+elapsed                     : 240.5s
+
+[Abstract greedy evaluation at episode 50000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=278.2
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.9
+  start q2: 504/504 = 100.0%, length=156.5
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=21.5%, length=494.0
+success by initial q (original-reward unbiased Q) :
+  start q1: 0/496 = 0.0%, length=600.0
+  start q2: 215/504 = 42.7%, length=389.7
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 34
+  2 -> 3 : 215
+
+[Abstract greedy evaluation at episode 50000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=399.4
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=0.0%, length=600.0
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 76
+
+[Abstract level1 | Episode 60000/1000000 | last 10000]
+success rate (biased)       : 18.9% (cumulative 10.2%)
+synthetic task reward       : 1885.406
+shaping reward              : 2230.199
+learning reward             : 4115.605
+episode length (non-goal)   : 547.0
+DFA transitions / episode   : 0.35
+epsilon (next episode)      : 0.74082
+Q updates cumulative        : 22756375
+unbiased |TD| mean/max     : 42.21/1e+04
+biased |TD| mean/max       : 78.54/1e+04
+unbiased positive Q pairs   : 231278/2203200 (10.50%)
+accepting-state restarts    : 20113
+elapsed                     : 287.9s
+
+[Abstract greedy evaluation at episode 60000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=279.5
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=404.0
+  start q2: 504/504 = 100.0%, length=156.9
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=25.0%, length=478.2
+success by initial q (original-reward unbiased Q) :
+  start q1: 0/496 = 0.0%, length=600.0
+  start q2: 250/504 = 49.6%, length=358.3
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 34
+  2 -> 3 : 250
+
+[Abstract greedy evaluation at episode 60000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=401.5
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=0.0%, length=600.0
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 76
+
+[Abstract level1 | Episode 70000/1000000 | last 10000]
+success rate (biased)       : 20.8% (cumulative 11.7%)
+synthetic task reward       : 2083.520
+shaping reward              : 2547.490
+learning reward             : 4631.010
+episode length (non-goal)   : 542.3
+DFA transitions / episode   : 0.42
+epsilon (next episode)      : 0.70469
+Q updates cumulative        : 26382930
+unbiased |TD| mean/max     : 57.1/1e+04
+biased |TD| mean/max       : 101.6/1e+04
+unbiased positive Q pairs   : 299680/2203200 (13.60%)
+accepting-state restarts    : 23432
+elapsed                     : 335.3s
+
+[Abstract greedy evaluation at episode 70000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=279.6
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=404.3
+  start q2: 504/504 = 100.0%, length=156.9
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=27.8%, length=465.4
+success by initial q (original-reward unbiased Q) :
+  start q1: 0/496 = 0.0%, length=600.0
+  start q2: 278/504 = 55.2%, length=332.9
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 34
+  2 -> 3 : 278
+
+[Abstract greedy evaluation at episode 70000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=401.8
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=0.0%, length=600.0
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 76
+
+[Abstract level1 | Episode 80000/1000000 | last 10000]
+success rate (biased)       : 25.6% (cumulative 13.4%)
+synthetic task reward       : 2559.407
+shaping reward              : 2891.191
+learning reward             : 5450.598
+episode length (non-goal)   : 531.3
+DFA transitions / episode   : 0.49
+epsilon (next episode)      : 0.67032
+Q updates cumulative        : 29896890
+unbiased |TD| mean/max     : 79.49/1e+04
+biased |TD| mean/max       : 132.7/1e+04
+unbiased positive Q pairs   : 377017/2203200 (17.11%)
+accepting-state restarts    : 26825
+elapsed                     : 381.2s
+
+[Abstract greedy evaluation at episode 80000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=279.6
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=404.7
+  start q2: 504/504 = 100.0%, length=156.5
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=32.8%, length=444.8
+success by initial q (original-reward unbiased Q) :
+  start q1: 0/496 = 0.0%, length=600.0
+  start q2: 328/504 = 65.1%, length=292.0
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 34
+  2 -> 3 : 328
+
+[Abstract greedy evaluation at episode 80000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=402.1
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=0.0%, length=600.0
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 76
+
+[Abstract level1 | Episode 90000/1000000 | last 10000]
+success rate (biased)       : 27.4% (cumulative 15.0%)
+synthetic task reward       : 2742.616
+shaping reward              : 3184.175
+learning reward             : 5926.791
+episode length (non-goal)   : 526.6
+DFA transitions / episode   : 0.54
+epsilon (next episode)      : 0.63763
+Q updates cumulative        : 33394456
+unbiased |TD| mean/max     : 85.54/1e+04
+biased |TD| mean/max       : 146.3/1e+04
+unbiased positive Q pairs   : 493566/2203200 (22.40%)
+accepting-state restarts    : 30189
+elapsed                     : 427.3s
+
+[Abstract greedy evaluation at episode 90000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=279.9
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=405.4
+  start q2: 504/504 = 100.0%, length=156.4
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=57.4%, length=379.0
+success by initial q (original-reward unbiased Q) :
+  start q1: 172/496 = 34.7%, length=520.7
+  start q2: 402/504 = 79.8%, length=239.5
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 172
+  2 -> 3 : 574
+
+[Abstract greedy evaluation at episode 90000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=402.9
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=36.7%, length=516.8
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 369
+  2 -> 3 : 367
+
+[Abstract level1 | Episode 100000/1000000 | last 10000]
+success rate (biased)       : 32.0% (cumulative 16.7%)
+synthetic task reward       : 3201.853
+shaping reward              : 3481.355
+learning reward             : 6683.207
+episode length (non-goal)   : 513.7
+DFA transitions / episode   : 0.64
+epsilon (next episode)      : 0.60653
+Q updates cumulative        : 36836048
+unbiased |TD| mean/max     : 89.02/1e+04
+biased |TD| mean/max       : 155.5/1e+04
+unbiased positive Q pairs   : 591198/2203200 (26.83%)
+accepting-state restarts    : 33496
+elapsed                     : 472.5s
+
+[Abstract greedy evaluation at episode 100000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=279.2
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=404.7
+  start q2: 504/504 = 100.0%, length=155.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=63.7%, length=361.9
+success by initial q (original-reward unbiased Q) :
+  start q1: 225/496 = 45.4%, length=496.4
+  start q2: 412/504 = 81.7%, length=229.6
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 225
+  2 -> 3 : 637
+
+[Abstract greedy evaluation at episode 100000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=402.2
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=46.4%, length=494.1
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 465
+  2 -> 3 : 464
+
+[Abstract level1 | Episode 110000/1000000 | last 10000]
+success rate (biased)       : 35.1% (cumulative 18.4%)
+synthetic task reward       : 3506.887
+shaping reward              : 3785.638
+learning reward             : 7292.525
+episode length (non-goal)   : 507.6
+DFA transitions / episode   : 0.69
+epsilon (next episode)      : 0.57695
+Q updates cumulative        : 40193048
+unbiased |TD| mean/max     : 93.51/1e+04
+biased |TD| mean/max       : 163.7/1e+04
+unbiased positive Q pairs   : 681993/2203200 (30.95%)
+accepting-state restarts    : 36889
+elapsed                     : 518.1s
+
+[Abstract greedy evaluation at episode 110000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=278.2
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=403.3
+  start q2: 504/504 = 100.0%, length=155.1
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=67.6%, length=350.8
+success by initial q (original-reward unbiased Q) :
+  start q1: 253/496 = 51.0%, length=484.3
+  start q2: 423/504 = 83.9%, length=219.4
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 253
+  2 -> 3 : 676
+
+[Abstract greedy evaluation at episode 110000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=400.8
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=53.0%, length=481.0
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 530
+  2 -> 3 : 530
+
+[Abstract level1 | Episode 120000/1000000 | last 10000]
+success rate (biased)       : 39.0% (cumulative 20.1%)
+synthetic task reward       : 3898.738
+shaping reward              : 4000.726
+learning reward             : 7899.464
+episode length (non-goal)   : 497.8
+DFA transitions / episode   : 0.76
+epsilon (next episode)      : 0.54881
+Q updates cumulative        : 43509842
+unbiased |TD| mean/max     : 87.47/1e+04
+biased |TD| mean/max       : 158.3/1e+04
+unbiased positive Q pairs   : 766320/2203200 (34.78%)
+accepting-state restarts    : 40233
+elapsed                     : 563.5s
+
+[Abstract greedy evaluation at episode 120000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=278.2
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=403.1
+  start q2: 504/504 = 100.0%, length=155.2
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=72.1%, length=341.4
+success by initial q (original-reward unbiased Q) :
+  start q1: 285/496 = 57.5%, length=472.7
+  start q2: 436/504 = 86.5%, length=212.2
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 285
+  2 -> 3 : 721
+
+[Abstract greedy evaluation at episode 120000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=400.6
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=59.6%, length=469.3
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 596
+  2 -> 3 : 596
+
+[Abstract level1 | Episode 130000/1000000 | last 10000]
+success rate (biased)       : 44.6% (cumulative 22.0%)
+synthetic task reward       : 4461.353
+shaping reward              : 4254.715
+learning reward             : 8716.068
+episode length (non-goal)   : 483.4
+DFA transitions / episode   : 0.86
+epsilon (next episode)      : 0.52204
+Q updates cumulative        : 46721288
+unbiased |TD| mean/max     : 85.39/1e+04
+biased |TD| mean/max       : 156.3/1e+04
+unbiased positive Q pairs   : 839016/2203200 (38.08%)
+accepting-state restarts    : 43596
+elapsed                     : 606.4s
+
+[Abstract greedy evaluation at episode 130000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=278.2
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=403.1
+  start q2: 504/504 = 100.0%, length=155.3
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=74.0%, length=337.2
+success by initial q (original-reward unbiased Q) :
+  start q1: 303/496 = 61.1%, length=465.4
+  start q2: 437/504 = 86.7%, length=210.9
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 303
+  2 -> 3 : 740
+
+[Abstract greedy evaluation at episode 130000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=400.6
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=62.6%, length=462.1
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 626
+  2 -> 3 : 626
+
+[Abstract level1 | Episode 140000/1000000 | last 10000]
+success rate (biased)       : 47.6% (cumulative 23.8%)
+synthetic task reward       : 4756.644
+shaping reward              : 4497.899
+learning reward             : 9254.543
+episode length (non-goal)   : 479.1
+DFA transitions / episode   : 0.91
+epsilon (next episode)      : 0.49658
+Q updates cumulative        : 49933851
+unbiased |TD| mean/max     : 83.33/1e+04
+biased |TD| mean/max       : 153.6/1e+04
+unbiased positive Q pairs   : 906816/2203200 (41.16%)
+accepting-state restarts    : 46898
+elapsed                     : 649.8s
+
+[Abstract greedy evaluation at episode 140000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=278.2
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=403.2
+  start q2: 504/504 = 100.0%, length=155.3
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=76.7%, length=329.8
+success by initial q (original-reward unbiased Q) :
+  start q1: 327/496 = 65.9%, length=455.8
+  start q2: 440/504 = 87.3%, length=205.8
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 327
+  2 -> 3 : 767
+
+[Abstract greedy evaluation at episode 140000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=400.6
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=66.6%, length=453.0
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 666
+  2 -> 3 : 666
+
+[Abstract level1 | Episode 150000/1000000 | last 10000]
+success rate (biased)       : 52.2% (cumulative 25.7%)
+synthetic task reward       : 5219.846
+shaping reward              : 4683.442
+learning reward             : 9903.287
+episode length (non-goal)   : 465.3
+DFA transitions / episode   : 0.98
+epsilon (next episode)      : 0.47237
+Q updates cumulative        : 53069256
+unbiased |TD| mean/max     : 90.48/1e+04
+biased |TD| mean/max       : 159/1e+04
+unbiased positive Q pairs   : 966979/2203200 (43.89%)
+accepting-state restarts    : 50166
+elapsed                     : 692.1s
+
+[Abstract greedy evaluation at episode 150000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=279.2
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=405.1
+  start q2: 504/504 = 100.0%, length=155.2
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=78.9%, length=324.1
+success by initial q (original-reward unbiased Q) :
+  start q1: 344/496 = 69.4%, length=448.3
+  start q2: 445/504 = 88.3%, length=201.8
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 344
+  2 -> 3 : 789
+
+[Abstract greedy evaluation at episode 150000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=402.6
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=69.9%, length=446.0
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 699
+  2 -> 3 : 699
+
+[Abstract level1 | Episode 160000/1000000 | last 10000]
+success rate (biased)       : 54.6% (cumulative 27.5%)
+synthetic task reward       : 5461.920
+shaping reward              : 4907.976
+learning reward             : 10369.896
+episode length (non-goal)   : 460.9
+DFA transitions / episode   : 1.03
+epsilon (next episode)      : 0.44933
+Q updates cumulative        : 56140570
+unbiased |TD| mean/max     : 96.75/1e+04
+biased |TD| mean/max       : 161.1/1e+04
+unbiased positive Q pairs   : 1020565/2203200 (46.32%)
+accepting-state restarts    : 53509
+elapsed                     : 733.6s
+
+[Abstract greedy evaluation at episode 160000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=279.2
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=405.1
+  start q2: 504/504 = 100.0%, length=155.2
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=81.5%, length=318.4
+success by initial q (original-reward unbiased Q) :
+  start q1: 362/496 = 73.0%, length=441.9
+  start q2: 453/504 = 89.9%, length=196.9
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 362
+  2 -> 3 : 815
+
+[Abstract greedy evaluation at episode 160000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=402.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=73.5%, length=441.3
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 735
+  2 -> 3 : 735
+
+[Abstract level1 | Episode 170000/1000000 | last 10000]
+success rate (biased)       : 59.6% (cumulative 29.4%)
+synthetic task reward       : 5961.104
+shaping reward              : 5092.478
+learning reward             : 11053.581
+episode length (non-goal)   : 446.9
+DFA transitions / episode   : 1.07
+epsilon (next episode)      : 0.42741
+Q updates cumulative        : 59108320
+unbiased |TD| mean/max     : 101.3/1e+04
+biased |TD| mean/max       : 160.3/1e+04
+unbiased positive Q pairs   : 1067557/2203200 (48.45%)
+accepting-state restarts    : 56876
+elapsed                     : 774.0s
+
+[Abstract greedy evaluation at episode 170000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=279.1
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=405.1
+  start q2: 504/504 = 100.0%, length=155.1
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=83.3%, length=314.6
+success by initial q (original-reward unbiased Q) :
+  start q1: 375/496 = 75.6%, length=437.8
+  start q2: 458/504 = 90.9%, length=193.3
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 375
+  2 -> 3 : 833
+
+[Abstract greedy evaluation at episode 170000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=402.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=74.8%, length=438.7
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 748
+  2 -> 3 : 748
+
+[Abstract level1 | Episode 180000/1000000 | last 10000]
+success rate (biased)       : 60.6% (cumulative 31.1%)
+synthetic task reward       : 6062.755
+shaping reward              : 5258.797
+learning reward             : 11321.552
+episode length (non-goal)   : 443.9
+DFA transitions / episode   : 1.11
+epsilon (next episode)      : 0.40657
+Q updates cumulative        : 62054319
+unbiased |TD| mean/max     : 90.76/1e+04
+biased |TD| mean/max       : 142.9/1e+04
+unbiased positive Q pairs   : 1110051/2203200 (50.38%)
+accepting-state restarts    : 60247
+elapsed                     : 814.9s
+
+[Abstract greedy evaluation at episode 180000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=278.6
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=404.2
+  start q2: 504/504 = 100.0%, length=155.0
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=85.2%, length=309.7
+success by initial q (original-reward unbiased Q) :
+  start q1: 386/496 = 77.8%, length=433.2
+  start q2: 466/504 = 92.5%, length=188.2
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 387
+  2 -> 3 : 852
+
+[Abstract greedy evaluation at episode 180000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=401.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=76.6%, length=434.9
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 767
+  2 -> 3 : 766
+
+[Abstract level1 | Episode 190000/1000000 | last 10000]
+success rate (biased)       : 63.7% (cumulative 32.8%)
+synthetic task reward       : 6370.895
+shaping reward              : 5402.139
+learning reward             : 11773.034
+episode length (non-goal)   : 432.1
+DFA transitions / episode   : 1.14
+epsilon (next episode)      : 0.38674
+Q updates cumulative        : 64925741
+unbiased |TD| mean/max     : 79.04/1e+04
+biased |TD| mean/max       : 125.4/1e+04
+unbiased positive Q pairs   : 1147976/2203200 (52.10%)
+accepting-state restarts    : 63609
+elapsed                     : 854.7s
+
+[Abstract greedy evaluation at episode 190000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=278.6
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=404.2
+  start q2: 504/504 = 100.0%, length=155.0
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=86.2%, length=307.9
+success by initial q (original-reward unbiased Q) :
+  start q1: 394/496 = 79.4%, length=431.2
+  start q2: 468/504 = 92.9%, length=186.6
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 394
+  2 -> 3 : 862
+
+[Abstract greedy evaluation at episode 190000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=401.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=78.2%, length=432.6
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 785
+  2 -> 3 : 782
+
+[Abstract level1 | Episode 200000/1000000 | last 10000]
+success rate (biased)       : 65.4% (cumulative 34.5%)
+synthetic task reward       : 6538.519
+shaping reward              : 5546.054
+learning reward             : 12084.573
+episode length (non-goal)   : 423.5
+DFA transitions / episode   : 1.16
+epsilon (next episode)      : 0.36788
+Q updates cumulative        : 67749297
+unbiased |TD| mean/max     : 68.69/1e+04
+biased |TD| mean/max       : 111/1e+04
+unbiased positive Q pairs   : 1182402/2203200 (53.67%)
+accepting-state restarts    : 66950
+elapsed                     : 893.3s
+
+[Abstract greedy evaluation at episode 200000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=278.6
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=404.3
+  start q2: 504/504 = 100.0%, length=154.9
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=87.3%, length=304.8
+success by initial q (original-reward unbiased Q) :
+  start q1: 401/496 = 80.8%, length=428.4
+  start q2: 472/504 = 93.7%, length=183.2
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 401
+  2 -> 3 : 873
+
+[Abstract greedy evaluation at episode 200000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=401.8
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=79.8%, length=429.5
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 799
+  2 -> 3 : 798
+
+[Abstract level1 | Episode 210000/1000000 | last 10000]
+success rate (biased)       : 68.7% (cumulative 36.1%)
+synthetic task reward       : 6870.953
+shaping reward              : 5710.306
+learning reward             : 12581.259
+episode length (non-goal)   : 414.1
+DFA transitions / episode   : 1.18
+epsilon (next episode)      : 0.34994
+Q updates cumulative        : 70502745
+unbiased |TD| mean/max     : 63.56/1e+04
+biased |TD| mean/max       : 103.4/1e+04
+unbiased positive Q pairs   : 1213201/2203200 (55.07%)
+accepting-state restarts    : 70309
+elapsed                     : 931.4s
+
+[Abstract greedy evaluation at episode 210000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.9
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=403.0
+  start q2: 504/504 = 100.0%, length=154.8
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=88.7%, length=301.4
+success by initial q (original-reward unbiased Q) :
+  start q1: 412/496 = 83.1%, length=424.0
+  start q2: 475/504 = 94.2%, length=180.7
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 412
+  2 -> 3 : 887
+
+[Abstract greedy evaluation at episode 210000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=400.5
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=81.1%, length=426.7
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 811
+  2 -> 3 : 811
+
+[Abstract level1 | Episode 220000/1000000 | last 10000]
+success rate (biased)       : 71.0% (cumulative 37.7%)
+synthetic task reward       : 7102.761
+shaping reward              : 5839.946
+learning reward             : 12942.708
+episode length (non-goal)   : 407.2
+DFA transitions / episode   : 1.21
+epsilon (next episode)      : 0.33287
+Q updates cumulative        : 73204398
+unbiased |TD| mean/max     : 56.99/1e+04
+biased |TD| mean/max       : 94.47/1e+04
+unbiased positive Q pairs   : 1241359/2203200 (56.34%)
+accepting-state restarts    : 73682
+elapsed                     : 969.1s
+
+[Abstract greedy evaluation at episode 220000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.9
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=403.0
+  start q2: 504/504 = 100.0%, length=154.8
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=89.6%, length=299.0
+success by initial q (original-reward unbiased Q) :
+  start q1: 418/496 = 84.3%, length=421.8
+  start q2: 478/504 = 94.8%, length=178.2
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 418
+  2 -> 3 : 896
+
+[Abstract greedy evaluation at episode 220000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=400.5
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=83.0%, length=424.0
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 830
+  2 -> 3 : 830
+
+[Abstract level1 | Episode 230000/1000000 | last 10000]
+success rate (biased)       : 73.3% (cumulative 39.2%)
+synthetic task reward       : 7332.338
+shaping reward              : 5936.533
+learning reward             : 13268.871
+episode length (non-goal)   : 397.3
+DFA transitions / episode   : 1.23
+epsilon (next episode)      : 0.31664
+Q updates cumulative        : 75867496
+unbiased |TD| mean/max     : 54.31/1e+04
+biased |TD| mean/max       : 90.9/1e+04
+unbiased positive Q pairs   : 1266473/2203200 (57.48%)
+accepting-state restarts    : 76987
+elapsed                     : 1006.4s
+
+[Abstract greedy evaluation at episode 230000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.7
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=402.6
+  start q2: 504/504 = 100.0%, length=154.8
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=90.0%, length=297.9
+success by initial q (original-reward unbiased Q) :
+  start q1: 422/496 = 85.1%, length=420.2
+  start q2: 478/504 = 94.8%, length=177.5
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 423
+  2 -> 3 : 900
+
+[Abstract greedy evaluation at episode 230000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=400.1
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=83.9%, length=422.2
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 840
+  2 -> 3 : 839
+
+[Abstract level1 | Episode 240000/1000000 | last 10000]
+success rate (biased)       : 73.8% (cumulative 40.7%)
+synthetic task reward       : 7384.363
+shaping reward              : 6057.967
+learning reward             : 13442.329
+episode length (non-goal)   : 395.0
+DFA transitions / episode   : 1.24
+epsilon (next episode)      : 0.30119
+Q updates cumulative        : 78518258
+unbiased |TD| mean/max     : 50.46/1e+04
+biased |TD| mean/max       : 85.44/1e+04
+unbiased positive Q pairs   : 1289976/2203200 (58.55%)
+accepting-state restarts    : 80285
+elapsed                     : 1043.5s
+
+[Abstract greedy evaluation at episode 240000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.7
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=402.6
+  start q2: 504/504 = 100.0%, length=154.8
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=90.7%, length=296.0
+success by initial q (original-reward unbiased Q) :
+  start q1: 428/496 = 86.3%, length=418.4
+  start q2: 479/504 = 95.0%, length=175.6
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 428
+  2 -> 3 : 907
+
+[Abstract greedy evaluation at episode 240000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=400.1
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=84.7%, length=421.0
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 847
+  2 -> 3 : 847
+
+[Abstract level1 | Episode 250000/1000000 | last 10000]
+success rate (biased)       : 75.7% (cumulative 42.1%)
+synthetic task reward       : 7570.024
+shaping reward              : 6163.714
+learning reward             : 13733.737
+episode length (non-goal)   : 391.2
+DFA transitions / episode   : 1.26
+epsilon (next episode)      : 0.28650
+Q updates cumulative        : 81147368
+unbiased |TD| mean/max     : 48.4/1e+04
+biased |TD| mean/max       : 82.43/1e+04
+unbiased positive Q pairs   : 1311514/2203200 (59.53%)
+accepting-state restarts    : 83573
+elapsed                     : 1080.0s
+
+[Abstract greedy evaluation at episode 250000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.6
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=402.3
+  start q2: 504/504 = 100.0%, length=154.8
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=91.7%, length=293.3
+success by initial q (original-reward unbiased Q) :
+  start q1: 433/496 = 87.3%, length=416.5
+  start q2: 484/504 = 96.0%, length=172.1
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 433
+  2 -> 3 : 917
+
+[Abstract greedy evaluation at episode 250000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=399.8
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=85.8%, length=419.2
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 858
+  2 -> 3 : 858
+
+[Abstract level1 | Episode 260000/1000000 | last 10000]
+success rate (biased)       : 76.2% (cumulative 43.4%)
+synthetic task reward       : 7615.775
+shaping reward              : 6242.161
+learning reward             : 13857.936
+episode length (non-goal)   : 387.4
+DFA transitions / episode   : 1.27
+epsilon (next episode)      : 0.27253
+Q updates cumulative        : 83743683
+unbiased |TD| mean/max     : 46.82/1e+04
+biased |TD| mean/max       : 79.77/1e+04
+unbiased positive Q pairs   : 1331538/2203200 (60.44%)
+accepting-state restarts    : 86879
+elapsed                     : 1116.3s
+
+[Abstract greedy evaluation at episode 260000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.5
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=402.1
+  start q2: 504/504 = 100.0%, length=154.8
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=92.7%, length=291.2
+success by initial q (original-reward unbiased Q) :
+  start q1: 437/496 = 88.1%, length=415.6
+  start q2: 490/504 = 97.2%, length=168.8
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 437
+  2 -> 3 : 927
+
+[Abstract greedy evaluation at episode 260000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=399.6
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=86.3%, length=418.1
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 863
+  2 -> 3 : 863
+
+[Abstract level1 | Episode 270000/1000000 | last 10000]
+success rate (biased)       : 79.7% (cumulative 44.8%)
+synthetic task reward       : 7969.756
+shaping reward              : 6288.135
+learning reward             : 14257.891
+episode length (non-goal)   : 376.8
+DFA transitions / episode   : 1.30
+epsilon (next episode)      : 0.25924
+Q updates cumulative        : 86263461
+unbiased |TD| mean/max     : 45.67/1e+04
+biased |TD| mean/max       : 77.87/1e+04
+unbiased positive Q pairs   : 1349072/2203200 (61.23%)
+accepting-state restarts    : 90200
+elapsed                     : 1151.8s
+
+[Abstract greedy evaluation at episode 270000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.3
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.8
+  start q2: 504/504 = 100.0%, length=154.8
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=93.4%, length=289.7
+success by initial q (original-reward unbiased Q) :
+  start q1: 441/496 = 88.9%, length=414.0
+  start q2: 493/504 = 97.8%, length=167.4
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 441
+  2 -> 3 : 934
+
+[Abstract greedy evaluation at episode 270000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=399.3
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=88.1%, length=416.1
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 881
+  2 -> 3 : 881
+
+[Abstract level1 | Episode 280000/1000000 | last 10000]
+success rate (biased)       : 81.1% (cumulative 46.1%)
+synthetic task reward       : 8114.742
+shaping reward              : 6398.557
+learning reward             : 14513.299
+episode length (non-goal)   : 375.2
+DFA transitions / episode   : 1.31
+epsilon (next episode)      : 0.24660
+Q updates cumulative        : 88758688
+unbiased |TD| mean/max     : 45.93/1e+04
+biased |TD| mean/max       : 77.85/1e+04
+unbiased positive Q pairs   : 1365678/2203200 (61.99%)
+accepting-state restarts    : 93559
+elapsed                     : 1187.2s
+
+[Abstract greedy evaluation at episode 280000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.3
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.8
+  start q2: 504/504 = 100.0%, length=154.8
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=93.7%, length=289.2
+success by initial q (original-reward unbiased Q) :
+  start q1: 444/496 = 89.5%, length=413.4
+  start q2: 493/504 = 97.8%, length=167.0
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 444
+  2 -> 3 : 937
+
+[Abstract greedy evaluation at episode 280000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=399.3
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=89.4%, length=414.2
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 894
+  2 -> 3 : 894
+
+[Abstract level1 | Episode 290000/1000000 | last 10000]
+success rate (biased)       : 82.9% (cumulative 47.3%)
+synthetic task reward       : 8294.259
+shaping reward              : 6448.022
+learning reward             : 14742.281
+episode length (non-goal)   : 370.1
+DFA transitions / episode   : 1.33
+epsilon (next episode)      : 0.23457
+Q updates cumulative        : 91224509
+unbiased |TD| mean/max     : 44.26/1e+04
+biased |TD| mean/max       : 75.34/1e+04
+unbiased positive Q pairs   : 1380823/2203200 (62.67%)
+accepting-state restarts    : 96905
+elapsed                     : 1222.2s
+
+[Abstract greedy evaluation at episode 290000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.3
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.8
+  start q2: 504/504 = 100.0%, length=154.8
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=94.3%, length=287.0
+success by initial q (original-reward unbiased Q) :
+  start q1: 447/496 = 90.1%, length=412.9
+  start q2: 496/504 = 98.4%, length=163.2
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 447
+  2 -> 3 : 943
+
+[Abstract greedy evaluation at episode 290000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=399.3
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=90.3%, length=412.7
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 903
+  2 -> 3 : 903
+
+[Abstract level1 | Episode 300000/1000000 | last 10000]
+success rate (biased)       : 84.9% (cumulative 48.6%)
+synthetic task reward       : 8491.018
+shaping reward              : 6506.632
+learning reward             : 14997.650
+episode length (non-goal)   : 365.2
+DFA transitions / episode   : 1.35
+epsilon (next episode)      : 0.22313
+Q updates cumulative        : 93667343
+unbiased |TD| mean/max     : 43.32/1e+04
+biased |TD| mean/max       : 73.68/1e+04
+unbiased positive Q pairs   : 1394312/2203200 (63.29%)
+accepting-state restarts    : 100225
+elapsed                     : 1257.1s
+
+[Abstract greedy evaluation at episode 300000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.3
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.8
+  start q2: 504/504 = 100.0%, length=154.8
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=95.2%, length=286.1
+success by initial q (original-reward unbiased Q) :
+  start q1: 456/496 = 91.9%, length=411.1
+  start q2: 496/504 = 98.4%, length=163.0
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 456
+  2 -> 3 : 952
+
+[Abstract greedy evaluation at episode 300000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=399.3
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=91.3%, length=411.8
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 913
+  2 -> 3 : 913
+
+[Abstract level1 | Episode 310000/1000000 | last 10000]
+success rate (biased)       : 86.4% (cumulative 49.8%)
+synthetic task reward       : 8644.119
+shaping reward              : 6565.832
+learning reward             : 15209.951
+episode length (non-goal)   : 361.3
+DFA transitions / episode   : 1.37
+epsilon (next episode)      : 0.21225
+Q updates cumulative        : 96063537
+unbiased |TD| mean/max     : 43.33/1e+04
+biased |TD| mean/max       : 73.28/1e+04
+unbiased positive Q pairs   : 1406846/2203200 (63.85%)
+accepting-state restarts    : 103602
+elapsed                     : 1291.6s
+
+[Abstract greedy evaluation at episode 310000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.3
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.8
+  start q2: 504/504 = 100.0%, length=154.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=95.5%, length=285.4
+success by initial q (original-reward unbiased Q) :
+  start q1: 459/496 = 92.5%, length=410.1
+  start q2: 496/504 = 98.4%, length=162.7
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 459
+  2 -> 3 : 955
+
+[Abstract greedy evaluation at episode 310000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=399.3
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=91.9%, length=411.1
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 919
+  2 -> 3 : 919
+
+[Abstract level1 | Episode 320000/1000000 | last 10000]
+success rate (biased)       : 87.8% (cumulative 51.0%)
+synthetic task reward       : 8780.378
+shaping reward              : 6606.560
+learning reward             : 15386.938
+episode length (non-goal)   : 357.7
+DFA transitions / episode   : 1.38
+epsilon (next episode)      : 0.20190
+Q updates cumulative        : 98451267
+unbiased |TD| mean/max     : 42.53/1e+04
+biased |TD| mean/max       : 71.78/1e+04
+unbiased positive Q pairs   : 1418529/2203200 (64.38%)
+accepting-state restarts    : 106936
+elapsed                     : 1326.3s
+
+[Abstract greedy evaluation at episode 320000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.3
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.8
+  start q2: 504/504 = 100.0%, length=154.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=95.9%, length=284.9
+success by initial q (original-reward unbiased Q) :
+  start q1: 463/496 = 93.3%, length=409.5
+  start q2: 496/504 = 98.4%, length=162.2
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 463
+  2 -> 3 : 959
+
+[Abstract greedy evaluation at episode 320000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=399.3
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=92.4%, length=410.4
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 924
+  2 -> 3 : 924
+
+[Abstract level1 | Episode 330000/1000000 | last 10000]
+success rate (biased)       : 89.8% (cumulative 52.2%)
+synthetic task reward       : 8980.258
+shaping reward              : 6638.185
+learning reward             : 15618.443
+episode length (non-goal)   : 353.8
+DFA transitions / episode   : 1.41
+epsilon (next episode)      : 0.19205
+Q updates cumulative        : 100838185
+unbiased |TD| mean/max     : 40.96/1e+04
+biased |TD| mean/max       : 69.1/1e+04
+unbiased positive Q pairs   : 1429260/2203200 (64.87%)
+accepting-state restarts    : 110199
+elapsed                     : 1361.1s
+
+[Abstract greedy evaluation at episode 330000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.3
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.8
+  start q2: 504/504 = 100.0%, length=154.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=96.2%, length=284.6
+success by initial q (original-reward unbiased Q) :
+  start q1: 466/496 = 94.0%, length=408.9
+  start q2: 496/504 = 98.4%, length=162.2
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 466
+  2 -> 3 : 962
+
+[Abstract greedy evaluation at episode 330000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=399.3
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=92.7%, length=410.0
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 927
+  2 -> 3 : 927
+
+[Abstract level1 | Episode 340000/1000000 | last 10000]
+success rate (biased)       : 90.8% (cumulative 53.3%)
+synthetic task reward       : 9076.692
+shaping reward              : 6600.898
+learning reward             : 15677.590
+episode length (non-goal)   : 345.5
+DFA transitions / episode   : 1.40
+epsilon (next episode)      : 0.18268
+Q updates cumulative        : 103138828
+unbiased |TD| mean/max     : 41.23/1e+04
+biased |TD| mean/max       : 68.93/1e+04
+unbiased positive Q pairs   : 1438960/2203200 (65.31%)
+accepting-state restarts    : 113549
+elapsed                     : 1394.9s
+
+[Abstract greedy evaluation at episode 340000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.3
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.8
+  start q2: 504/504 = 100.0%, length=154.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=96.3%, length=283.7
+success by initial q (original-reward unbiased Q) :
+  start q1: 466/496 = 94.0%, length=408.7
+  start q2: 497/504 = 98.6%, length=160.7
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 467
+  2 -> 3 : 963
+
+[Abstract greedy evaluation at episode 340000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=399.3
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=93.1%, length=409.7
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 933
+  2 -> 3 : 931
+
+[Abstract level1 | Episode 350000/1000000 | last 10000]
+success rate (biased)       : 92.1% (cumulative 54.4%)
+synthetic task reward       : 9212.515
+shaping reward              : 6634.245
+learning reward             : 15846.761
+episode length (non-goal)   : 341.8
+DFA transitions / episode   : 1.41
+epsilon (next episode)      : 0.17377
+Q updates cumulative        : 105403293
+unbiased |TD| mean/max     : 41.2/1e+04
+biased |TD| mean/max       : 68.43/1e+04
+unbiased positive Q pairs   : 1447657/2203200 (65.71%)
+accepting-state restarts    : 116933
+elapsed                     : 1428.5s
+
+[Abstract greedy evaluation at episode 350000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.3
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.8
+  start q2: 504/504 = 100.0%, length=154.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=96.7%, length=282.8
+success by initial q (original-reward unbiased Q) :
+  start q1: 469/496 = 94.6%, length=408.0
+  start q2: 498/504 = 98.8%, length=159.6
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 469
+  2 -> 3 : 967
+
+[Abstract greedy evaluation at episode 350000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=399.3
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=93.8%, length=408.9
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 939
+  2 -> 3 : 938
+
+[Abstract level1 | Episode 360000/1000000 | last 10000]
+success rate (biased)       : 92.6% (cumulative 55.5%)
+synthetic task reward       : 9263.694
+shaping reward              : 6671.130
+learning reward             : 15934.823
+episode length (non-goal)   : 340.7
+DFA transitions / episode   : 1.43
+epsilon (next episode)      : 0.16530
+Q updates cumulative        : 107683291
+unbiased |TD| mean/max     : 38.8/1e+04
+biased |TD| mean/max       : 64.62/1e+04
+unbiased positive Q pairs   : 1456087/2203200 (66.09%)
+accepting-state restarts    : 120251
+elapsed                     : 1462.1s
+
+[Abstract greedy evaluation at episode 360000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.2
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.8
+  start q2: 504/504 = 100.0%, length=154.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=97.1%, length=282.2
+success by initial q (original-reward unbiased Q) :
+  start q1: 472/496 = 95.2%, length=407.3
+  start q2: 499/504 = 99.0%, length=159.2
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 472
+  2 -> 3 : 971
+
+[Abstract greedy evaluation at episode 360000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=399.3
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=94.1%, length=408.7
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 942
+  2 -> 3 : 941
+
+[Abstract level1 | Episode 370000/1000000 | last 10000]
+success rate (biased)       : 94.1% (cumulative 56.5%)
+synthetic task reward       : 9412.201
+shaping reward              : 6708.450
+learning reward             : 16120.651
+episode length (non-goal)   : 337.9
+DFA transitions / episode   : 1.44
+epsilon (next episode)      : 0.15724
+Q updates cumulative        : 109963029
+unbiased |TD| mean/max     : 37.6/1e+04
+biased |TD| mean/max       : 62.74/1e+04
+unbiased positive Q pairs   : 1463910/2203200 (66.44%)
+accepting-state restarts    : 123514
+elapsed                     : 1495.6s
+
+[Abstract greedy evaluation at episode 370000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.3
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.8
+  start q2: 504/504 = 100.0%, length=154.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=97.1%, length=282.2
+success by initial q (original-reward unbiased Q) :
+  start q1: 472/496 = 95.2%, length=407.2
+  start q2: 499/504 = 99.0%, length=159.2
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 472
+  2 -> 3 : 971
+
+[Abstract greedy evaluation at episode 370000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=399.3
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=94.5%, length=407.8
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 945
+  2 -> 3 : 945
+
+[Abstract level1 | Episode 380000/1000000 | last 10000]
+success rate (biased)       : 94.8% (cumulative 57.5%)
+synthetic task reward       : 9481.749
+shaping reward              : 6700.587
+learning reward             : 16182.335
+episode length (non-goal)   : 333.8
+DFA transitions / episode   : 1.45
+epsilon (next episode)      : 0.14957
+Q updates cumulative        : 112188640
+unbiased |TD| mean/max     : 36.66/1e+04
+biased |TD| mean/max       : 61.1/1e+04
+unbiased positive Q pairs   : 1471188/2203200 (66.78%)
+accepting-state restarts    : 126857
+elapsed                     : 1529.0s
+
+[Abstract greedy evaluation at episode 380000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.3
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.8
+  start q2: 504/504 = 100.0%, length=154.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=97.6%, length=281.4
+success by initial q (original-reward unbiased Q) :
+  start q1: 476/496 = 96.0%, length=406.4
+  start q2: 500/504 = 99.2%, length=158.5
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 477
+  2 -> 3 : 976
+
+[Abstract greedy evaluation at episode 380000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=399.3
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=95.0%, length=407.3
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 953
+  2 -> 3 : 950
+
+[Abstract level1 | Episode 390000/1000000 | last 10000]
+success rate (biased)       : 95.0% (cumulative 58.5%)
+synthetic task reward       : 9501.651
+shaping reward              : 6687.344
+learning reward             : 16188.995
+episode length (non-goal)   : 330.0
+DFA transitions / episode   : 1.44
+epsilon (next episode)      : 0.14227
+Q updates cumulative        : 114390426
+unbiased |TD| mean/max     : 36.72/1e+04
+biased |TD| mean/max       : 60.42/1e+04
+unbiased positive Q pairs   : 1477939/2203200 (67.08%)
+accepting-state restarts    : 130195
+elapsed                     : 1561.6s
+
+[Abstract greedy evaluation at episode 390000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.3
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.8
+  start q2: 504/504 = 100.0%, length=154.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=98.2%, length=281.0
+success by initial q (original-reward unbiased Q) :
+  start q1: 482/496 = 97.2%, length=405.6
+  start q2: 500/504 = 99.2%, length=158.4
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 482
+  2 -> 3 : 982
+
+[Abstract greedy evaluation at episode 390000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=399.3
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=96.0%, length=406.4
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 963
+  2 -> 3 : 960
+
+[Abstract level1 | Episode 400000/1000000 | last 10000]
+success rate (biased)       : 95.6% (cumulative 59.4%)
+synthetic task reward       : 9556.605
+shaping reward              : 6731.317
+learning reward             : 16287.923
+episode length (non-goal)   : 329.5
+DFA transitions / episode   : 1.46
+epsilon (next episode)      : 0.13533
+Q updates cumulative        : 116556336
+unbiased |TD| mean/max     : 36.01/1e+04
+biased |TD| mean/max       : 58.97/1e+04
+unbiased positive Q pairs   : 1484393/2203200 (67.37%)
+accepting-state restarts    : 133632
+elapsed                     : 1593.9s
+
+[Abstract greedy evaluation at episode 400000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.3
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.8
+  start q2: 504/504 = 100.0%, length=154.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=98.3%, length=280.8
+success by initial q (original-reward unbiased Q) :
+  start q1: 483/496 = 97.4%, length=405.3
+  start q2: 500/504 = 99.2%, length=158.4
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 483
+  2 -> 3 : 983
+
+[Abstract greedy evaluation at episode 400000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=399.3
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=96.4%, length=405.9
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 970
+  2 -> 3 : 964
+
+[Abstract level1 | Episode 410000/1000000 | last 10000]
+success rate (biased)       : 96.7% (cumulative 60.3%)
+synthetic task reward       : 9673.371
+shaping reward              : 6672.601
+learning reward             : 16345.971
+episode length (non-goal)   : 322.0
+DFA transitions / episode   : 1.46
+epsilon (next episode)      : 0.12873
+Q updates cumulative        : 118689393
+unbiased |TD| mean/max     : 35.53/1e+04
+biased |TD| mean/max       : 57.65/1e+04
+unbiased positive Q pairs   : 1489980/2203200 (67.63%)
+accepting-state restarts    : 137019
+elapsed                     : 1626.0s
+
+[Abstract greedy evaluation at episode 410000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.3
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.8
+  start q2: 504/504 = 100.0%, length=154.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=98.3%, length=280.6
+success by initial q (original-reward unbiased Q) :
+  start q1: 483/496 = 97.4%, length=405.1
+  start q2: 500/504 = 99.2%, length=158.0
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 483
+  2 -> 3 : 983
+
+[Abstract greedy evaluation at episode 410000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=399.3
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=97.2%, length=405.0
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 973
+  2 -> 3 : 972
+
+[Abstract level1 | Episode 420000/1000000 | last 10000]
+success rate (biased)       : 97.0% (cumulative 61.2%)
+synthetic task reward       : 9703.282
+shaping reward              : 6753.156
+learning reward             : 16456.438
+episode length (non-goal)   : 324.6
+DFA transitions / episode   : 1.48
+epsilon (next episode)      : 0.12246
+Q updates cumulative        : 120858882
+unbiased |TD| mean/max     : 33.65/1e+04
+biased |TD| mean/max       : 54.78/1e+04
+unbiased positive Q pairs   : 1495309/2203200 (67.87%)
+accepting-state restarts    : 140346
+elapsed                     : 1658.0s
+
+[Abstract greedy evaluation at episode 420000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.3
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.8
+  start q2: 504/504 = 100.0%, length=154.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=98.3%, length=280.4
+success by initial q (original-reward unbiased Q) :
+  start q1: 483/496 = 97.4%, length=405.0
+  start q2: 500/504 = 99.2%, length=157.7
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 483
+  2 -> 3 : 983
+
+[Abstract greedy evaluation at episode 420000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=399.3
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=97.2%, length=404.6
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 974
+  2 -> 3 : 972
+
+[Abstract level1 | Episode 430000/1000000 | last 10000]
+success rate (biased)       : 98.0% (cumulative 62.1%)
+synthetic task reward       : 9799.435
+shaping reward              : 6742.890
+learning reward             : 16542.326
+episode length (non-goal)   : 321.3
+DFA transitions / episode   : 1.49
+epsilon (next episode)      : 0.11648
+Q updates cumulative        : 123024701
+unbiased |TD| mean/max     : 32.5/1e+04
+biased |TD| mean/max       : 53.06/1e+04
+unbiased positive Q pairs   : 1500389/2203200 (68.10%)
+accepting-state restarts    : 143615
+elapsed                     : 1690.2s
+
+[Abstract greedy evaluation at episode 430000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.3
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.8
+  start q2: 504/504 = 100.0%, length=154.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=98.4%, length=280.1
+success by initial q (original-reward unbiased Q) :
+  start q1: 483/496 = 97.4%, length=405.0
+  start q2: 501/504 = 99.4%, length=157.2
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 483
+  2 -> 3 : 984
+
+[Abstract greedy evaluation at episode 430000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=399.3
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=97.3%, length=404.5
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 975
+  2 -> 3 : 973
+
+[Abstract level1 | Episode 440000/1000000 | last 10000]
+success rate (biased)       : 98.4% (cumulative 62.9%)
+synthetic task reward       : 9842.390
+shaping reward              : 6742.924
+learning reward             : 16585.314
+episode length (non-goal)   : 318.9
+DFA transitions / episode   : 1.49
+epsilon (next episode)      : 0.11080
+Q updates cumulative        : 125152444
+unbiased |TD| mean/max     : 32.62/1e+04
+biased |TD| mean/max       : 52.43/1e+04
+unbiased positive Q pairs   : 1505191/2203200 (68.32%)
+accepting-state restarts    : 146953
+elapsed                     : 1722.3s
+
+[Abstract greedy evaluation at episode 440000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.3
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.7
+  start q2: 504/504 = 100.0%, length=154.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=98.4%, length=280.0
+success by initial q (original-reward unbiased Q) :
+  start q1: 483/496 = 97.4%, length=404.9
+  start q2: 501/504 = 99.4%, length=157.1
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 483
+  2 -> 3 : 984
+
+[Abstract greedy evaluation at episode 440000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=399.3
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=97.7%, length=403.5
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 979
+  2 -> 3 : 977
+
+[Abstract level1 | Episode 450000/1000000 | last 10000]
+success rate (biased)       : 98.8% (cumulative 63.7%)
+synthetic task reward       : 9882.423
+shaping reward              : 6739.714
+learning reward             : 16622.137
+episode length (non-goal)   : 315.2
+DFA transitions / episode   : 1.49
+epsilon (next episode)      : 0.10540
+Q updates cumulative        : 127273431
+unbiased |TD| mean/max     : 31.79/1e+04
+biased |TD| mean/max       : 51.26/1e+04
+unbiased positive Q pairs   : 1509555/2203200 (68.52%)
+accepting-state restarts    : 150234
+elapsed                     : 1754.6s
+
+[Abstract greedy evaluation at episode 450000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.3
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.7
+  start q2: 504/504 = 100.0%, length=154.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=98.5%, length=279.8
+success by initial q (original-reward unbiased Q) :
+  start q1: 483/496 = 97.4%, length=404.9
+  start q2: 502/504 = 99.6%, length=156.7
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 483
+  2 -> 3 : 985
+
+[Abstract greedy evaluation at episode 450000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=399.3
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=97.8%, length=403.5
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 980
+  2 -> 3 : 978
+
+[Abstract level1 | Episode 460000/1000000 | last 10000]
+success rate (biased)       : 99.0% (cumulative 64.5%)
+synthetic task reward       : 9900.542
+shaping reward              : 6757.466
+learning reward             : 16658.009
+episode length (non-goal)   : 313.1
+DFA transitions / episode   : 1.48
+epsilon (next episode)      : 0.10026
+Q updates cumulative        : 129354641
+unbiased |TD| mean/max     : 32.52/1e+04
+biased |TD| mean/max       : 51.95/1e+04
+unbiased positive Q pairs   : 1513624/2203200 (68.70%)
+accepting-state restarts    : 153598
+elapsed                     : 1786.4s
+
+[Abstract greedy evaluation at episode 460000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.3
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.7
+  start q2: 504/504 = 100.0%, length=154.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=98.6%, length=279.7
+success by initial q (original-reward unbiased Q) :
+  start q1: 484/496 = 97.6%, length=404.7
+  start q2: 502/504 = 99.6%, length=156.7
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 484
+  2 -> 3 : 986
+
+[Abstract greedy evaluation at episode 460000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=399.3
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=98.4%, length=402.9
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 985
+  2 -> 3 : 984
+
+[Abstract level1 | Episode 470000/1000000 | last 10000]
+success rate (biased)       : 99.3% (cumulative 65.2%)
+synthetic task reward       : 9931.859
+shaping reward              : 6725.517
+learning reward             : 16657.377
+episode length (non-goal)   : 311.2
+DFA transitions / episode   : 1.49
+epsilon (next episode)      : 0.09537
+Q updates cumulative        : 131413197
+unbiased |TD| mean/max     : 31.41/1e+04
+biased |TD| mean/max       : 49.38/1e+04
+unbiased positive Q pairs   : 1517545/2203200 (68.88%)
+accepting-state restarts    : 156994
+elapsed                     : 1817.6s
+
+[Abstract greedy evaluation at episode 470000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.3
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.7
+  start q2: 504/504 = 100.0%, length=154.8
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=98.6%, length=279.6
+success by initial q (original-reward unbiased Q) :
+  start q1: 484/496 = 97.6%, length=404.6
+  start q2: 502/504 = 99.6%, length=156.6
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 484
+  2 -> 3 : 986
+
+[Abstract greedy evaluation at episode 470000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=399.3
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=98.8%, length=402.1
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 989
+  2 -> 3 : 988
+
+[Abstract level1 | Episode 480000/1000000 | last 10000]
+success rate (biased)       : 99.7% (cumulative 65.9%)
+synthetic task reward       : 9968.624
+shaping reward              : 6685.923
+learning reward             : 16654.547
+episode length (non-goal)   : 305.6
+DFA transitions / episode   : 1.48
+epsilon (next episode)      : 0.09072
+Q updates cumulative        : 133462006
+unbiased |TD| mean/max     : 31/1e+04
+biased |TD| mean/max       : 48.79/1e+04
+unbiased positive Q pairs   : 1521186/2203200 (69.04%)
+accepting-state restarts    : 160301
+elapsed                     : 1848.8s
+
+[Abstract greedy evaluation at episode 480000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.3
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.7
+  start q2: 504/504 = 100.0%, length=154.8
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=98.9%, length=279.0
+success by initial q (original-reward unbiased Q) :
+  start q1: 485/496 = 97.8%, length=404.0
+  start q2: 504/504 = 100.0%, length=155.9
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 486
+  2 -> 3 : 989
+
+[Abstract greedy evaluation at episode 480000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=399.3
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=98.9%, length=401.8
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 990
+  2 -> 3 : 989
+
+[Abstract level1 | Episode 490000/1000000 | last 10000]
+success rate (biased)       : 99.7% (cumulative 66.6%)
+synthetic task reward       : 9973.001
+shaping reward              : 6725.384
+learning reward             : 16698.386
+episode length (non-goal)   : 305.8
+DFA transitions / episode   : 1.48
+epsilon (next episode)      : 0.08629
+Q updates cumulative        : 135504101
+unbiased |TD| mean/max     : 30.71/1e+04
+biased |TD| mean/max       : 48.13/1e+04
+unbiased positive Q pairs   : 1524728/2203200 (69.21%)
+accepting-state restarts    : 163634
+elapsed                     : 1879.8s
+
+[Abstract greedy evaluation at episode 490000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.2
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.7
+  start q2: 504/504 = 100.0%, length=154.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.0%, length=278.8
+success by initial q (original-reward unbiased Q) :
+  start q1: 486/496 = 98.0%, length=403.8
+  start q2: 504/504 = 100.0%, length=155.8
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 487
+  2 -> 3 : 990
+
+[Abstract greedy evaluation at episode 490000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=399.3
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.0%, length=401.5
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 991
+  2 -> 3 : 990
+
+[Abstract level1 | Episode 500000/1000000 | last 10000]
+success rate (biased)       : 99.9% (cumulative 67.3%)
+synthetic task reward       : 9986.444
+shaping reward              : 6738.121
+learning reward             : 16724.565
+episode length (non-goal)   : 306.0
+DFA transitions / episode   : 1.50
+epsilon (next episode)      : 0.08208
+Q updates cumulative        : 137539162
+unbiased |TD| mean/max     : 29.61/1e+04
+biased |TD| mean/max       : 46.16/1e+04
+unbiased positive Q pairs   : 1527918/2203200 (69.35%)
+accepting-state restarts    : 166995
+elapsed                     : 1910.8s
+
+[Abstract greedy evaluation at episode 500000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.2
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.7
+  start q2: 504/504 = 100.0%, length=154.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.1%, length=278.8
+success by initial q (original-reward unbiased Q) :
+  start q1: 487/496 = 98.2%, length=403.7
+  start q2: 504/504 = 100.0%, length=155.8
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 488
+  2 -> 3 : 991
+
+[Abstract greedy evaluation at episode 500000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=399.3
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.3%, length=401.3
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 993
+  2 -> 3 : 993
+
+[Abstract level1 | Episode 510000/1000000 | last 10000]
+success rate (biased)       : 99.9% (cumulative 67.9%)
+synthetic task reward       : 9989.426
+shaping reward              : 6779.041
+learning reward             : 16768.467
+episode length (non-goal)   : 306.6
+DFA transitions / episode   : 1.50
+epsilon (next episode)      : 0.07808
+Q updates cumulative        : 139572091
+unbiased |TD| mean/max     : 29.36/1e+04
+biased |TD| mean/max       : 45.5/1e+04
+unbiased positive Q pairs   : 1531121/2203200 (69.50%)
+accepting-state restarts    : 170375
+elapsed                     : 1941.7s
+
+[Abstract greedy evaluation at episode 510000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.2
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.7
+  start q2: 504/504 = 100.0%, length=154.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.2%, length=278.7
+success by initial q (original-reward unbiased Q) :
+  start q1: 488/496 = 98.4%, length=403.6
+  start q2: 504/504 = 100.0%, length=155.7
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 488
+  2 -> 3 : 992
+
+[Abstract greedy evaluation at episode 510000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=399.3
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.3%, length=401.2
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 993
+  2 -> 3 : 993
+
+[Abstract level1 | Episode 520000/1000000 | last 10000]
+success rate (biased)       : 99.9% (cumulative 68.5%)
+synthetic task reward       : 9993.949
+shaping reward              : 6736.806
+learning reward             : 16730.756
+episode length (non-goal)   : 302.7
+DFA transitions / episode   : 1.49
+epsilon (next episode)      : 0.07427
+Q updates cumulative        : 141576776
+unbiased |TD| mean/max     : 29.08/1e+04
+biased |TD| mean/max       : 44.77/1e+04
+unbiased positive Q pairs   : 1534057/2203200 (69.63%)
+accepting-state restarts    : 173764
+elapsed                     : 1972.0s
+
+[Abstract greedy evaluation at episode 520000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.2
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.7
+  start q2: 504/504 = 100.0%, length=154.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.3%, length=278.6
+success by initial q (original-reward unbiased Q) :
+  start q1: 489/496 = 98.6%, length=403.4
+  start q2: 504/504 = 100.0%, length=155.7
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 490
+  2 -> 3 : 993
+
+[Abstract greedy evaluation at episode 520000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=399.2
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.3%, length=401.1
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 993
+  2 -> 3 : 993
+
+[Abstract level1 | Episode 530000/1000000 | last 10000]
+success rate (biased)       : 100.0% (cumulative 69.1%)
+synthetic task reward       : 9996.978
+shaping reward              : 6786.900
+learning reward             : 16783.878
+episode length (non-goal)   : 304.9
+DFA transitions / episode   : 1.51
+epsilon (next episode)      : 0.07065
+Q updates cumulative        : 143598351
+unbiased |TD| mean/max     : 28.3/1e+04
+biased |TD| mean/max       : 43.27/1e+04
+unbiased positive Q pairs   : 1536942/2203200 (69.76%)
+accepting-state restarts    : 177145
+elapsed                     : 2002.7s
+
+[Abstract greedy evaluation at episode 530000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.2
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.7
+  start q2: 504/504 = 100.0%, length=154.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.3%, length=278.6
+success by initial q (original-reward unbiased Q) :
+  start q1: 489/496 = 98.6%, length=403.4
+  start q2: 504/504 = 100.0%, length=155.7
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 490
+  2 -> 3 : 993
+
+[Abstract greedy evaluation at episode 530000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=399.2
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.3%, length=401.1
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 993
+  2 -> 3 : 993
+
+[Abstract level1 | Episode 540000/1000000 | last 10000]
+success rate (biased)       : 100.0% (cumulative 69.7%)
+synthetic task reward       : 9998.518
+shaping reward              : 6779.072
+learning reward             : 16777.590
+episode length (non-goal)   : 302.6
+DFA transitions / episode   : 1.50
+epsilon (next episode)      : 0.06721
+Q updates cumulative        : 145644026
+unbiased |TD| mean/max     : 26.96/1e+04
+biased |TD| mean/max       : 41.52/1e+04
+unbiased positive Q pairs   : 1539674/2203200 (69.88%)
+accepting-state restarts    : 180396
+elapsed                     : 2033.6s
+
+[Abstract greedy evaluation at episode 540000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.2
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.7
+  start q2: 504/504 = 100.0%, length=154.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.4%, length=278.5
+success by initial q (original-reward unbiased Q) :
+  start q1: 490/496 = 98.8%, length=403.3
+  start q2: 504/504 = 100.0%, length=155.7
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 491
+  2 -> 3 : 994
+
+[Abstract greedy evaluation at episode 540000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=399.2
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.3%, length=401.0
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 993
+  2 -> 3 : 993
+
+[Abstract level1 | Episode 550000/1000000 | last 10000]
+success rate (biased)       : 100.0% (cumulative 70.3%)
+synthetic task reward       : 9998.522
+shaping reward              : 6751.414
+learning reward             : 16749.935
+episode length (non-goal)   : 301.3
+DFA transitions / episode   : 1.51
+epsilon (next episode)      : 0.06393
+Q updates cumulative        : 147685461
+unbiased |TD| mean/max     : 26.37/1e+04
+biased |TD| mean/max       : 40.06/1e+04
+unbiased positive Q pairs   : 1542302/2203200 (70.00%)
+accepting-state restarts    : 183632
+elapsed                     : 2064.3s
+
+[Abstract greedy evaluation at episode 550000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.2
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.7
+  start q2: 504/504 = 100.0%, length=154.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.5%, length=278.5
+success by initial q (original-reward unbiased Q) :
+  start q1: 491/496 = 99.0%, length=403.3
+  start q2: 504/504 = 100.0%, length=155.7
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 491
+  2 -> 3 : 995
+
+[Abstract greedy evaluation at episode 550000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=399.2
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.3%, length=401.0
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 993
+  2 -> 3 : 993
+
+[Abstract level1 | Episode 560000/1000000 | last 10000]
+success rate (biased)       : 100.0% (cumulative 70.8%)
+synthetic task reward       : 9996.983
+shaping reward              : 6817.499
+learning reward             : 16814.483
+episode length (non-goal)   : 303.2
+DFA transitions / episode   : 1.51
+epsilon (next episode)      : 0.06081
+Q updates cumulative        : 149698853
+unbiased |TD| mean/max     : 26.17/1e+04
+biased |TD| mean/max       : 39.42/1e+04
+unbiased positive Q pairs   : 1544708/2203200 (70.11%)
+accepting-state restarts    : 187002
+elapsed                     : 2094.8s
+
+[Abstract greedy evaluation at episode 560000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.2
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.7
+  start q2: 504/504 = 100.0%, length=154.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.5%, length=278.5
+success by initial q (original-reward unbiased Q) :
+  start q1: 491/496 = 99.0%, length=403.2
+  start q2: 504/504 = 100.0%, length=155.7
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 491
+  2 -> 3 : 995
+
+[Abstract greedy evaluation at episode 560000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=399.2
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.3%, length=401.0
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 993
+  2 -> 3 : 993
+
+[Abstract level1 | Episode 570000/1000000 | last 10000]
+success rate (biased)       : 100.0% (cumulative 71.3%)
+synthetic task reward       : 10000.000
+shaping reward              : 6731.468
+learning reward             : 16731.468
+episode length (non-goal)   : 295.5
+DFA transitions / episode   : 1.50
+epsilon (next episode)      : 0.05784
+Q updates cumulative        : 151691120
+unbiased |TD| mean/max     : 25.88/1e+04
+biased |TD| mean/max       : 39.03/1e+04
+unbiased positive Q pairs   : 1546874/2203200 (70.21%)
+accepting-state restarts    : 190272
+elapsed                     : 2125.0s
+
+[Abstract greedy evaluation at episode 570000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.2
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.7
+  start q2: 504/504 = 100.0%, length=154.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.5%, length=278.4
+success by initial q (original-reward unbiased Q) :
+  start q1: 491/496 = 99.0%, length=403.2
+  start q2: 504/504 = 100.0%, length=155.6
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 491
+  2 -> 3 : 995
+
+[Abstract greedy evaluation at episode 570000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=399.2
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.3%, length=401.0
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 993
+  2 -> 3 : 993
+
+[Abstract level1 | Episode 580000/1000000 | last 10000]
+success rate (biased)       : 100.0% (cumulative 71.8%)
+synthetic task reward       : 10000.000
+shaping reward              : 6712.625
+learning reward             : 16712.625
+episode length (non-goal)   : 293.4
+DFA transitions / episode   : 1.50
+epsilon (next episode)      : 0.05502
+Q updates cumulative        : 153653119
+unbiased |TD| mean/max     : 26.2/1e+04
+biased |TD| mean/max       : 38.65/1e+04
+unbiased positive Q pairs   : 1548979/2203200 (70.31%)
+accepting-state restarts    : 193596
+elapsed                     : 2155.4s
+
+[Abstract greedy evaluation at episode 580000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.2
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.7
+  start q2: 504/504 = 100.0%, length=154.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.6%, length=278.3
+success by initial q (original-reward unbiased Q) :
+  start q1: 492/496 = 99.2%, length=403.0
+  start q2: 504/504 = 100.0%, length=155.6
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 492
+  2 -> 3 : 996
+
+[Abstract greedy evaluation at episode 580000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=399.2
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.4%, length=400.7
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 994
+  2 -> 3 : 994
+
+[Abstract level1 | Episode 590000/1000000 | last 10000]
+success rate (biased)       : 100.0% (cumulative 72.3%)
+synthetic task reward       : 10000.000
+shaping reward              : 6732.450
+learning reward             : 16732.450
+episode length (non-goal)   : 294.0
+DFA transitions / episode   : 1.50
+epsilon (next episode)      : 0.05234
+Q updates cumulative        : 155623703
+unbiased |TD| mean/max     : 25.79/1e+04
+biased |TD| mean/max       : 38.11/1e+04
+unbiased positive Q pairs   : 1551023/2203200 (70.40%)
+accepting-state restarts    : 196904
+elapsed                     : 2185.5s
+
+[Abstract greedy evaluation at episode 590000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.2
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.7
+  start q2: 504/504 = 100.0%, length=154.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.6%, length=278.3
+success by initial q (original-reward unbiased Q) :
+  start q1: 492/496 = 99.2%, length=403.0
+  start q2: 504/504 = 100.0%, length=155.5
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 492
+  2 -> 3 : 996
+
+[Abstract greedy evaluation at episode 590000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=399.2
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.5%, length=400.7
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 995
+  2 -> 3 : 995
+
+[Abstract level1 | Episode 600000/1000000 | last 10000]
+success rate (biased)       : 100.0% (cumulative 72.7%)
+synthetic task reward       : 10000.000
+shaping reward              : 6740.884
+learning reward             : 16740.884
+episode length (non-goal)   : 293.7
+DFA transitions / episode   : 1.50
+epsilon (next episode)      : 0.05000
+Q updates cumulative        : 157589403
+unbiased |TD| mean/max     : 25.28/1e+04
+biased |TD| mean/max       : 37.15/1e+04
+unbiased positive Q pairs   : 1553039/2203200 (70.49%)
+accepting-state restarts    : 200223
+elapsed                     : 2215.4s
+
+[Abstract greedy evaluation at episode 600000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.2
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.7
+  start q2: 504/504 = 100.0%, length=154.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.6%, length=278.3
+success by initial q (original-reward unbiased Q) :
+  start q1: 492/496 = 99.2%, length=403.0
+  start q2: 504/504 = 100.0%, length=155.5
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 492
+  2 -> 3 : 996
+
+[Abstract greedy evaluation at episode 600000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=399.2
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.5%, length=400.6
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 995
+  2 -> 3 : 995
+
+[Abstract level1 | Episode 610000/1000000 | last 10000]
+success rate (biased)       : 100.0% (cumulative 73.2%)
+synthetic task reward       : 10000.000
+shaping reward              : 6758.988
+learning reward             : 16758.988
+episode length (non-goal)   : 293.7
+DFA transitions / episode   : 1.50
+epsilon (next episode)      : 0.05000
+Q updates cumulative        : 159535152
+unbiased |TD| mean/max     : 25.46/1e+04
+biased |TD| mean/max       : 37.15/1e+04
+unbiased positive Q pairs   : 1554940/2203200 (70.58%)
+accepting-state restarts    : 203610
+elapsed                     : 2245.7s
+
+[Abstract greedy evaluation at episode 610000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.2
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.7
+  start q2: 504/504 = 100.0%, length=154.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.6%, length=278.2
+success by initial q (original-reward unbiased Q) :
+  start q1: 492/496 = 99.2%, length=402.9
+  start q2: 504/504 = 100.0%, length=155.5
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 493
+  2 -> 3 : 996
+
+[Abstract greedy evaluation at episode 610000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=399.2
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.5%, length=400.6
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 995
+  2 -> 3 : 995
+
+[Abstract level1 | Episode 620000/1000000 | last 10000]
+success rate (biased)       : 100.0% (cumulative 73.6%)
+synthetic task reward       : 10000.000
+shaping reward              : 6741.079
+learning reward             : 16741.079
+episode length (non-goal)   : 293.7
+DFA transitions / episode   : 1.50
+epsilon (next episode)      : 0.05000
+Q updates cumulative        : 161474297
+unbiased |TD| mean/max     : 25.79/1e+04
+biased |TD| mean/max       : 37.49/1e+04
+unbiased positive Q pairs   : 1556865/2203200 (70.66%)
+accepting-state restarts    : 207020
+elapsed                     : 2275.9s
+
+[Abstract greedy evaluation at episode 620000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.2
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.7
+  start q2: 504/504 = 100.0%, length=154.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.7%, length=278.2
+success by initial q (original-reward unbiased Q) :
+  start q1: 493/496 = 99.4%, length=402.9
+  start q2: 504/504 = 100.0%, length=155.5
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 494
+  2 -> 3 : 997
+
+[Abstract greedy evaluation at episode 620000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=399.2
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.7%, length=400.2
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 997
+  2 -> 3 : 997
+
+[Abstract level1 | Episode 630000/1000000 | last 10000]
+success rate (biased)       : 100.0% (cumulative 74.0%)
+synthetic task reward       : 10000.000
+shaping reward              : 6706.216
+learning reward             : 16706.216
+episode length (non-goal)   : 292.0
+DFA transitions / episode   : 1.50
+epsilon (next episode)      : 0.05000
+Q updates cumulative        : 163433098
+unbiased |TD| mean/max     : 25.16/1e+04
+biased |TD| mean/max       : 36.89/1e+04
+unbiased positive Q pairs   : 1558735/2203200 (70.75%)
+accepting-state restarts    : 210324
+elapsed                     : 2306.5s
+
+[Abstract greedy evaluation at episode 630000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.2
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.7
+  start q2: 504/504 = 100.0%, length=154.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.7%, length=278.1
+success by initial q (original-reward unbiased Q) :
+  start q1: 493/496 = 99.4%, length=402.9
+  start q2: 504/504 = 100.0%, length=155.2
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 494
+  2 -> 3 : 997
+
+[Abstract greedy evaluation at episode 630000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=399.2
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.8%, length=400.1
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 998
+  2 -> 3 : 998
+
+[Abstract level1 | Episode 640000/1000000 | last 10000]
+success rate (biased)       : 100.0% (cumulative 74.4%)
+synthetic task reward       : 9998.483
+shaping reward              : 6762.866
+learning reward             : 16761.349
+episode length (non-goal)   : 295.4
+DFA transitions / episode   : 1.51
+epsilon (next episode)      : 0.05000
+Q updates cumulative        : 165383373
+unbiased |TD| mean/max     : 25.07/1e+04
+biased |TD| mean/max       : 36.5/1e+04
+unbiased positive Q pairs   : 1560509/2203200 (70.83%)
+accepting-state restarts    : 213733
+elapsed                     : 2336.9s
+
+[Abstract greedy evaluation at episode 640000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.2
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.7
+  start q2: 504/504 = 100.0%, length=154.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.7%, length=278.0
+success by initial q (original-reward unbiased Q) :
+  start q1: 493/496 = 99.4%, length=402.9
+  start q2: 504/504 = 100.0%, length=155.2
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 494
+  2 -> 3 : 997
+
+[Abstract greedy evaluation at episode 640000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=399.2
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.9%, length=399.8
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 999
+  2 -> 3 : 999
+
+[Abstract level1 | Episode 650000/1000000 | last 10000]
+success rate (biased)       : 100.0% (cumulative 74.8%)
+synthetic task reward       : 10000.000
+shaping reward              : 6759.886
+learning reward             : 16759.886
+episode length (non-goal)   : 294.4
+DFA transitions / episode   : 1.50
+epsilon (next episode)      : 0.05000
+Q updates cumulative        : 167362818
+unbiased |TD| mean/max     : 24.58/1e+04
+biased |TD| mean/max       : 36.29/1e+04
+unbiased positive Q pairs   : 1562350/2203200 (70.91%)
+accepting-state restarts    : 217021
+elapsed                     : 2367.8s
+
+[Abstract greedy evaluation at episode 650000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.2
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.7
+  start q2: 504/504 = 100.0%, length=154.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.7%, length=278.0
+success by initial q (original-reward unbiased Q) :
+  start q1: 493/496 = 99.4%, length=402.8
+  start q2: 504/504 = 100.0%, length=155.2
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 494
+  2 -> 3 : 997
+
+[Abstract greedy evaluation at episode 650000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=399.2
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.9%, length=399.8
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 999
+  2 -> 3 : 999
+
+[Abstract level1 | Episode 660000/1000000 | last 10000]
+success rate (biased)       : 100.0% (cumulative 75.2%)
+synthetic task reward       : 10000.000
+shaping reward              : 6763.413
+learning reward             : 16763.413
+episode length (non-goal)   : 295.0
+DFA transitions / episode   : 1.50
+epsilon (next episode)      : 0.05000
+Q updates cumulative        : 169324869
+unbiased |TD| mean/max     : 24.63/1e+04
+biased |TD| mean/max       : 36.13/1e+04
+unbiased positive Q pairs   : 1564091/2203200 (70.99%)
+accepting-state restarts    : 220381
+elapsed                     : 2398.2s
+
+[Abstract greedy evaluation at episode 660000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.2
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.7
+  start q2: 504/504 = 100.0%, length=154.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.7%, length=278.0
+success by initial q (original-reward unbiased Q) :
+  start q1: 493/496 = 99.4%, length=402.8
+  start q2: 504/504 = 100.0%, length=155.2
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 494
+  2 -> 3 : 997
+
+[Abstract greedy evaluation at episode 660000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=399.2
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.9%, length=399.8
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 999
+  2 -> 3 : 999
+
+[Abstract level1 | Episode 670000/1000000 | last 10000]
+success rate (biased)       : 100.0% (cumulative 75.6%)
+synthetic task reward       : 10000.000
+shaping reward              : 6761.176
+learning reward             : 16761.176
+episode length (non-goal)   : 295.9
+DFA transitions / episode   : 1.50
+epsilon (next episode)      : 0.05000
+Q updates cumulative        : 171311323
+unbiased |TD| mean/max     : 24.62/1e+04
+biased |TD| mean/max       : 36.32/1e+04
+unbiased positive Q pairs   : 1565853/2203200 (71.07%)
+accepting-state restarts    : 223679
+elapsed                     : 2428.8s
+
+[Abstract greedy evaluation at episode 670000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.2
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.7
+  start q2: 504/504 = 100.0%, length=154.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.8%, length=278.0
+success by initial q (original-reward unbiased Q) :
+  start q1: 494/496 = 99.6%, length=402.7
+  start q2: 504/504 = 100.0%, length=155.2
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 494
+  2 -> 3 : 998
+
+[Abstract greedy evaluation at episode 670000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=399.2
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.9%, length=399.8
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 999
+  2 -> 3 : 999
+
+[Abstract level1 | Episode 680000/1000000 | last 10000]
+success rate (biased)       : 100.0% (cumulative 75.9%)
+synthetic task reward       : 10000.000
+shaping reward              : 6761.526
+learning reward             : 16761.526
+episode length (non-goal)   : 294.5
+DFA transitions / episode   : 1.50
+epsilon (next episode)      : 0.05000
+Q updates cumulative        : 173279901
+unbiased |TD| mean/max     : 24.61/1e+04
+biased |TD| mean/max       : 36.25/1e+04
+unbiased positive Q pairs   : 1567577/2203200 (71.15%)
+accepting-state restarts    : 227005
+elapsed                     : 2459.6s
+
+[Abstract greedy evaluation at episode 680000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.2
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.7
+  start q2: 504/504 = 100.0%, length=154.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.8%, length=277.9
+success by initial q (original-reward unbiased Q) :
+  start q1: 494/496 = 99.6%, length=402.6
+  start q2: 504/504 = 100.0%, length=155.2
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 495
+  2 -> 3 : 998
+
+[Abstract greedy evaluation at episode 680000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=399.2
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.9%, length=399.7
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 999
+  2 -> 3 : 999
+
+[Abstract level1 | Episode 690000/1000000 | last 10000]
+success rate (biased)       : 100.0% (cumulative 76.3%)
+synthetic task reward       : 10000.000
+shaping reward              : 6777.687
+learning reward             : 16777.687
+episode length (non-goal)   : 294.8
+DFA transitions / episode   : 1.50
+epsilon (next episode)      : 0.05000
+Q updates cumulative        : 175255836
+unbiased |TD| mean/max     : 24.32/1e+04
+biased |TD| mean/max       : 36.01/1e+04
+unbiased positive Q pairs   : 1569248/2203200 (71.23%)
+accepting-state restarts    : 230314
+elapsed                     : 2490.1s
+
+[Abstract greedy evaluation at episode 690000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.2
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.7
+  start q2: 504/504 = 100.0%, length=154.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.8%, length=277.9
+success by initial q (original-reward unbiased Q) :
+  start q1: 494/496 = 99.6%, length=402.6
+  start q2: 504/504 = 100.0%, length=155.2
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 495
+  2 -> 3 : 998
+
+[Abstract greedy evaluation at episode 690000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=399.2
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.9%, length=399.7
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 999
+  2 -> 3 : 999
+
+[Abstract level1 | Episode 700000/1000000 | last 10000]
+success rate (biased)       : 100.0% (cumulative 76.6%)
+synthetic task reward       : 10000.000
+shaping reward              : 6803.855
+learning reward             : 16803.855
+episode length (non-goal)   : 298.2
+DFA transitions / episode   : 1.52
+epsilon (next episode)      : 0.05000
+Q updates cumulative        : 177238732
+unbiased |TD| mean/max     : 23.98/1e+04
+biased |TD| mean/max       : 35.18/1e+04
+unbiased positive Q pairs   : 1570799/2203200 (71.30%)
+accepting-state restarts    : 233676
+elapsed                     : 2520.5s
+
+[Abstract greedy evaluation at episode 700000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.2
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.7
+  start q2: 504/504 = 100.0%, length=154.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.8%, length=277.8
+success by initial q (original-reward unbiased Q) :
+  start q1: 494/496 = 99.6%, length=402.6
+  start q2: 504/504 = 100.0%, length=155.1
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 495
+  2 -> 3 : 998
+
+[Abstract greedy evaluation at episode 700000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=399.2
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.9%, length=399.7
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 999
+  2 -> 3 : 999
+
+[Abstract level1 | Episode 710000/1000000 | last 10000]
+success rate (biased)       : 100.0% (cumulative 77.0%)
+synthetic task reward       : 10000.000
+shaping reward              : 6746.894
+learning reward             : 16746.894
+episode length (non-goal)   : 294.2
+DFA transitions / episode   : 1.51
+epsilon (next episode)      : 0.05000
+Q updates cumulative        : 179208734
+unbiased |TD| mean/max     : 24.17/1e+04
+biased |TD| mean/max       : 35.58/1e+04
+unbiased positive Q pairs   : 1572472/2203200 (71.37%)
+accepting-state restarts    : 236990
+elapsed                     : 2551.2s
+
+[Abstract greedy evaluation at episode 710000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.2
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.7
+  start q2: 504/504 = 100.0%, length=154.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.8%, length=277.8
+success by initial q (original-reward unbiased Q) :
+  start q1: 494/496 = 99.6%, length=402.6
+  start q2: 504/504 = 100.0%, length=155.0
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 495
+  2 -> 3 : 998
+
+[Abstract greedy evaluation at episode 710000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=399.2
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.9%, length=399.7
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 999
+  2 -> 3 : 999
+
+[Abstract level1 | Episode 720000/1000000 | last 10000]
+success rate (biased)       : 100.0% (cumulative 77.3%)
+synthetic task reward       : 10000.000
+shaping reward              : 6759.369
+learning reward             : 16759.369
+episode length (non-goal)   : 295.7
+DFA transitions / episode   : 1.50
+epsilon (next episode)      : 0.05000
+Q updates cumulative        : 181177334
+unbiased |TD| mean/max     : 24.29/1e+04
+biased |TD| mean/max       : 35.69/1e+04
+unbiased positive Q pairs   : 1574094/2203200 (71.45%)
+accepting-state restarts    : 240345
+elapsed                     : 2581.8s
+
+[Abstract greedy evaluation at episode 720000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.2
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.7
+  start q2: 504/504 = 100.0%, length=154.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.9%, length=277.8
+success by initial q (original-reward unbiased Q) :
+  start q1: 495/496 = 99.8%, length=402.5
+  start q2: 504/504 = 100.0%, length=155.0
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 495
+  2 -> 3 : 999
+
+[Abstract greedy evaluation at episode 720000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=399.2
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.9%, length=399.7
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 999
+  2 -> 3 : 999
+
+[Abstract level1 | Episode 730000/1000000 | last 10000]
+success rate (biased)       : 100.0% (cumulative 77.6%)
+synthetic task reward       : 10000.000
+shaping reward              : 6785.437
+learning reward             : 16785.437
+episode length (non-goal)   : 296.6
+DFA transitions / episode   : 1.51
+epsilon (next episode)      : 0.05000
+Q updates cumulative        : 183168746
+unbiased |TD| mean/max     : 24/1e+04
+biased |TD| mean/max       : 35.61/1e+04
+unbiased positive Q pairs   : 1575665/2203200 (71.52%)
+accepting-state restarts    : 243641
+elapsed                     : 2612.4s
+
+[Abstract greedy evaluation at episode 730000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.2
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.7
+  start q2: 504/504 = 100.0%, length=154.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.9%, length=277.7
+success by initial q (original-reward unbiased Q) :
+  start q1: 495/496 = 99.8%, length=402.5
+  start q2: 504/504 = 100.0%, length=155.0
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 495
+  2 -> 3 : 999
+
+[Abstract greedy evaluation at episode 730000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=399.2
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.9%, length=399.7
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 999
+  2 -> 3 : 999
+
+[Abstract level1 | Episode 740000/1000000 | last 10000]
+success rate (biased)       : 100.0% (cumulative 77.9%)
+synthetic task reward       : 10000.000
+shaping reward              : 6794.288
+learning reward             : 16794.288
+episode length (non-goal)   : 297.1
+DFA transitions / episode   : 1.51
+epsilon (next episode)      : 0.05000
+Q updates cumulative        : 185156062
+unbiased |TD| mean/max     : 23.83/1e+04
+biased |TD| mean/max       : 35.18/1e+04
+unbiased positive Q pairs   : 1577228/2203200 (71.59%)
+accepting-state restarts    : 246963
+elapsed                     : 2643.0s
+
+[Abstract greedy evaluation at episode 740000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.2
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.7
+  start q2: 504/504 = 100.0%, length=154.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.9%, length=277.7
+success by initial q (original-reward unbiased Q) :
+  start q1: 495/496 = 99.8%, length=402.5
+  start q2: 504/504 = 100.0%, length=155.0
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 495
+  2 -> 3 : 999
+
+[Abstract greedy evaluation at episode 740000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=399.2
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.9%, length=399.7
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 999
+  2 -> 3 : 999
+
+[Abstract level1 | Episode 750000/1000000 | last 10000]
+success rate (biased)       : 100.0% (cumulative 78.2%)
+synthetic task reward       : 10000.000
+shaping reward              : 6745.185
+learning reward             : 16745.185
+episode length (non-goal)   : 292.9
+DFA transitions / episode   : 1.50
+epsilon (next episode)      : 0.05000
+Q updates cumulative        : 187097846
+unbiased |TD| mean/max     : 24.57/1e+04
+biased |TD| mean/max       : 36.02/1e+04
+unbiased positive Q pairs   : 1578801/2203200 (71.66%)
+accepting-state restarts    : 250346
+elapsed                     : 2673.1s
+
+[Abstract greedy evaluation at episode 750000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.2
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.7
+  start q2: 504/504 = 100.0%, length=154.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.9%, length=277.7
+success by initial q (original-reward unbiased Q) :
+  start q1: 495/496 = 99.8%, length=402.5
+  start q2: 504/504 = 100.0%, length=155.0
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 495
+  2 -> 3 : 999
+
+[Abstract greedy evaluation at episode 750000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=399.2
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.9%, length=399.7
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 999
+  2 -> 3 : 999
+
+[Abstract level1 | Episode 760000/1000000 | last 10000]
+success rate (biased)       : 100.0% (cumulative 78.5%)
+synthetic task reward       : 10000.000
+shaping reward              : 6770.228
+learning reward             : 16770.228
+episode length (non-goal)   : 294.1
+DFA transitions / episode   : 1.50
+epsilon (next episode)      : 0.05000
+Q updates cumulative        : 189058185
+unbiased |TD| mean/max     : 24.3/1e+04
+biased |TD| mean/max       : 35.81/1e+04
+unbiased positive Q pairs   : 1580250/2203200 (71.73%)
+accepting-state restarts    : 253691
+elapsed                     : 2703.6s
+
+[Abstract greedy evaluation at episode 760000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.2
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.7
+  start q2: 504/504 = 100.0%, length=154.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.9%, length=277.7
+success by initial q (original-reward unbiased Q) :
+  start q1: 495/496 = 99.8%, length=402.5
+  start q2: 504/504 = 100.0%, length=155.0
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 495
+  2 -> 3 : 999
+
+[Abstract greedy evaluation at episode 760000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=399.2
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.9%, length=399.7
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 999
+  2 -> 3 : 999
+
+[Abstract level1 | Episode 770000/1000000 | last 10000]
+success rate (biased)       : 100.0% (cumulative 78.8%)
+synthetic task reward       : 10000.000
+shaping reward              : 6784.770
+learning reward             : 16784.770
+episode length (non-goal)   : 296.8
+DFA transitions / episode   : 1.51
+epsilon (next episode)      : 0.05000
+Q updates cumulative        : 191034775
+unbiased |TD| mean/max     : 24.28/1e+04
+biased |TD| mean/max       : 35.75/1e+04
+unbiased positive Q pairs   : 1581761/2203200 (71.79%)
+accepting-state restarts    : 257042
+elapsed                     : 2734.1s
+
+[Abstract greedy evaluation at episode 770000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.2
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.7
+  start q2: 504/504 = 100.0%, length=154.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.9%, length=277.7
+success by initial q (original-reward unbiased Q) :
+  start q1: 495/496 = 99.8%, length=402.5
+  start q2: 504/504 = 100.0%, length=155.0
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 495
+  2 -> 3 : 999
+
+[Abstract greedy evaluation at episode 770000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=399.2
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.9%, length=399.7
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 999
+  2 -> 3 : 999
+
+[Abstract level1 | Episode 780000/1000000 | last 10000]
+success rate (biased)       : 100.0% (cumulative 79.0%)
+synthetic task reward       : 10000.000
+shaping reward              : 6743.034
+learning reward             : 16743.034
+episode length (non-goal)   : 294.0
+DFA transitions / episode   : 1.50
+epsilon (next episode)      : 0.05000
+Q updates cumulative        : 193006363
+unbiased |TD| mean/max     : 23.74/1e+04
+biased |TD| mean/max       : 35.17/1e+04
+unbiased positive Q pairs   : 1583164/2203200 (71.86%)
+accepting-state restarts    : 260347
+elapsed                     : 2764.3s
+
+[Abstract greedy evaluation at episode 780000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.2
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.7
+  start q2: 504/504 = 100.0%, length=154.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.9%, length=277.7
+success by initial q (original-reward unbiased Q) :
+  start q1: 495/496 = 99.8%, length=402.4
+  start q2: 504/504 = 100.0%, length=155.0
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 495
+  2 -> 3 : 999
+
+[Abstract greedy evaluation at episode 780000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=399.2
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.9%, length=399.7
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 999
+  2 -> 3 : 999
+
+[Abstract level1 | Episode 790000/1000000 | last 10000]
+success rate (biased)       : 100.0% (cumulative 79.3%)
+synthetic task reward       : 10000.000
+shaping reward              : 6723.877
+learning reward             : 16723.877
+episode length (non-goal)   : 292.1
+DFA transitions / episode   : 1.50
+epsilon (next episode)      : 0.05000
+Q updates cumulative        : 194953492
+unbiased |TD| mean/max     : 24.3/1e+04
+biased |TD| mean/max       : 35.55/1e+04
+unbiased positive Q pairs   : 1584579/2203200 (71.92%)
+accepting-state restarts    : 263692
+elapsed                     : 2794.2s
+
+[Abstract greedy evaluation at episode 790000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.2
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.7
+  start q2: 504/504 = 100.0%, length=154.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.9%, length=277.7
+success by initial q (original-reward unbiased Q) :
+  start q1: 495/496 = 99.8%, length=402.4
+  start q2: 504/504 = 100.0%, length=155.0
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 495
+  2 -> 3 : 999
+
+[Abstract greedy evaluation at episode 790000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=399.2
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.9%, length=399.7
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 999
+  2 -> 3 : 999
+
+[Abstract level1 | Episode 800000/1000000 | last 10000]
+success rate (biased)       : 100.0% (cumulative 79.6%)
+synthetic task reward       : 10000.000
+shaping reward              : 6754.076
+learning reward             : 16754.076
+episode length (non-goal)   : 294.5
+DFA transitions / episode   : 1.50
+epsilon (next episode)      : 0.05000
+Q updates cumulative        : 196922246
+unbiased |TD| mean/max     : 24.02/1e+04
+biased |TD| mean/max       : 35.44/1e+04
+unbiased positive Q pairs   : 1585934/2203200 (71.98%)
+accepting-state restarts    : 267018
+elapsed                     : 2824.6s
+
+[Abstract greedy evaluation at episode 800000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.2
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.7
+  start q2: 504/504 = 100.0%, length=154.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.9%, length=277.7
+success by initial q (original-reward unbiased Q) :
+  start q1: 495/496 = 99.8%, length=402.4
+  start q2: 504/504 = 100.0%, length=155.0
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 495
+  2 -> 3 : 999
+
+[Abstract greedy evaluation at episode 800000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=399.2
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.9%, length=399.7
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 999
+  2 -> 3 : 999
+
+[Abstract level1 | Episode 810000/1000000 | last 10000]
+success rate (biased)       : 100.0% (cumulative 79.8%)
+synthetic task reward       : 10000.000
+shaping reward              : 6749.590
+learning reward             : 16749.590
+episode length (non-goal)   : 294.3
+DFA transitions / episode   : 1.50
+epsilon (next episode)      : 0.05000
+Q updates cumulative        : 198905846
+unbiased |TD| mean/max     : 23.52/1e+04
+biased |TD| mean/max       : 34.93/1e+04
+unbiased positive Q pairs   : 1587325/2203200 (72.05%)
+accepting-state restarts    : 270290
+elapsed                     : 2855.4s
+
+[Abstract greedy evaluation at episode 810000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.2
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.7
+  start q2: 504/504 = 100.0%, length=154.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.9%, length=277.7
+success by initial q (original-reward unbiased Q) :
+  start q1: 495/496 = 99.8%, length=402.4
+  start q2: 504/504 = 100.0%, length=154.9
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 495
+  2 -> 3 : 999
+
+[Abstract greedy evaluation at episode 810000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=399.2
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.9%, length=399.7
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 999
+  2 -> 3 : 999
+
+[Abstract level1 | Episode 820000/1000000 | last 10000]
+success rate (biased)       : 100.0% (cumulative 80.1%)
+synthetic task reward       : 10000.000
+shaping reward              : 6721.049
+learning reward             : 16721.049
+episode length (non-goal)   : 294.0
+DFA transitions / episode   : 1.50
+epsilon (next episode)      : 0.05000
+Q updates cumulative        : 200886951
+unbiased |TD| mean/max     : 23.37/1e+04
+biased |TD| mean/max       : 34.45/1e+04
+unbiased positive Q pairs   : 1588634/2203200 (72.11%)
+accepting-state restarts    : 273563
+elapsed                     : 2886.1s
+
+[Abstract greedy evaluation at episode 820000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.2
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.7
+  start q2: 504/504 = 100.0%, length=154.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.9%, length=277.7
+success by initial q (original-reward unbiased Q) :
+  start q1: 495/496 = 99.8%, length=402.4
+  start q2: 504/504 = 100.0%, length=154.9
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 495
+  2 -> 3 : 999
+
+[Abstract greedy evaluation at episode 820000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=399.2
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.9%, length=399.7
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 999
+  2 -> 3 : 999
+
+[Abstract level1 | Episode 830000/1000000 | last 10000]
+success rate (biased)       : 100.0% (cumulative 80.3%)
+synthetic task reward       : 10000.000
+shaping reward              : 6746.885
+learning reward             : 16746.885
+episode length (non-goal)   : 293.3
+DFA transitions / episode   : 1.50
+epsilon (next episode)      : 0.05000
+Q updates cumulative        : 202853518
+unbiased |TD| mean/max     : 23.49/1e+04
+biased |TD| mean/max       : 34.61/1e+04
+unbiased positive Q pairs   : 1589930/2203200 (72.16%)
+accepting-state restarts    : 276869
+elapsed                     : 2916.8s
+
+[Abstract greedy evaluation at episode 830000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.1
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.5
+  start q2: 504/504 = 100.0%, length=154.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.9%, length=277.6
+success by initial q (original-reward unbiased Q) :
+  start q1: 495/496 = 99.8%, length=402.3
+  start q2: 504/504 = 100.0%, length=154.9
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 495
+  2 -> 3 : 999
+
+[Abstract greedy evaluation at episode 830000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=399.0
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.9%, length=399.6
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 999
+  2 -> 3 : 999
+
+[Abstract level1 | Episode 840000/1000000 | last 10000]
+success rate (biased)       : 100.0% (cumulative 80.5%)
+synthetic task reward       : 10000.000
+shaping reward              : 6745.140
+learning reward             : 16745.140
+episode length (non-goal)   : 292.7
+DFA transitions / episode   : 1.50
+epsilon (next episode)      : 0.05000
+Q updates cumulative        : 204792108
+unbiased |TD| mean/max     : 24/1e+04
+biased |TD| mean/max       : 35.33/1e+04
+unbiased positive Q pairs   : 1591283/2203200 (72.23%)
+accepting-state restarts    : 280258
+elapsed                     : 2946.7s
+
+[Abstract greedy evaluation at episode 840000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.1
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.5
+  start q2: 504/504 = 100.0%, length=154.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.9%, length=277.5
+success by initial q (original-reward unbiased Q) :
+  start q1: 495/496 = 99.8%, length=402.1
+  start q2: 504/504 = 100.0%, length=154.9
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 495
+  2 -> 3 : 999
+
+[Abstract greedy evaluation at episode 840000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=399.0
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.9%, length=399.4
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 999
+  2 -> 3 : 999
+
+[Abstract level1 | Episode 850000/1000000 | last 10000]
+success rate (biased)       : 100.0% (cumulative 80.8%)
+synthetic task reward       : 10000.000
+shaping reward              : 6723.597
+learning reward             : 16723.597
+episode length (non-goal)   : 291.8
+DFA transitions / episode   : 1.49
+epsilon (next episode)      : 0.05000
+Q updates cumulative        : 206723662
+unbiased |TD| mean/max     : 24.18/1e+04
+biased |TD| mean/max       : 35.24/1e+04
+unbiased positive Q pairs   : 1592492/2203200 (72.28%)
+accepting-state restarts    : 283651
+elapsed                     : 2975.3s
+
+[Abstract greedy evaluation at episode 850000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.1
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.5
+  start q2: 504/504 = 100.0%, length=154.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.9%, length=277.5
+success by initial q (original-reward unbiased Q) :
+  start q1: 495/496 = 99.8%, length=402.1
+  start q2: 504/504 = 100.0%, length=154.9
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 495
+  2 -> 3 : 999
+
+[Abstract greedy evaluation at episode 850000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=399.0
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.9%, length=399.4
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 999
+  2 -> 3 : 999
+
+[Abstract level1 | Episode 860000/1000000 | last 10000]
+success rate (biased)       : 100.0% (cumulative 81.0%)
+synthetic task reward       : 10000.000
+shaping reward              : 6739.451
+learning reward             : 16739.451
+episode length (non-goal)   : 292.3
+DFA transitions / episode   : 1.50
+epsilon (next episode)      : 0.05000
+Q updates cumulative        : 208677827
+unbiased |TD| mean/max     : 23.73/1e+04
+biased |TD| mean/max       : 34.84/1e+04
+unbiased positive Q pairs   : 1593762/2203200 (72.34%)
+accepting-state restarts    : 286977
+elapsed                     : 3003.6s
+
+[Abstract greedy evaluation at episode 860000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.1
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.5
+  start q2: 504/504 = 100.0%, length=154.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.9%, length=277.5
+success by initial q (original-reward unbiased Q) :
+  start q1: 495/496 = 99.8%, length=402.1
+  start q2: 504/504 = 100.0%, length=154.8
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 495
+  2 -> 3 : 999
+
+[Abstract greedy evaluation at episode 860000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=399.0
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.9%, length=399.4
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 999
+  2 -> 3 : 999
+
+[Abstract level1 | Episode 870000/1000000 | last 10000]
+success rate (biased)       : 100.0% (cumulative 81.2%)
+synthetic task reward       : 10000.000
+shaping reward              : 6762.098
+learning reward             : 16762.098
+episode length (non-goal)   : 294.0
+DFA transitions / episode   : 1.50
+epsilon (next episode)      : 0.05000
+Q updates cumulative        : 210638743
+unbiased |TD| mean/max     : 23.57/1e+04
+biased |TD| mean/max       : 34.82/1e+04
+unbiased positive Q pairs   : 1595055/2203200 (72.40%)
+accepting-state restarts    : 290318
+elapsed                     : 3031.7s
+
+[Abstract greedy evaluation at episode 870000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.1
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.5
+  start q2: 504/504 = 100.0%, length=154.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.9%, length=277.5
+success by initial q (original-reward unbiased Q) :
+  start q1: 495/496 = 99.8%, length=402.1
+  start q2: 504/504 = 100.0%, length=154.8
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 495
+  2 -> 3 : 999
+
+[Abstract greedy evaluation at episode 870000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=399.0
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.9%, length=399.4
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 999
+  2 -> 3 : 999
+
+[Abstract level1 | Episode 880000/1000000 | last 10000]
+success rate (biased)       : 100.0% (cumulative 81.4%)
+synthetic task reward       : 10000.000
+shaping reward              : 6762.522
+learning reward             : 16762.522
+episode length (non-goal)   : 295.9
+DFA transitions / episode   : 1.50
+epsilon (next episode)      : 0.05000
+Q updates cumulative        : 212615805
+unbiased |TD| mean/max     : 22.95/1e+04
+biased |TD| mean/max       : 33.75/1e+04
+unbiased positive Q pairs   : 1596259/2203200 (72.45%)
+accepting-state restarts    : 293647
+elapsed                     : 3060.1s
+
+[Abstract greedy evaluation at episode 880000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.1
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.5
+  start q2: 504/504 = 100.0%, length=154.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.9%, length=277.5
+success by initial q (original-reward unbiased Q) :
+  start q1: 495/496 = 99.8%, length=402.1
+  start q2: 504/504 = 100.0%, length=154.8
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 495
+  2 -> 3 : 999
+
+[Abstract greedy evaluation at episode 880000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=399.0
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.9%, length=399.4
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 999
+  2 -> 3 : 999
+
+[Abstract level1 | Episode 890000/1000000 | last 10000]
+success rate (biased)       : 100.0% (cumulative 81.6%)
+synthetic task reward       : 10000.000
+shaping reward              : 6735.972
+learning reward             : 16735.972
+episode length (non-goal)   : 292.4
+DFA transitions / episode   : 1.49
+epsilon (next episode)      : 0.05000
+Q updates cumulative        : 214556594
+unbiased |TD| mean/max     : 23.85/1e+04
+biased |TD| mean/max       : 34.94/1e+04
+unbiased positive Q pairs   : 1597501/2203200 (72.51%)
+accepting-state restarts    : 297021
+elapsed                     : 3088.0s
+
+[Abstract greedy evaluation at episode 890000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.1
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.5
+  start q2: 504/504 = 100.0%, length=154.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.9%, length=277.5
+success by initial q (original-reward unbiased Q) :
+  start q1: 495/496 = 99.8%, length=402.1
+  start q2: 504/504 = 100.0%, length=154.8
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 495
+  2 -> 3 : 999
+
+[Abstract greedy evaluation at episode 890000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=399.0
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.9%, length=399.4
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 999
+  2 -> 3 : 999
+
+[Abstract level1 | Episode 900000/1000000 | last 10000]
+success rate (biased)       : 100.0% (cumulative 81.8%)
+synthetic task reward       : 9998.488
+shaping reward              : 6754.303
+learning reward             : 16752.790
+episode length (non-goal)   : 295.2
+DFA transitions / episode   : 1.50
+epsilon (next episode)      : 0.05000
+Q updates cumulative        : 216511899
+unbiased |TD| mean/max     : 23.34/1e+04
+biased |TD| mean/max       : 34.06/1e+04
+unbiased positive Q pairs   : 1598743/2203200 (72.56%)
+accepting-state restarts    : 300408
+elapsed                     : 3116.3s
+
+[Abstract greedy evaluation at episode 900000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.0
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.3
+  start q2: 504/504 = 100.0%, length=154.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.9%, length=277.3
+success by initial q (original-reward unbiased Q) :
+  start q1: 495/496 = 99.8%, length=401.9
+  start q2: 504/504 = 100.0%, length=154.8
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 495
+  2 -> 3 : 999
+
+[Abstract greedy evaluation at episode 900000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=398.8
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.9%, length=399.2
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 999
+  2 -> 3 : 999
+
+[Abstract level1 | Episode 910000/1000000 | last 10000]
+success rate (biased)       : 100.0% (cumulative 82.0%)
+synthetic task reward       : 10000.000
+shaping reward              : 6785.424
+learning reward             : 16785.424
+episode length (non-goal)   : 296.6
+DFA transitions / episode   : 1.51
+epsilon (next episode)      : 0.05000
+Q updates cumulative        : 218480340
+unbiased |TD| mean/max     : 23.02/1e+04
+biased |TD| mean/max       : 33.84/1e+04
+unbiased positive Q pairs   : 1599886/2203200 (72.62%)
+accepting-state restarts    : 303783
+elapsed                     : 3144.5s
+
+[Abstract greedy evaluation at episode 910000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.0
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.3
+  start q2: 504/504 = 100.0%, length=154.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.9%, length=277.3
+success by initial q (original-reward unbiased Q) :
+  start q1: 495/496 = 99.8%, length=401.9
+  start q2: 504/504 = 100.0%, length=154.8
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 495
+  2 -> 3 : 999
+
+[Abstract greedy evaluation at episode 910000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=398.8
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.9%, length=399.2
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 999
+  2 -> 3 : 999
+
+[Abstract level1 | Episode 920000/1000000 | last 10000]
+success rate (biased)       : 100.0% (cumulative 82.2%)
+synthetic task reward       : 10000.000
+shaping reward              : 6758.008
+learning reward             : 16758.008
+episode length (non-goal)   : 294.2
+DFA transitions / episode   : 1.50
+epsilon (next episode)      : 0.05000
+Q updates cumulative        : 220437947
+unbiased |TD| mean/max     : 23.24/1e+04
+biased |TD| mean/max       : 34.09/1e+04
+unbiased positive Q pairs   : 1601107/2203200 (72.67%)
+accepting-state restarts    : 307140
+elapsed                     : 3172.6s
+
+[Abstract greedy evaluation at episode 920000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.0
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.3
+  start q2: 504/504 = 100.0%, length=154.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.9%, length=277.3
+success by initial q (original-reward unbiased Q) :
+  start q1: 495/496 = 99.8%, length=401.9
+  start q2: 504/504 = 100.0%, length=154.8
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 495
+  2 -> 3 : 999
+
+[Abstract greedy evaluation at episode 920000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=398.8
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.9%, length=399.2
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 999
+  2 -> 3 : 999
+
+[Abstract level1 | Episode 930000/1000000 | last 10000]
+success rate (biased)       : 100.0% (cumulative 82.4%)
+synthetic task reward       : 10000.000
+shaping reward              : 6738.627
+learning reward             : 16738.627
+episode length (non-goal)   : 292.6
+DFA transitions / episode   : 1.50
+epsilon (next episode)      : 0.05000
+Q updates cumulative        : 222377995
+unbiased |TD| mean/max     : 23.58/1e+04
+biased |TD| mean/max       : 34.58/1e+04
+unbiased positive Q pairs   : 1602222/2203200 (72.72%)
+accepting-state restarts    : 310522
+elapsed                     : 3200.7s
+
+[Abstract greedy evaluation at episode 930000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.0
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.3
+  start q2: 504/504 = 100.0%, length=154.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.9%, length=277.3
+success by initial q (original-reward unbiased Q) :
+  start q1: 495/496 = 99.8%, length=401.9
+  start q2: 504/504 = 100.0%, length=154.8
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 495
+  2 -> 3 : 999
+
+[Abstract greedy evaluation at episode 930000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=398.8
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.9%, length=399.2
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 999
+  2 -> 3 : 999
+
+[Abstract level1 | Episode 940000/1000000 | last 10000]
+success rate (biased)       : 100.0% (cumulative 82.6%)
+synthetic task reward       : 10000.000
+shaping reward              : 6731.246
+learning reward             : 16731.246
+episode length (non-goal)   : 294.5
+DFA transitions / episode   : 1.50
+epsilon (next episode)      : 0.05000
+Q updates cumulative        : 224339968
+unbiased |TD| mean/max     : 22.77/1e+04
+biased |TD| mean/max       : 33.27/1e+04
+unbiased positive Q pairs   : 1603365/2203200 (72.77%)
+accepting-state restarts    : 313872
+elapsed                     : 3229.0s
+
+[Abstract greedy evaluation at episode 940000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.0
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.3
+  start q2: 504/504 = 100.0%, length=154.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.9%, length=277.3
+success by initial q (original-reward unbiased Q) :
+  start q1: 495/496 = 99.8%, length=401.9
+  start q2: 504/504 = 100.0%, length=154.8
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 495
+  2 -> 3 : 999
+
+[Abstract greedy evaluation at episode 940000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=398.8
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.9%, length=399.1
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 999
+  2 -> 3 : 999
+
+[Abstract level1 | Episode 950000/1000000 | last 10000]
+success rate (biased)       : 100.0% (cumulative 82.8%)
+synthetic task reward       : 10000.000
+shaping reward              : 6715.159
+learning reward             : 16715.159
+episode length (non-goal)   : 292.1
+DFA transitions / episode   : 1.50
+epsilon (next episode)      : 0.05000
+Q updates cumulative        : 226298706
+unbiased |TD| mean/max     : 22.72/1e+04
+biased |TD| mean/max       : 33.23/1e+04
+unbiased positive Q pairs   : 1604491/2203200 (72.83%)
+accepting-state restarts    : 317177
+elapsed                     : 3257.4s
+
+[Abstract greedy evaluation at episode 950000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.0
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.3
+  start q2: 504/504 = 100.0%, length=154.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.9%, length=277.3
+success by initial q (original-reward unbiased Q) :
+  start q1: 495/496 = 99.8%, length=401.9
+  start q2: 504/504 = 100.0%, length=154.8
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 495
+  2 -> 3 : 999
+
+[Abstract greedy evaluation at episode 950000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=398.8
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.9%, length=399.1
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 999
+  2 -> 3 : 999
+
+[Abstract level1 | Episode 960000/1000000 | last 10000]
+success rate (biased)       : 100.0% (cumulative 83.0%)
+synthetic task reward       : 10000.000
+shaping reward              : 6740.963
+learning reward             : 16740.963
+episode length (non-goal)   : 292.4
+DFA transitions / episode   : 1.50
+epsilon (next episode)      : 0.05000
+Q updates cumulative        : 228250596
+unbiased |TD| mean/max     : 22.88/1e+04
+biased |TD| mean/max       : 33.52/1e+04
+unbiased positive Q pairs   : 1605599/2203200 (72.88%)
+accepting-state restarts    : 320514
+elapsed                     : 3286.1s
+
+[Abstract greedy evaluation at episode 960000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.0
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.3
+  start q2: 504/504 = 100.0%, length=154.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.9%, length=277.3
+success by initial q (original-reward unbiased Q) :
+  start q1: 495/496 = 99.8%, length=401.9
+  start q2: 504/504 = 100.0%, length=154.8
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 495
+  2 -> 3 : 999
+
+[Abstract greedy evaluation at episode 960000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=398.8
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.9%, length=399.1
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 999
+  2 -> 3 : 999
+
+[Abstract level1 | Episode 970000/1000000 | last 10000]
+success rate (biased)       : 100.0% (cumulative 83.1%)
+synthetic task reward       : 10000.000
+shaping reward              : 6736.348
+learning reward             : 16736.348
+episode length (non-goal)   : 292.1
+DFA transitions / episode   : 1.49
+epsilon (next episode)      : 0.05000
+Q updates cumulative        : 230189261
+unbiased |TD| mean/max     : 22.95/1e+04
+biased |TD| mean/max       : 33.5/1e+04
+unbiased positive Q pairs   : 1606618/2203200 (72.92%)
+accepting-state restarts    : 323889
+elapsed                     : 3314.4s
+
+[Abstract greedy evaluation at episode 970000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.0
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.3
+  start q2: 504/504 = 100.0%, length=154.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.9%, length=277.3
+success by initial q (original-reward unbiased Q) :
+  start q1: 495/496 = 99.8%, length=401.9
+  start q2: 504/504 = 100.0%, length=154.8
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 495
+  2 -> 3 : 999
+
+[Abstract greedy evaluation at episode 970000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=398.8
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.9%, length=399.1
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 999
+  2 -> 3 : 999
+
+[Abstract level1 | Episode 980000/1000000 | last 10000]
+success rate (biased)       : 100.0% (cumulative 83.3%)
+synthetic task reward       : 10000.000
+shaping reward              : 6713.311
+learning reward             : 16713.311
+episode length (non-goal)   : 291.6
+DFA transitions / episode   : 1.49
+epsilon (next episode)      : 0.05000
+Q updates cumulative        : 232137315
+unbiased |TD| mean/max     : 22.98/1e+04
+biased |TD| mean/max       : 33.69/1e+04
+unbiased positive Q pairs   : 1607682/2203200 (72.97%)
+accepting-state restarts    : 327219
+elapsed                     : 3342.8s
+
+[Abstract greedy evaluation at episode 980000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.0
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.3
+  start q2: 504/504 = 100.0%, length=154.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.9%, length=277.3
+success by initial q (original-reward unbiased Q) :
+  start q1: 495/496 = 99.8%, length=401.9
+  start q2: 504/504 = 100.0%, length=154.8
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 495
+  2 -> 3 : 999
+
+[Abstract greedy evaluation at episode 980000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=398.8
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.9%, length=399.1
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 999
+  2 -> 3 : 999
+
+[Abstract level1 | Episode 990000/1000000 | last 10000]
+success rate (biased)       : 100.0% (cumulative 83.5%)
+synthetic task reward       : 10000.000
+shaping reward              : 6724.061
+learning reward             : 16724.061
+episode length (non-goal)   : 292.3
+DFA transitions / episode   : 1.49
+epsilon (next episode)      : 0.05000
+Q updates cumulative        : 234085865
+unbiased |TD| mean/max     : 22.85/1e+04
+biased |TD| mean/max       : 33.54/1e+04
+unbiased positive Q pairs   : 1608752/2203200 (73.02%)
+accepting-state restarts    : 330564
+elapsed                     : 3371.1s
+
+[Abstract greedy evaluation at episode 990000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.0
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.3
+  start q2: 504/504 = 100.0%, length=154.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.9%, length=277.3
+success by initial q (original-reward unbiased Q) :
+  start q1: 495/496 = 99.8%, length=401.9
+  start q2: 504/504 = 100.0%, length=154.8
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 495
+  2 -> 3 : 999
+
+[Abstract greedy evaluation at episode 990000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=398.8
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.9%, length=399.1
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 999
+  2 -> 3 : 999
+
+[Abstract level1 | Episode 1000000/1000000 | last 10000]
+success rate (biased)       : 100.0% (cumulative 83.6%)
+synthetic task reward       : 10000.000
+shaping reward              : 6743.383
+learning reward             : 16743.383
+episode length (non-goal)   : 294.1
+DFA transitions / episode   : 1.50
+epsilon (next episode)      : 0.05000
+Q updates cumulative        : 236032118
+unbiased |TD| mean/max     : 22.97/1e+04
+biased |TD| mean/max       : 33.5/1e+04
+unbiased positive Q pairs   : 1609820/2203200 (73.07%)
+accepting-state restarts    : 333958
+elapsed                     : 3399.5s
+
+[Abstract greedy evaluation at episode 1000000 | 1000 fixed starts: random position, random recoverable non-accepting DFA state]
+shaping-guided biased Q     : success=100.0%, length=277.0
+success by initial q (shaping-guided biased Q) :
+  start q1: 496/496 = 100.0%, length=401.3
+  start q2: 504/504 = 100.0%, length=154.7
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 496
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.9%, length=277.3
+success by initial q (original-reward unbiased Q) :
+  start q1: 495/496 = 99.8%, length=401.9
+  start q2: 504/504 = 100.0%, length=154.8
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 495
+  2 -> 3 : 999
+
+[Abstract greedy evaluation at episode 1000000 | 1000 fixed starts: random position, starting from q1]
+shaping-guided biased Q     : success=100.0%, length=398.8
+DFA transitions shaping-guided biased Q       :
+  1 -> 2 : 1000
+  2 -> 3 : 1000
+original-reward unbiased Q  : success=99.9%, length=399.1
+DFA transitions original-reward unbiased Q       :
+  1 -> 2 : 999
+  2 -> 3 : 999
+Completed [level1] | episodes=1000000 | updates=236032118 | V=max | elapsed=3408.1s
