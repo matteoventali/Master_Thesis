@@ -601,7 +601,7 @@ class LTLfWaypointMDP:
             self.print_policy()
         return self.v_star
 
-    def q_learning(self, config, upper_level_mdp=None, print_policy=True, log_file=None, value_function_method="max", policy_evaluation_theta=0.001):
+    def q_learning(self, config, upper_level_mdp=None, print_policy=True, log_file=None, value_function_method="max", policy_evaluation_theta=0.001, initial_state_sampler=None):
         """Learn an unbiased value estimate.
 
         A top level uses classic single-table Q-learning. A lower level uses a
@@ -617,6 +617,7 @@ class LTLfWaypointMDP:
         uses_shaping = upper_level_mdp is not None
         self.inter_level_gamma_shaping = self.gamma if config.gamma_shaping is None else config.gamma_shaping
         rng = random.Random(config.seed)
+        reset_seed_rng = random.Random(config.seed ^ 0x6A09E667)
         state_index = {state: index for index, state in enumerate(self.states)}
         action_index = {action: index for index, action in enumerate(self.actions)}
         q_unbiased = [[0.0 for _ in self.actions] for _ in self.states]
@@ -734,12 +735,27 @@ class LTLfWaypointMDP:
 
         start_time = time.monotonic()
         log(f"Q-learning [{self.level_name}: {self.width}x{self.height}, {learning_description}, episodes={config.episodes}]...")
-        log(f"Configuration: max_steps={config.max_steps}, alpha={config.alpha}, epsilon_start={config.epsilon_start}, epsilon_min={config.epsilon_min}, epsilon_decay={config.epsilon_decay}, gamma_shaping={self.inter_level_gamma_shaping if uses_shaping else 'not applicable'}, seed={config.seed}, states={len(self.states)}, eval_interval={config.eval_interval}, eval_episodes={config.eval_episodes}, eval_seed={config.eval_seed}")
+        log(f"Configuration: max_steps={config.max_steps}, alpha={config.alpha}, epsilon_start={config.epsilon_start}, epsilon_min={config.epsilon_min}, epsilon_decay={config.epsilon_decay}, gamma_shaping={self.inter_level_gamma_shaping if uses_shaping else 'not applicable'}, seed={config.seed}, states={len(self.states)}, initial_state_distribution={config.initial_state_distribution}, eval_interval={config.eval_interval}, eval_episodes={config.eval_episodes}, eval_seed={config.eval_seed}")
 
         for episode in range(1, config.episodes + 1):
-            # Random restarts cover the full product space. Accepting states
-            # and failure states must also be sampled so done is learned.
-            state = rng.choice(restart_states)
+            if config.initial_state_distribution == "uniform_product":
+                # Random restarts cover the full product space. Accepting and
+                # failure states are sampled as well, so DONE is learned.
+                state = rng.choice(restart_states)
+            else:
+                if initial_state_sampler is None:
+                    raise ValueError(
+                        "gym_reset initial-state sampling requires an "
+                        "initial_state_sampler"
+                    )
+                state = initial_state_sampler(
+                    self, reset_seed_rng.randrange(0, 2**32)
+                )
+                if state not in state_index:
+                    raise ValueError(
+                        f"Initial-state sampler returned invalid state {state!r} "
+                        f"for {self.level_name}"
+                    )
             started_accepting = self.automaton.is_goal_reached(state[2])
             started_terminal = self.automaton.is_terminal(state[2])
             biased_episode_reward = 0.0
@@ -910,7 +926,7 @@ class MultiLevelWaypointMDP:
         """Return level 1, used unchanged by automaton handling and training."""
         return self.levels[0]
 
-    def compute_value_functions(self, theta=0.001, print_policies=False, learning_log_dir=None):
+    def compute_value_functions(self, theta=0.001, print_policies=False, learning_log_dir=None, initial_state_sampler=None):
         """Solve the configurable top, then learn every lower abstraction."""
         following_mdp = None
         for index in reversed(range(len(self.levels))):
@@ -922,6 +938,6 @@ class MultiLevelWaypointMDP:
                 current_mdp.value_iteration(theta=theta, print_policy=print_policies)
             else:
                 log_file = os.path.join(learning_log_dir, f"level{index + 1}.log") if learning_log_dir is not None else None
-                current_mdp.q_learning(config=level_config.learning, upper_level_mdp=following_mdp, print_policy=print_policies, log_file=log_file, value_function_method=level_config.value_function_method, policy_evaluation_theta=theta)
+                current_mdp.q_learning(config=level_config.learning, upper_level_mdp=following_mdp, print_policy=print_policies, log_file=log_file, value_function_method=level_config.value_function_method, policy_evaluation_theta=theta, initial_state_sampler=initial_state_sampler)
             following_mdp = current_mdp
         return [level.v_star for level in self.levels]

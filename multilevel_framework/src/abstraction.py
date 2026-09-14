@@ -29,6 +29,7 @@ class LearningConfig:
     eval_interval: int = 10_000
     eval_episodes: int = 500
     eval_seed: int = 100_000
+    initial_state_distribution: str = "uniform_product"
 
     def __post_init__(self):
         for name in ("episodes", "max_steps", "log_interval", "eval_interval", "eval_episodes"):
@@ -54,6 +55,11 @@ class LearningConfig:
         for name in ("seed", "eval_seed"):
             if isinstance(getattr(self, name), bool) or not isinstance(getattr(self, name), int):
                 raise ValueError(f"learning.{name} must be an integer")
+        if self.initial_state_distribution not in ("uniform_product", "gym_reset"):
+            raise ValueError(
+                "learning.initial_state_distribution must be either "
+                "'uniform_product' or 'gym_reset'"
+            )
 
     @classmethod
     def from_dict(cls, data, level_name):
@@ -74,6 +80,7 @@ class LearningConfig:
             "eval_interval",
             "eval_episodes",
             "eval_seed",
+            "initial_state_distribution",
         }
         unknown = sorted(set(data) - allowed)
         if unknown:
