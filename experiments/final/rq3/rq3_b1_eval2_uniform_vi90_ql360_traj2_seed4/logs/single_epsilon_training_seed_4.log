@@ -1,0 +1,42 @@
+
+=== NEW RUN ===
+episodes=1, shaping=False, goal_reward=10000.0, gamma=0.99
+gamma_shaping=1.0, shaping_formula=gamma_shaping*Phi(next)-Phi(state)
+ground_unbiased_learner=False
+eval_interval=1000, eval_episodes=1000, eval_seed=100000
+inter_level_shaping=True, inter_level_formula=gamma*Phi(next)-Phi(state)
+task_type=ltlf, task=F(wp1 & X(F(g1)))
+regions={wp1: {'center': [-0.75, 1.0625], 'radius': 0.1}, g1: {'center': [0.75, 1.0625], 'radius': 0.1}}
+dfa_states=[1, 2, 3], pre_trace=1, accepting=[3], failure=[]
+
+[Episode 1/1 | last 1]
+success rate                : 0.0% (cumulative 0.0%)
+failure rate                : 0.0% (cumulative 0.0%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 0.000
+shaping reward              : 0.000
+learning reward             : 0.000
+episode length              : 114.0
+abstract changes / episode  : 101.0
+same abstract-state steps   : 11.4%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 0.000
+terminal shaping / episode  : 0.000
+DFA transitions / episode   : 0.00
+DFA transitions in window   : none
+epsilon (next episode)       : 0.99960
+replay buffer                : 114 samples [1: 100.0%, 2: 0.0%, 3: 0.0%]
+DFA state visits in window   : 1: 115, 2: 0, 3: 0
+DFA state visits cumulative  : 1: 115, 2: 0, 3: 0
+DFA state entries in window  : 1: 1, 2: 0, 3: 0
+DFA state entries cumulative : 1: 1, 2: 0, 3: 0
+transitions cumulative       : none
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=1, truncated=0
+
+Starting autonomous greedy evaluation at episode 1 (1000 fixed-seed episodes)...
+[Greedy evaluation at episode 1 | 1000 fixed-seed episodes]
+success=0.0%, failure=0.0%, task reward=0.000, length=70.6
+DFA transitions: none
+Best policy updated from autonomous greedy evaluation at episode 1.
+Last policy saved after episode 1. Best greedy evaluation: episode 1, mean task reward=0.000

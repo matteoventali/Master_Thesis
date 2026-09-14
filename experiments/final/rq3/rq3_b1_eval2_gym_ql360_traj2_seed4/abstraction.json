@@ -1,0 +1,25 @@
+{
+  "levels": [
+    {
+      "name": "level1",
+      "grid_w": 360,
+      "grid_h": 360,
+      "algorithm": "learning",
+      "value_function_method": "max",
+      "learning": {
+        "episodes": 1000000,
+        "max_steps": 600,
+        "alpha": 0.1,
+        "epsilon_start": 1.0,
+        "epsilon_min": 0.05,
+        "epsilon_decay": 0.999995,
+        "seed": 4,
+        "log_interval": 10000,
+        "eval_interval": 10000,
+        "eval_episodes": 1000,
+        "eval_seed": 100000,
+        "initial_state_distribution": "gym_reset"
+      }
+    }
+  ]
+}
