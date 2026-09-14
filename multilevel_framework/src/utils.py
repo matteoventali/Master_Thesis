@@ -457,6 +457,34 @@ def save_abstract_learning_curves(
                 title=f"Abstract Greedy Evaluation — {abstract_mdp.level_name}",
             )
             generated_files.append(evaluation_path)
+
+        unbiased_gym_success = np.asarray(
+            learning_history.get("unbiased_gym_eval_success_rates", []),
+            dtype=np.float64,
+        )
+        if len(evaluation_steps) and len(unbiased_gym_success) == len(evaluation_steps):
+            gym_reward_series = {
+                "Unbiased greedy policy": unbiased_gym_success * abstract_mdp.goal_reward
+            }
+            biased_gym_success = np.asarray(
+                learning_history.get("biased_gym_eval_success_rates", []),
+                dtype=np.float64,
+            )
+            if len(biased_gym_success) == len(evaluation_steps):
+                gym_reward_series = {
+                    "Biased greedy policy": biased_gym_success * abstract_mdp.goal_reward,
+                    **gym_reward_series,
+                }
+            gym_evaluation_path = os.path.join(
+                level_directory, "gym_evaluation_performance.png"
+            )
+            plot_abstract_evaluation_performance(
+                evaluation_steps,
+                gym_reward_series,
+                filename=gym_evaluation_path,
+                title=f"Abstract Greedy Evaluation from Gym Reset — {abstract_mdp.level_name}",
+            )
+            generated_files.append(gym_evaluation_path)
     return generated_files
 
 # ==============================

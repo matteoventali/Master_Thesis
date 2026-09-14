@@ -1036,13 +1036,12 @@ def main(args):
             learning_root=os.path.join(data_dir, "abstract_learning"),
         )
     else:
-        needs_gym_initial_states = any(
+        has_learned_abstract_level = any(
             level.algorithm == "learning"
-            and level.learning.initial_state_distribution == "gym_reset"
             and level.checkpoint is None
             for level in abstraction_config.levels
         )
-        abstract_reset_env = gym.make("LunarLander-v3", continuous=False) if needs_gym_initial_states else None
+        abstract_reset_env = gym.make("LunarLander-v3", continuous=False) if has_learned_abstract_level else None
 
         def sample_abstract_initial_state(level_mdp, reset_seed):
             if abstract_reset_env is None:
@@ -1056,7 +1055,7 @@ def main(args):
             multilevel_mdp.compute_value_functions(
                 learning_log_dir=os.path.join(log_dir, "abstract_learning"),
                 initial_state_sampler=(
-                    sample_abstract_initial_state if needs_gym_initial_states else None
+                    sample_abstract_initial_state if has_learned_abstract_level else None
                 ),
             )
         finally:

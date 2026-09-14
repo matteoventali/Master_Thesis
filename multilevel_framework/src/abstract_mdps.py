@@ -623,28 +623,29 @@ class LTLfWaypointMDP:
         q_unbiased = [[0.0 for _ in self.actions] for _ in self.states]
         q_biased = [[0.0 for _ in self.actions] for _ in self.states] if uses_shaping else q_unbiased
         restart_states = self.states
-        if self.automaton.is_continuing:
-            recoverable_non_accepting_q = set(self.automaton.states)
-        else:
-            reverse_dfa_edges = defaultdict(set)
-            for source_q, guarded_destinations in self.automaton.transitions.items():
-                for _, destination_q in guarded_destinations:
-                    reverse_dfa_edges[destination_q].add(source_q)
-            acceptance_reachable_q = set(self.automaton.accepting_states)
-            reachability_frontier = list(self.automaton.accepting_states)
-            while reachability_frontier:
-                destination_q = reachability_frontier.pop()
-                for source_q in reverse_dfa_edges[destination_q]:
-                    if source_q not in acceptance_reachable_q:
-                        acceptance_reachable_q.add(source_q)
-                        reachability_frontier.append(source_q)
-            recoverable_non_accepting_q = acceptance_reachable_q.difference(self.automaton.accepting_states)
-        evaluation_restart_states = [state for state in self.states if state[2] in recoverable_non_accepting_q]
         full_formula_restart_states = [(x, y, self.automaton.get_initial_q()) for x in range(self.width) for y in range(self.height)]
-        evaluation_rng = random.Random(config.eval_seed)
-        evaluation_starts = [evaluation_rng.choice(evaluation_restart_states) for _ in range(config.eval_episodes)] if evaluation_restart_states else []
         full_formula_rng = random.Random(config.eval_seed + 1)
         full_formula_evaluation_starts = [full_formula_rng.choice(full_formula_restart_states) for _ in range(config.eval_episodes)] if full_formula_restart_states else []
+        if initial_state_sampler is None:
+            raise ValueError(
+                "Abstract Q-learning requires an initial_state_sampler for "
+                "the Gym-reset evaluation"
+            )
+        gym_evaluation_seed_rng = random.Random(config.eval_seed ^ 0xBB67AE85)
+        gym_evaluation_starts = [
+            initial_state_sampler(
+                self, gym_evaluation_seed_rng.randrange(0, 2**32)
+            )
+            for _ in range(config.eval_episodes)
+        ]
+        invalid_gym_evaluation_starts = [
+            state for state in gym_evaluation_starts if state not in state_index
+        ]
+        if invalid_gym_evaluation_starts:
+            raise ValueError(
+                "Gym-reset evaluation generated invalid abstract state "
+                f"{invalid_gym_evaluation_starts[0]!r} for {self.level_name}"
+            )
 
         epsilon = config.epsilon_start
         updates = 0
@@ -657,13 +658,13 @@ class LTLfWaypointMDP:
         biased_td_sum = 0.0
         biased_td_count = 0
         biased_td_max = 0.0
-        learning_history = {"episodes": [], "epsilon": [], "unbiased_episode_reward": [], "successes": [], "episode_lengths": [], "dfa_transitions": [], "initial_acceptances": [], "evaluation_steps": [], "unbiased_eval_success_rates": [], "unbiased_eval_episode_lengths": [], "unbiased_full_eval_success_rates": [], "unbiased_full_eval_episode_lengths": []}
+        learning_history = {"episodes": [], "epsilon": [], "unbiased_episode_reward": [], "successes": [], "episode_lengths": [], "dfa_transitions": [], "initial_acceptances": [], "evaluation_steps": [], "unbiased_full_eval_success_rates": [], "unbiased_full_eval_episode_lengths": [], "unbiased_gym_eval_success_rates": [], "unbiased_gym_eval_episode_lengths": []}
         if uses_shaping:
             learning_history["biased_episode_reward"] = []
-            learning_history["biased_eval_success_rates"] = []
-            learning_history["biased_eval_episode_lengths"] = []
             learning_history["biased_full_eval_success_rates"] = []
             learning_history["biased_full_eval_episode_lengths"] = []
+            learning_history["biased_gym_eval_success_rates"] = []
+            learning_history["biased_gym_eval_episode_lengths"] = []
 
         learning_description = "dual-table inter-level PBRS" if uses_shaping else "classic single-table unbiased"
         log_handle = None
@@ -847,23 +848,23 @@ class LTLfWaypointMDP:
                     biased_td_count = 0
                     biased_td_max = 0.0
             if episode == 1 or episode % config.eval_interval == 0 or episode == config.episodes:
-                unbiased_eval_success, unbiased_eval_length, unbiased_eval_transitions, unbiased_eval_by_initial_q = evaluate_greedy(q_unbiased, evaluation_starts)
                 unbiased_full_eval_success, unbiased_full_eval_length, unbiased_full_eval_transitions, _ = evaluate_greedy(q_unbiased, full_formula_evaluation_starts)
+                unbiased_gym_eval_success, unbiased_gym_eval_length, unbiased_gym_eval_transitions, unbiased_gym_eval_by_initial_q = evaluate_greedy(q_unbiased, gym_evaluation_starts)
                 learning_history["evaluation_steps"].append(episode)
-                learning_history["unbiased_eval_success_rates"].append(unbiased_eval_success)
-                learning_history["unbiased_eval_episode_lengths"].append(unbiased_eval_length)
                 learning_history["unbiased_full_eval_success_rates"].append(unbiased_full_eval_success)
                 learning_history["unbiased_full_eval_episode_lengths"].append(unbiased_full_eval_length)
+                learning_history["unbiased_gym_eval_success_rates"].append(unbiased_gym_eval_success)
+                learning_history["unbiased_gym_eval_episode_lengths"].append(unbiased_gym_eval_length)
                 if uses_shaping:
-                    biased_eval_success, biased_eval_length, biased_eval_transitions, biased_eval_by_initial_q = evaluate_greedy(q_biased, evaluation_starts)
                     biased_full_eval_success, biased_full_eval_length, biased_full_eval_transitions, _ = evaluate_greedy(q_biased, full_formula_evaluation_starts)
-                    learning_history["biased_eval_success_rates"].append(biased_eval_success)
-                    learning_history["biased_eval_episode_lengths"].append(biased_eval_length)
+                    biased_gym_eval_success, biased_gym_eval_length, biased_gym_eval_transitions, biased_gym_eval_by_initial_q = evaluate_greedy(q_biased, gym_evaluation_starts)
                     learning_history["biased_full_eval_success_rates"].append(biased_full_eval_success)
                     learning_history["biased_full_eval_episode_lengths"].append(biased_full_eval_length)
-                    log("\n" f"[Abstract greedy evaluation at episode {episode} | {config.eval_episodes} fixed starts: random position, random recoverable non-accepting DFA state]\n" f"shaping-guided biased Q     : success={format_percentage(biased_eval_success)}, length={biased_eval_length:.1f}\n" f"{format_evaluation_by_initial_q('shaping-guided biased Q', biased_eval_by_initial_q)}\n" f"{format_evaluation_transitions('shaping-guided biased Q', biased_eval_transitions)}\n" f"original-reward unbiased Q  : success={format_percentage(unbiased_eval_success)}, length={unbiased_eval_length:.1f}\n" f"{format_evaluation_by_initial_q('original-reward unbiased Q', unbiased_eval_by_initial_q)}\n" f"{format_evaluation_transitions('original-reward unbiased Q', unbiased_eval_transitions)}\n\n" f"[Abstract greedy evaluation at episode {episode} | {config.eval_episodes} fixed starts: random position, starting from q{self.automaton.get_initial_q()}]\n" f"shaping-guided biased Q     : success={format_percentage(biased_full_eval_success)}, length={biased_full_eval_length:.1f}\n" f"{format_evaluation_transitions('shaping-guided biased Q', biased_full_eval_transitions)}\n" f"original-reward unbiased Q  : success={format_percentage(unbiased_full_eval_success)}, length={unbiased_full_eval_length:.1f}\n" f"{format_evaluation_transitions('original-reward unbiased Q', unbiased_full_eval_transitions)}")
+                    learning_history["biased_gym_eval_success_rates"].append(biased_gym_eval_success)
+                    learning_history["biased_gym_eval_episode_lengths"].append(biased_gym_eval_length)
+                    log("\n" f"[Abstract greedy evaluation at episode {episode} | {config.eval_episodes} fixed starts: random position, starting from q{self.automaton.get_initial_q()}]\n" f"shaping-guided biased Q     : success={format_percentage(biased_full_eval_success)}, length={biased_full_eval_length:.1f}\n" f"{format_evaluation_transitions('shaping-guided biased Q', biased_full_eval_transitions)}\n" f"original-reward unbiased Q  : success={format_percentage(unbiased_full_eval_success)}, length={unbiased_full_eval_length:.1f}\n" f"{format_evaluation_transitions('original-reward unbiased Q', unbiased_full_eval_transitions)}\n\n" f"[Abstract greedy evaluation at episode {episode} | {config.eval_episodes} fixed starts: Gym-reset position and DFA initialization]\n" f"shaping-guided biased Q     : success={format_percentage(biased_gym_eval_success)}, length={biased_gym_eval_length:.1f}\n" f"{format_evaluation_by_initial_q('shaping-guided biased Q', biased_gym_eval_by_initial_q)}\n" f"{format_evaluation_transitions('shaping-guided biased Q', biased_gym_eval_transitions)}\n" f"original-reward unbiased Q  : success={format_percentage(unbiased_gym_eval_success)}, length={unbiased_gym_eval_length:.1f}\n" f"{format_evaluation_by_initial_q('original-reward unbiased Q', unbiased_gym_eval_by_initial_q)}\n" f"{format_evaluation_transitions('original-reward unbiased Q', unbiased_gym_eval_transitions)}")
                 else:
-                    log("\n" f"[Abstract greedy evaluation at episode {episode} | {config.eval_episodes} fixed starts: random position, random recoverable non-accepting DFA state]\n" f"original-reward unbiased Q  : success={format_percentage(unbiased_eval_success)}, length={unbiased_eval_length:.1f}\n" f"{format_evaluation_by_initial_q('original-reward unbiased Q', unbiased_eval_by_initial_q)}\n" f"{format_evaluation_transitions('original-reward unbiased Q', unbiased_eval_transitions)}\n\n" f"[Abstract greedy evaluation at episode {episode} | {config.eval_episodes} fixed starts: random position, starting from q{self.automaton.get_initial_q()}]\n" f"original-reward unbiased Q  : success={format_percentage(unbiased_full_eval_success)}, length={unbiased_full_eval_length:.1f}\n" f"{format_evaluation_transitions('original-reward unbiased Q', unbiased_full_eval_transitions)}")
+                    log("\n" f"[Abstract greedy evaluation at episode {episode} | {config.eval_episodes} fixed starts: random position, starting from q{self.automaton.get_initial_q()}]\n" f"original-reward unbiased Q  : success={format_percentage(unbiased_full_eval_success)}, length={unbiased_full_eval_length:.1f}\n" f"{format_evaluation_transitions('original-reward unbiased Q', unbiased_full_eval_transitions)}\n\n" f"[Abstract greedy evaluation at episode {episode} | {config.eval_episodes} fixed starts: Gym-reset position and DFA initialization]\n" f"original-reward unbiased Q  : success={format_percentage(unbiased_gym_eval_success)}, length={unbiased_gym_eval_length:.1f}\n" f"{format_evaluation_by_initial_q('original-reward unbiased Q', unbiased_gym_eval_by_initial_q)}\n" f"{format_evaluation_transitions('original-reward unbiased Q', unbiased_gym_eval_transitions)}")
 
         self.unbiased_q = q_unbiased
         if value_function_method == "policy_evaluation":
