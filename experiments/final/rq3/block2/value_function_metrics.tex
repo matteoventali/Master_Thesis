@@ -1,0 +1,14 @@
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabular}{lcccc}
+        \hline
+        \textbf{Extraction} & \textbf{nMAE} & \textbf{nRMSE} & \textbf{Spearman} & \textbf{Policy agreement} \\
+        \hline
+        Policy Evaluation & $0.41\pm0.03$ & $0.94\pm0.04$ & $0.999\pm0.000$ & $91.06\pm0.10\%$ \\
+        $\max_a Q(s,a)$ & $8.22\pm0.08$ & $16.83\pm0.13$ & $0.564\pm0.003$ & $91.06\pm0.10\%$ \\
+        \hline
+    \end{tabular}
+    \caption{Comparison with the $360\times360$ value-iteration reference, reported as mean $\pm$ standard deviation over five seeds. Errors are normalized by the goal reward.}
+    \label{tab:rq3-value-function-quality}
+\end{table}
