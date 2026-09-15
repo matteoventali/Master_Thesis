@@ -46,6 +46,7 @@ FRAMEWORK_DIR = (
     else SCRIPT_DIR
 )
 CONFIG_DIR = os.path.join(FRAMEWORK_DIR, "config")
+CYCLIC_GROUND_MAX_EPISODE_STEPS = 1500
 
 
 # ==============================
@@ -247,6 +248,7 @@ def _write_run_header(log_handle, episodes, use_shaping, goal_reward, abstract_m
         f"episodes={episodes}, shaping={use_shaping}, goal_reward={goal_reward}, gamma={abstract_mdp.gamma}\n"
         f"gamma_shaping={gamma_shaping}, shaping_formula={shaping_formula}\n"
         f"ground_unbiased_learner={has_unbiased_learner}\n"
+        f"ground_max_episode_steps={CYCLIC_GROUND_MAX_EPISODE_STEPS if automaton.is_continuing else 'Gym default'}\n"
         f"eval_interval={eval_interval}, eval_episodes={eval_episodes}, eval_seed={eval_seed}\n"
         f"inter_level_shaping={abstract_mdp.upper_level_mdp is not None}, "
         "inter_level_formula=gamma*Phi(next)-Phi(state)\n"
@@ -359,7 +361,11 @@ def _evaluate_agent_greedily(agent, abstract_mdp, episodes, goal_reward, seed, m
     episode_lengths = []
     completed_cycles = []
     transition_counts = Counter()
-    evaluation_env = gym.make("LunarLander-v3", continuous=False)
+    evaluation_env = gym.make(
+        "LunarLander-v3",
+        continuous=False,
+        **({"max_episode_steps": CYCLIC_GROUND_MAX_EPISODE_STEPS} if automaton.is_continuing else {}),
+    )
     is_neural = hasattr(agent, "policy_net")
     tabular_rng_state = agent.random_rng.getstate() if isinstance(agent, TabularQLearner) else None
     if isinstance(agent, TabularQLearner):
@@ -1086,7 +1092,11 @@ def main(args):
         for run_index, run_seed in enumerate(seeds, start=1):
             print(f"\n=== SEED RUN {run_index}/{args.num_seeds}: seed={run_seed} ===")
             _set_training_seed(run_seed)
-            env = gym.make("LunarLander-v3", continuous=False)
+            env = gym.make(
+                "LunarLander-v3",
+                continuous=False,
+                **({"max_episode_steps": CYCLIC_GROUND_MAX_EPISODE_STEPS} if automaton.is_continuing else {}),
+            )
             try:
                 _set_training_seed(run_seed, env)
                 if args.learner == "tabular":

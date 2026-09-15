@@ -42,6 +42,7 @@ from utils import (
 # ==============================
 
 EXPERIMENTS_DIR = FRAMEWORK_DIR / "results"
+CYCLIC_GROUND_MAX_EPISODE_STEPS = 1500
 SEEDED_POLICY_RE = re.compile(
     r"^(best|last)(?:_(unbiased))?_policy(?:_seed_(-?\d+))?\.(?:pt|pth|ckpt|pkl)$",
     re.IGNORECASE,
@@ -130,6 +131,8 @@ def evaluate_policy(policy, policy_dir, episodes, render, task_config, regions, 
     # Create the environment and a network with one extra feature per DFA state.
     render_mode = "human" if render else None
     environment_options = {"continuous": False, "render_mode": render_mode}
+    if automaton.is_continuing:
+        environment_options["max_episode_steps"] = CYCLIC_GROUND_MAX_EPISODE_STEPS
     if no_limit:
         environment_options["max_episode_steps"] = 5000
     env = gym.make("LunarLander-v3", **environment_options)
@@ -611,7 +614,7 @@ def parse_args():
         action="store_true",
         help="Do not display the aggregate policy/episode progress bar.",
     )
-    parser.add_argument("--no-limit", action="store_true", help="Increase the environment episode limit to 5000 steps.")
+    parser.add_argument("--no-limit", action="store_true", help="Use a 5000-step evaluation limit instead of the cyclic-task default of 1500 steps.")
     parser.add_argument("--output-dir", type=Path, default=None)
     parser.add_argument(
         "--policy-kind",
