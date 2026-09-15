@@ -434,15 +434,15 @@ def save_abstract_learning_curves(
         print(f" -> Abstract reward/epsilon curve saved to: {reward_path}")
 
         evaluation_steps = np.asarray(learning_history.get("evaluation_steps", []), dtype=np.float64)
-        unbiased_success = np.asarray(
-            learning_history.get("unbiased_full_eval_success_rates", []), dtype=np.float64
-        )
+        full_metric = "unbiased_full_eval_completed_cycles" if abstract_mdp.automaton.is_continuing else "unbiased_full_eval_success_rates"
+        biased_full_metric = "biased_full_eval_completed_cycles" if abstract_mdp.automaton.is_continuing else "biased_full_eval_success_rates"
+        unbiased_success = np.asarray(learning_history.get(full_metric, []), dtype=np.float64)
         if len(evaluation_steps) and len(unbiased_success) == len(evaluation_steps):
             reward_series = {
                 "Unbiased greedy policy": unbiased_success * abstract_mdp.goal_reward
             }
             biased_success = np.asarray(
-                learning_history.get("biased_full_eval_success_rates", []), dtype=np.float64
+                learning_history.get(biased_full_metric, []), dtype=np.float64
             )
             if len(biased_success) == len(evaluation_steps):
                 reward_series = {
@@ -458,16 +458,15 @@ def save_abstract_learning_curves(
             )
             generated_files.append(evaluation_path)
 
-        unbiased_gym_success = np.asarray(
-            learning_history.get("unbiased_gym_eval_success_rates", []),
-            dtype=np.float64,
-        )
+        gym_metric = "unbiased_gym_eval_completed_cycles" if abstract_mdp.automaton.is_continuing else "unbiased_gym_eval_success_rates"
+        biased_gym_metric = "biased_gym_eval_completed_cycles" if abstract_mdp.automaton.is_continuing else "biased_gym_eval_success_rates"
+        unbiased_gym_success = np.asarray(learning_history.get(gym_metric, []), dtype=np.float64)
         if len(evaluation_steps) and len(unbiased_gym_success) == len(evaluation_steps):
             gym_reward_series = {
                 "Unbiased greedy policy": unbiased_gym_success * abstract_mdp.goal_reward
             }
             biased_gym_success = np.asarray(
-                learning_history.get("biased_gym_eval_success_rates", []),
+                learning_history.get(biased_gym_metric, []),
                 dtype=np.float64,
             )
             if len(biased_gym_success) == len(evaluation_steps):

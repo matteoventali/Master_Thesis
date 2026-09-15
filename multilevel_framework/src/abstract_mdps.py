@@ -659,12 +659,15 @@ class LTLfWaypointMDP:
         biased_td_count = 0
         biased_td_max = 0.0
         learning_history = {"episodes": [], "epsilon": [], "unbiased_episode_reward": [], "successes": [], "episode_lengths": [], "dfa_transitions": [], "initial_acceptances": [], "evaluation_steps": [], "unbiased_full_eval_success_rates": [], "unbiased_full_eval_episode_lengths": [], "unbiased_gym_eval_success_rates": [], "unbiased_gym_eval_episode_lengths": []}
+        learning_history.update({"completed_cycles": [], "unbiased_full_eval_completed_cycles": [], "unbiased_gym_eval_completed_cycles": []})
         if uses_shaping:
             learning_history["biased_episode_reward"] = []
             learning_history["biased_full_eval_success_rates"] = []
             learning_history["biased_full_eval_episode_lengths"] = []
             learning_history["biased_gym_eval_success_rates"] = []
             learning_history["biased_gym_eval_episode_lengths"] = []
+            learning_history["biased_full_eval_completed_cycles"] = []
+            learning_history["biased_gym_eval_completed_cycles"] = []
 
         learning_description = "dual-table inter-level PBRS" if uses_shaping else "classic single-table unbiased"
         log_handle = None
@@ -689,8 +692,9 @@ class LTLfWaypointMDP:
 
         def evaluate_greedy(q_table, starts):
             if not starts:
-                return float("nan"), float("nan"), Counter(), {}
+                return float("nan"), float("nan"), Counter(), {}, float("nan")
             successes = 0
+            total_cycles = 0
             total_steps = 0
             transition_counts = Counter()
             results_by_initial_q = defaultdict(lambda: {"episodes": 0, "successes": 0, "steps": 0})
@@ -699,6 +703,7 @@ class LTLfWaypointMDP:
                 evaluation_steps = 0
                 initial_q = evaluation_start[2]
                 evaluation_succeeded = False
+                evaluation_cycles = 0
                 for evaluation_step in range(config.max_steps + 1):
                     if evaluation_step == config.max_steps and not self.automaton.is_goal_reached(evaluation_state[2]):
                         break
@@ -714,17 +719,16 @@ class LTLfWaypointMDP:
                         evaluation_succeeded = True
                     # Finite LTLf tasks retain the abstract DONE transition,
                     # which is where their reward and terminal flag live.
-                    # Continuing tasks have no DONE action, so their greedy
-                    # diagnostic stops after observing the first full cycle.
-                    cycle_completed = self.automaton.is_continuing and automaton_step.completed_cycle
-                    if evaluation_terminal or cycle_completed:
-                        successes += int(evaluation_succeeded)
+                    evaluation_cycles += int(automaton_step.completed_cycle)
+                    if evaluation_terminal or (self.automaton.is_continuing and evaluation_cycles >= config.max_cycles_per_episode):
                         break
+                successes += int(evaluation_succeeded)
+                total_cycles += evaluation_cycles
                 total_steps += evaluation_steps
                 results_by_initial_q[initial_q]["episodes"] += 1
                 results_by_initial_q[initial_q]["successes"] += int(evaluation_succeeded)
                 results_by_initial_q[initial_q]["steps"] += evaluation_steps
-            return successes / len(starts), total_steps / len(starts), transition_counts, dict(results_by_initial_q)
+            return successes / len(starts), total_steps / len(starts), transition_counts, dict(results_by_initial_q), total_cycles / len(starts)
 
         def format_evaluation_transitions(label, transition_counts):
             transition_lines = "\n".join(f"  {source} -> {target} : {count}" for (source, target), count in sorted(transition_counts.items()))
@@ -736,7 +740,7 @@ class LTLfWaypointMDP:
 
         start_time = time.monotonic()
         log(f"Q-learning [{self.level_name}: {self.width}x{self.height}, {learning_description}, episodes={config.episodes}]...")
-        log(f"Configuration: max_steps={config.max_steps}, alpha={config.alpha}, epsilon_start={config.epsilon_start}, epsilon_min={config.epsilon_min}, epsilon_decay={config.epsilon_decay}, gamma_shaping={self.inter_level_gamma_shaping if uses_shaping else 'not applicable'}, seed={config.seed}, states={len(self.states)}, initial_state_distribution={config.initial_state_distribution}, eval_interval={config.eval_interval}, eval_episodes={config.eval_episodes}, eval_seed={config.eval_seed}")
+        log(f"Configuration: max_steps={config.max_steps}, max_cycles_per_episode={config.max_cycles_per_episode if self.automaton.is_continuing else 'not applicable'}, alpha={config.alpha}, epsilon_start={config.epsilon_start}, epsilon_min={config.epsilon_min}, epsilon_decay={config.epsilon_decay}, gamma_shaping={self.inter_level_gamma_shaping if uses_shaping else 'not applicable'}, seed={config.seed}, states={len(self.states)}, initial_state_distribution={config.initial_state_distribution}, eval_interval={config.eval_interval}, eval_episodes={config.eval_episodes}, eval_seed={config.eval_seed}")
 
         for episode in range(1, config.episodes + 1):
             if config.initial_state_distribution == "uniform_product":
@@ -764,6 +768,7 @@ class LTLfWaypointMDP:
             episode_steps = 0
             episode_dfa_transitions = 0
             episode_succeeded = False
+            episode_cycles = 0
             for step in range(config.max_steps + 1):
                 if step == config.max_steps and not self.automaton.is_goal_reached(state[2]):
                     break
@@ -810,13 +815,15 @@ class LTLfWaypointMDP:
                 updates += 1
                 state = next_state
                 episode_succeeded = episode_succeeded or automaton_step.succeeded
-                if terminal:
+                episode_cycles += int(automaton_step.completed_cycle)
+                if terminal or (self.automaton.is_continuing and episode_cycles >= config.max_cycles_per_episode):
                     break
 
             learning_history["episodes"].append(episode)
             metric_unbiased_reward = float("nan") if started_terminal else unbiased_episode_reward
             learning_history["unbiased_episode_reward"].append(metric_unbiased_reward)
             learning_history["successes"].append(float("nan") if started_terminal else float(episode_succeeded))
+            learning_history["completed_cycles"].append(episode_cycles)
             learning_history["episode_lengths"].append(float("nan") if started_terminal else episode_steps)
             learning_history["dfa_transitions"].append(float("nan") if started_terminal else episode_dfa_transitions)
             learning_history["initial_acceptances"].append(int(started_accepting))
@@ -840,6 +847,8 @@ class LTLfWaypointMDP:
                 biased_td_line = f"biased |TD| mean/max       : {biased_td_sum / biased_td_count:.4g}/{biased_td_max:.4g}\n" if uses_shaping and biased_td_count else ""
                 behavior_label = "biased" if uses_shaping else "unbiased"
                 log("\n" f"[Abstract {self.level_name} | Episode {episode}/{config.episodes} | last {window}]\n" f"success rate ({behavior_label})       : {format_percentage(recent_success_rate)} (cumulative {format_percentage(cumulative_success_rate)})\n" f"synthetic task reward       : {recent_task_reward:.3f}\n" f"shaping reward              : {recent_shaping_reward:.3f}\n" f"learning reward             : {recent_learning_reward:.3f}\n" f"episode length (non-goal)   : {recent_episode_length:.1f}\n" f"DFA transitions / episode   : {recent_dfa_transitions:.2f}\n" f"epsilon (next episode)      : {epsilon:.5f}\n" f"Q updates cumulative        : {updates}\n" f"unbiased |TD| mean/max     : {mean_unbiased_td:.4g}/{unbiased_td_max:.4g}\n" f"{biased_td_line}" f"unbiased positive Q pairs   : {unbiased_positive_pairs}/{total_valid_pairs} ({unbiased_positive_pairs / total_valid_pairs:.2%})\n" f"accepting-state restarts    : {cumulative_initial_acceptances}\n" f"elapsed                     : {elapsed_seconds:.1f}s")
+                if self.automaton.is_continuing:
+                    log(f"completed cycles / episode : {finite_mean(learning_history['completed_cycles'][recent_slice]):.3f} (max {config.max_cycles_per_episode})")
                 if episode % config.log_interval == 0 or episode == config.episodes:
                     unbiased_td_sum = 0.0
                     unbiased_td_count = 0
@@ -848,23 +857,29 @@ class LTLfWaypointMDP:
                     biased_td_count = 0
                     biased_td_max = 0.0
             if episode == 1 or episode % config.eval_interval == 0 or episode == config.episodes:
-                unbiased_full_eval_success, unbiased_full_eval_length, unbiased_full_eval_transitions, _ = evaluate_greedy(q_unbiased, full_formula_evaluation_starts)
-                unbiased_gym_eval_success, unbiased_gym_eval_length, unbiased_gym_eval_transitions, unbiased_gym_eval_by_initial_q = evaluate_greedy(q_unbiased, gym_evaluation_starts)
+                unbiased_full_eval_success, unbiased_full_eval_length, unbiased_full_eval_transitions, _, unbiased_full_eval_cycles = evaluate_greedy(q_unbiased, full_formula_evaluation_starts)
+                unbiased_gym_eval_success, unbiased_gym_eval_length, unbiased_gym_eval_transitions, unbiased_gym_eval_by_initial_q, unbiased_gym_eval_cycles = evaluate_greedy(q_unbiased, gym_evaluation_starts)
                 learning_history["evaluation_steps"].append(episode)
                 learning_history["unbiased_full_eval_success_rates"].append(unbiased_full_eval_success)
                 learning_history["unbiased_full_eval_episode_lengths"].append(unbiased_full_eval_length)
                 learning_history["unbiased_gym_eval_success_rates"].append(unbiased_gym_eval_success)
                 learning_history["unbiased_gym_eval_episode_lengths"].append(unbiased_gym_eval_length)
+                learning_history["unbiased_full_eval_completed_cycles"].append(unbiased_full_eval_cycles)
+                learning_history["unbiased_gym_eval_completed_cycles"].append(unbiased_gym_eval_cycles)
                 if uses_shaping:
-                    biased_full_eval_success, biased_full_eval_length, biased_full_eval_transitions, _ = evaluate_greedy(q_biased, full_formula_evaluation_starts)
-                    biased_gym_eval_success, biased_gym_eval_length, biased_gym_eval_transitions, biased_gym_eval_by_initial_q = evaluate_greedy(q_biased, gym_evaluation_starts)
+                    biased_full_eval_success, biased_full_eval_length, biased_full_eval_transitions, _, biased_full_eval_cycles = evaluate_greedy(q_biased, full_formula_evaluation_starts)
+                    biased_gym_eval_success, biased_gym_eval_length, biased_gym_eval_transitions, biased_gym_eval_by_initial_q, biased_gym_eval_cycles = evaluate_greedy(q_biased, gym_evaluation_starts)
                     learning_history["biased_full_eval_success_rates"].append(biased_full_eval_success)
                     learning_history["biased_full_eval_episode_lengths"].append(biased_full_eval_length)
                     learning_history["biased_gym_eval_success_rates"].append(biased_gym_eval_success)
                     learning_history["biased_gym_eval_episode_lengths"].append(biased_gym_eval_length)
+                    learning_history["biased_full_eval_completed_cycles"].append(biased_full_eval_cycles)
+                    learning_history["biased_gym_eval_completed_cycles"].append(biased_gym_eval_cycles)
                     log("\n" f"[Abstract greedy evaluation at episode {episode} | {config.eval_episodes} fixed starts: random position, starting from q{self.automaton.get_initial_q()}]\n" f"shaping-guided biased Q     : success={format_percentage(biased_full_eval_success)}, length={biased_full_eval_length:.1f}\n" f"{format_evaluation_transitions('shaping-guided biased Q', biased_full_eval_transitions)}\n" f"original-reward unbiased Q  : success={format_percentage(unbiased_full_eval_success)}, length={unbiased_full_eval_length:.1f}\n" f"{format_evaluation_transitions('original-reward unbiased Q', unbiased_full_eval_transitions)}\n\n" f"[Abstract greedy evaluation at episode {episode} | {config.eval_episodes} fixed starts: Gym-reset position and DFA initialization]\n" f"shaping-guided biased Q     : success={format_percentage(biased_gym_eval_success)}, length={biased_gym_eval_length:.1f}\n" f"{format_evaluation_by_initial_q('shaping-guided biased Q', biased_gym_eval_by_initial_q)}\n" f"{format_evaluation_transitions('shaping-guided biased Q', biased_gym_eval_transitions)}\n" f"original-reward unbiased Q  : success={format_percentage(unbiased_gym_eval_success)}, length={unbiased_gym_eval_length:.1f}\n" f"{format_evaluation_by_initial_q('original-reward unbiased Q', unbiased_gym_eval_by_initial_q)}\n" f"{format_evaluation_transitions('original-reward unbiased Q', unbiased_gym_eval_transitions)}")
                 else:
                     log("\n" f"[Abstract greedy evaluation at episode {episode} | {config.eval_episodes} fixed starts: random position, starting from q{self.automaton.get_initial_q()}]\n" f"original-reward unbiased Q  : success={format_percentage(unbiased_full_eval_success)}, length={unbiased_full_eval_length:.1f}\n" f"{format_evaluation_transitions('original-reward unbiased Q', unbiased_full_eval_transitions)}\n\n" f"[Abstract greedy evaluation at episode {episode} | {config.eval_episodes} fixed starts: Gym-reset position and DFA initialization]\n" f"original-reward unbiased Q  : success={format_percentage(unbiased_gym_eval_success)}, length={unbiased_gym_eval_length:.1f}\n" f"{format_evaluation_by_initial_q('original-reward unbiased Q', unbiased_gym_eval_by_initial_q)}\n" f"{format_evaluation_transitions('original-reward unbiased Q', unbiased_gym_eval_transitions)}")
+                if self.automaton.is_continuing:
+                    log(f"Mean completed cycles (full/Gym starts): unbiased={unbiased_full_eval_cycles:.3f}/{unbiased_gym_eval_cycles:.3f}" + (f", biased={biased_full_eval_cycles:.3f}/{biased_gym_eval_cycles:.3f}" if uses_shaping else ""))
 
         self.unbiased_q = q_unbiased
         if value_function_method == "policy_evaluation":

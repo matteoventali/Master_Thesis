@@ -348,7 +348,7 @@ def _greedy_action(agent, augmented_state, return_known=False):
     return (action, True) if return_known else action
 
 
-def _evaluate_agent_greedily(agent, abstract_mdp, episodes, goal_reward, seed):
+def _evaluate_agent_greedily(agent, abstract_mdp, episodes, goal_reward, seed, max_cycles_per_episode=3):
     """Evaluate one learner without exploration, replay writes, or updates."""
     automaton = abstract_mdp.automaton
     automaton_states = list(automaton.states)
@@ -378,7 +378,7 @@ def _evaluate_agent_greedily(agent, abstract_mdp, episodes, goal_reward, seed):
             terminated = truncated = False
             steps = 0
             episode_cycles = 0
-            while not (failed or terminated or truncated or (succeeded and not automaton.is_continuing)):
+            while not (failed or terminated or truncated or (succeeded and not automaton.is_continuing) or (automaton.is_continuing and episode_cycles >= max_cycles_per_episode)):
                 augmented_state = _augment_state(raw_state, q, state_to_index)
                 action, known = _greedy_action(agent, augmented_state, return_known=True)
                 known_states += int(known)
@@ -410,8 +410,10 @@ def _evaluate_agent_greedily(agent, abstract_mdp, episodes, goal_reward, seed):
     return {"success_rate": successes / episodes, "failure_rate": failures / episodes, "mean_task_reward": float(np.mean(task_rewards)), "mean_episode_length": float(np.mean(episode_lengths)), "mean_completed_cycles": float(np.mean(completed_cycles)), "transition_counts": transition_counts, "known_state_fraction": known_states / evaluated_states if evaluated_states else 1.0}
 
 
-def _evaluation_score(metrics):
-    """Order evaluations by success, task reward, then shorter episodes."""
+def _evaluation_score(metrics, is_continuing=False):
+    """For continuing tasks, prioritize repeated cycles over first-cycle success."""
+    if is_continuing:
+        return (metrics["mean_completed_cycles"], metrics["success_rate"], -metrics["mean_episode_length"])
     return (metrics["success_rate"], metrics["mean_task_reward"], -metrics["mean_episode_length"])
 
 
@@ -506,6 +508,7 @@ class TrainingContext:
     save_policy: bool
     use_shaping: bool
     gamma_shaping: float
+    max_cycles_per_episode: int
     log_interval: int
     eval_interval: int
     eval_episodes: int
@@ -655,7 +658,7 @@ def _create_training_histories(automaton_states):
     return histories, [], [[] for _ in automaton_states]
 
 
-def _initialize_training_context(env, agent, abstract_mdp, episodes, goal_reward, save_policy, use_shaping, gamma_shaping, log_file, log_interval, eval_interval, eval_episodes, eval_seed, policy_suffix, unbiased_agent):
+def _initialize_training_context(env, agent, abstract_mdp, episodes, goal_reward, save_policy, use_shaping, gamma_shaping, log_file, log_interval, eval_interval, eval_episodes, eval_seed, policy_suffix, unbiased_agent, max_cycles_per_episode):
     """Validate one run and allocate the state shared by all training phases."""
     automaton = abstract_mdp.automaton
     automaton_states = list(automaton.states)
@@ -663,6 +666,8 @@ def _initialize_training_context(env, agent, abstract_mdp, episodes, goal_reward
     _validate_training_setup(automaton, state_to_index, episodes, log_interval, eval_interval, eval_episodes)
     if not 0.0 < gamma_shaping <= 1.0:
         raise ValueError("gamma_shaping must be in the interval (0, 1]")
+    if isinstance(max_cycles_per_episode, bool) or not isinstance(max_cycles_per_episode, int) or max_cycles_per_episode <= 0:
+        raise ValueError("max_cycles_per_episode must be a positive integer")
     histories, initial_acceptance_history, buffer_histories = _create_training_histories(automaton_states)
     if unbiased_agent is not None:
         if not use_shaping:
@@ -673,7 +678,7 @@ def _initialize_training_context(env, agent, abstract_mdp, episodes, goal_reward
             raise ValueError("The biased and unbiased ground learners must use the same batch size")
         unbiased_agent.memory = agent.memory
     log_handle = open(log_file, "a", encoding="utf-8") if log_file else None
-    context = TrainingContext(env=env, agent=agent, unbiased_agent=unbiased_agent, abstract_mdp=abstract_mdp, automaton=automaton, automaton_states=automaton_states, state_to_index=state_to_index, episodes=episodes, goal_reward=float(goal_reward), save_policy=save_policy, use_shaping=use_shaping, gamma_shaping=gamma_shaping, log_interval=log_interval, eval_interval=eval_interval, eval_episodes=eval_episodes, eval_seed=eval_seed, policy_suffix=policy_suffix, histories=histories, initial_acceptance_history=initial_acceptance_history, buffer_histories=buffer_histories, cumulative_state_visits=Counter(), cumulative_state_entries=Counter(), cumulative_transitions=Counter(), log_handle=log_handle)
+    context = TrainingContext(env=env, agent=agent, unbiased_agent=unbiased_agent, abstract_mdp=abstract_mdp, automaton=automaton, automaton_states=automaton_states, state_to_index=state_to_index, episodes=episodes, goal_reward=float(goal_reward), save_policy=save_policy, use_shaping=use_shaping, gamma_shaping=gamma_shaping, max_cycles_per_episode=max_cycles_per_episode, log_interval=log_interval, eval_interval=eval_interval, eval_episodes=eval_episodes, eval_seed=eval_seed, policy_suffix=policy_suffix, histories=histories, initial_acceptance_history=initial_acceptance_history, buffer_histories=buffer_histories, cumulative_state_visits=Counter(), cumulative_state_entries=Counter(), cumulative_transitions=Counter(), log_handle=log_handle)
     _write_run_header(log_handle, episodes, use_shaping, goal_reward, abstract_mdp, automaton_states, gamma_shaping, eval_interval, eval_episodes, eval_seed, unbiased_agent is not None)
     return context
 
@@ -792,7 +797,7 @@ def _run_training_episode(context, reset_seed=None):
         succeeded = succeeded or step.succeeded
         failed = failed or step.failed
         completed_cycles += int(step.completed_cycle)
-        episode_done = step.episode_done
+        episode_done = step.episode_done or (context.automaton.is_continuing and completed_cycles >= context.max_cycles_per_episode)
         raw_state = step.next_raw_state
         augmented_state = step.next_augmented_state
         q = step.next_q
@@ -853,7 +858,7 @@ def _training_cumulative_counters(context):
 def _run_periodic_training_evaluation(context, episode):
     """Evaluate greedily, append metrics, and replace the best policy if needed."""
     _write_log(f"\nStarting autonomous greedy evaluation at episode {episode + 1} ({context.eval_episodes} fixed-seed episodes)...\n", context.log_handle)
-    evaluation = _evaluate_agent_greedily(context.agent, context.abstract_mdp, context.eval_episodes, context.goal_reward, context.eval_seed)
+    evaluation = _evaluate_agent_greedily(context.agent, context.abstract_mdp, context.eval_episodes, context.goal_reward, context.eval_seed, context.max_cycles_per_episode)
     context.histories["evaluation_steps"].append(episode + 1)
     context.histories["eval_success_rates"].append(evaluation["success_rate"])
     context.histories["eval_task_rewards"].append(evaluation["mean_task_reward"])
@@ -864,7 +869,7 @@ def _run_periodic_training_evaluation(context, episode):
     cycle_line = f", cycles={evaluation['mean_completed_cycles']:.3f}" if context.automaton.is_continuing else ""
     _write_log(f"[Greedy evaluation at episode {episode + 1} | {context.eval_episodes} fixed-seed episodes]\nsuccess={evaluation['success_rate']:.1%}, failure={evaluation['failure_rate']:.1%}, task reward={evaluation['mean_task_reward']:.3f}{cycle_line}, length={evaluation['mean_episode_length']:.1f}{known_line}\nDFA transitions: {_format_counter(evaluation['transition_counts'])}\n", context.log_handle)
 
-    score = _evaluation_score(evaluation)
+    score = _evaluation_score(evaluation, context.automaton.is_continuing)
     if context.best_evaluation_score is None or score > context.best_evaluation_score:
         context.best_evaluation_score = score
         context.best_mean_reward = evaluation["mean_task_reward"]
@@ -880,6 +885,7 @@ def _run_periodic_training_evaluation(context, episode):
             context.eval_episodes,
             context.goal_reward,
             context.eval_seed,
+            context.max_cycles_per_episode,
         )
         context.histories["unbiased_eval_success_rates"].append(unbiased_evaluation["success_rate"])
         context.histories["unbiased_eval_task_rewards"].append(unbiased_evaluation["mean_task_reward"])
@@ -896,7 +902,7 @@ def _run_periodic_training_evaluation(context, episode):
             f"DFA transitions: {_format_counter(unbiased_evaluation['transition_counts'])}\n",
             context.log_handle,
         )
-        unbiased_score = _evaluation_score(unbiased_evaluation)
+        unbiased_score = _evaluation_score(unbiased_evaluation, context.automaton.is_continuing)
         if context.best_unbiased_evaluation_score is None or unbiased_score > context.best_unbiased_evaluation_score:
             context.best_unbiased_evaluation_score = unbiased_score
             context.best_unbiased_mean_reward = unbiased_evaluation["mean_task_reward"]
@@ -942,9 +948,9 @@ def _finalize_training(context):
     )
 
 
-def train(env, agent, abstract_mdp, episodes, goal_reward=10000, save_policy=True, use_shaping=True, gamma_shaping=1.0, log_file=None, log_interval=100, eval_interval=1000, eval_episodes=1000, eval_seed=100000, seed=None, policy_suffix="", unbiased_agent=None):
+def train(env, agent, abstract_mdp, episodes, goal_reward=10000, save_policy=True, use_shaping=True, gamma_shaping=1.0, log_file=None, log_interval=100, eval_interval=1000, eval_episodes=1000, eval_seed=100000, seed=None, policy_suffix="", unbiased_agent=None, max_cycles_per_episode=3):
     """Train one learner while delegating each lifecycle phase to a focused helper."""
-    context = _initialize_training_context(env, agent, abstract_mdp, episodes, goal_reward, save_policy, use_shaping, gamma_shaping, log_file, log_interval, eval_interval, eval_episodes, eval_seed, policy_suffix, unbiased_agent)
+    context = _initialize_training_context(env, agent, abstract_mdp, episodes, goal_reward, save_policy, use_shaping, gamma_shaping, log_file, log_interval, eval_interval, eval_episodes, eval_seed, policy_suffix, unbiased_agent, max_cycles_per_episode)
     try:
         for episode in range(episodes):
             evaluation_due = _is_evaluation_due(episode, episodes, eval_interval)
@@ -1090,7 +1096,7 @@ def main(args):
                     agent = HierarchicalDQNLearner(env=env, max_episodes=args.episodes, eps_decay=args.eps_decay, gamma=gamma, extra_state_dims=len(automaton.states), use_polyak=args.polyak, tau=args.polyak_tau, target_update_freq=args.target_update_freq, network_type=args.network_type, policy_dir=policy_dir, stochastic_bellman_update=args.stochastic_bellman_update, bellman_alpha=args.bellman_alpha)
                     unbiased_agent = HierarchicalDQNLearner(env=env, max_episodes=args.episodes, eps_decay=args.eps_decay, gamma=gamma, extra_state_dims=len(automaton.states), use_polyak=args.polyak, tau=args.polyak_tau, target_update_freq=args.target_update_freq, network_type=args.network_type, policy_dir=os.path.join(policy_dir, "unbiased"), stochastic_bellman_update=args.stochastic_bellman_update, bellman_alpha=args.bellman_alpha) if args.ground_unbiased_learner else None
                 policy_suffix = "" if args.num_seeds == 1 else f"_seed_{run_seed}"
-                metrics = train(env=env, agent=agent, abstract_mdp=abstract_mdp, episodes=args.episodes, goal_reward=goal_reward, use_shaping=not args.no_shaping, gamma_shaping=args.gamma_shaping, log_file=f"{log_dir}/single_epsilon_training_seed_{run_seed}.log", log_interval=args.log_interval, eval_interval=args.eval_interval, eval_episodes=args.eval_episodes, eval_seed=args.eval_seed, seed=run_seed, policy_suffix=policy_suffix, unbiased_agent=unbiased_agent)
+                metrics = train(env=env, agent=agent, abstract_mdp=abstract_mdp, episodes=args.episodes, goal_reward=goal_reward, use_shaping=not args.no_shaping, gamma_shaping=args.gamma_shaping, log_file=f"{log_dir}/single_epsilon_training_seed_{run_seed}.log", log_interval=args.log_interval, eval_interval=args.eval_interval, eval_episodes=args.eval_episodes, eval_seed=args.eval_seed, seed=run_seed, policy_suffix=policy_suffix, unbiased_agent=unbiased_agent, max_cycles_per_episode=args.max_cycles_per_episode)
                 seed_metrics.append(metrics)
                 save_training_data(f"{data_dir}/single_epsilon_data_seed_{run_seed}.npz", **metrics)
             finally:
@@ -1168,6 +1174,7 @@ if __name__ == "__main__":
     parser.add_argument("--log-interval", type=int, default=100)
     parser.add_argument("--eval-interval", type=_positive_int, default=1000, help="Run autonomous greedy evaluation every N training episodes.")
     parser.add_argument("--eval-episodes", type=_positive_int, default=1000, help="Number of fixed-seed episodes used at each greedy evaluation.")
+    parser.add_argument("--max-cycles-per-episode", type=_positive_int, default=3, help="Stop cyclic-task episodes after this many rewarded cycles (default: 3).")
     parser.add_argument("--eval-seed", type=int, default=100000, help="First held-out seed reused at every greedy evaluation.")
     parser.add_argument("--plot-window", type=int, default=500)
     parser.add_argument( "--polyak", action=argparse.BooleanOptionalAction, default=True, help="Use Polyak target updates (disable with --no-polyak).", )

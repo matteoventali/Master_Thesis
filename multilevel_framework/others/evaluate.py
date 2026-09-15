@@ -117,7 +117,7 @@ def _load_state_dict(policy_path, device):
 # Policy evaluation
 # ==============================
 
-def evaluate_policy(policy, policy_dir, episodes, render, task_config, regions, goal_reward, seed, network_type="standard", no_limit=False, verbose=True, progress=None):
+def evaluate_policy(policy, policy_dir, episodes, render, task_config, regions, goal_reward, seed, network_type="standard", no_limit=False, verbose=True, progress=None, max_cycles_per_episode=3):
     """Load and evaluate one policy using the same task semantics as training."""
     # Rebuild the same automaton and abstract MDP used during training.
     policy_path = _resolve_policy_path(policy, policy_dir)
@@ -181,7 +181,7 @@ def evaluate_policy(policy, policy_dir, episodes, render, task_config, regions, 
             steps = 0
             episode_completed_cycles = 0
 
-            while not (failed or terminated or truncated or (success and not automaton.is_continuing)):
+            while not (failed or terminated or truncated or (success and not automaton.is_continuing) or (automaton.is_continuing and episode_completed_cycles >= max_cycles_per_episode)):
                 # Append the current DFA state as a one-hot vector.
                 one_hot = np.zeros(len(automaton_states), dtype=np.float32)
                 one_hot[state_to_index[q]] = 1.0
@@ -597,6 +597,7 @@ def parse_args():
     parser.add_argument("--experiment", help="Experiment name below results/ or an explicit experiment directory.")
     parser.add_argument("--gui", action="store_true", help="Select an experiment directory graphically.")
     parser.add_argument("--episodes", type=_positive_int, default=1000)
+    parser.add_argument("--max-cycles-per-episode", type=_positive_int, default=3, help="Stop cyclic evaluations after this many completed cycles (default: 3).")
     parser.add_argument("--window", type=_positive_int, default=10)
     parser.add_argument("--seed", type=int, default=None)
     parser.add_argument("--render", action="store_true")
@@ -662,7 +663,7 @@ def main():
     progress = None if args.no_progress else EvaluationProgress(len(policies) * args.episodes)
     try:
         for policy in policies:
-            result = evaluate_policy( policy, policy_dir, args.episodes, args.render, config, task_propositions, goal_reward, args.seed, network_type=args.network_type, no_limit=args.no_limit, verbose=not batch_mode, progress=progress, )
+            result = evaluate_policy( policy, policy_dir, args.episodes, args.render, config, task_propositions, goal_reward, args.seed, network_type=args.network_type, no_limit=args.no_limit, verbose=not batch_mode, progress=progress, max_cycles_per_episode=args.max_cycles_per_episode, )
             results.append(result)
     finally:
         if progress is not None:

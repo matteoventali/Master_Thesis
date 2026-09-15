@@ -19,6 +19,7 @@ class LearningConfig:
 
     episodes: int = 10_000
     max_steps: int = 100
+    max_cycles_per_episode: int = 3
     alpha: float = 0.1
     epsilon_start: float = 1.0
     epsilon_min: float = 0.05
@@ -32,7 +33,7 @@ class LearningConfig:
     initial_state_distribution: str = "uniform_product"
 
     def __post_init__(self):
-        for name in ("episodes", "max_steps", "log_interval", "eval_interval", "eval_episodes"):
+        for name in ("episodes", "max_steps", "max_cycles_per_episode", "log_interval", "eval_interval", "eval_episodes"):
             value = getattr(self, name)
             if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
                 raise ValueError(f"learning.{name} must be a positive integer")
@@ -70,6 +71,7 @@ class LearningConfig:
         allowed = {
             "episodes",
             "max_steps",
+            "max_cycles_per_episode",
             "alpha",
             "epsilon_start",
             "epsilon_min",
