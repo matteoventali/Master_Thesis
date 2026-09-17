@@ -162,6 +162,13 @@ def evaluate_policy(policy, policy_dir, episodes, render, task_config, regions, 
     successes = 0
     failures = 0
     completed_cycles = []
+    episode_successes = []
+    episode_failures = []
+    terminated_flags = []
+    truncated_flags = []
+    cycle_cap_flags = []
+    dfa_transition_counts = []
+    reached_state_sets = []
     state_reach_counts = {q: 0 for q in automaton_states}
 
     # Run every requested episode sequentially.
@@ -183,6 +190,7 @@ def evaluate_policy(policy, policy_dir, episodes, render, task_config, regions, 
             environment_return = 0.0
             steps = 0
             episode_completed_cycles = 0
+            episode_dfa_transitions = 0
 
             while not (failed or terminated or truncated or (success and not automaton.is_continuing) or (automaton.is_continuing and episode_completed_cycles >= max_cycles_per_episode)):
                 # Append the current DFA state as a one-hot vector.
@@ -208,6 +216,7 @@ def evaluate_policy(policy, policy_dir, episodes, render, task_config, regions, 
                 next_q = automaton_step.next_state
                 if next_q not in state_to_index:
                     raise RuntimeError(f"DFA returned unknown state {next_q!r}")
+                episode_dfa_transitions += int(next_q != q)
 
                 # Report every effective DFA transition during evaluation.
                 if verbose and next_q != q:
@@ -236,6 +245,18 @@ def evaluate_policy(policy, policy_dir, episodes, render, task_config, regions, 
             successes += int(success)
             failures += int(failed)
             completed_cycles.append(episode_completed_cycles)
+            episode_successes.append(int(success))
+            episode_failures.append(int(failed))
+            terminated_flags.append(int(terminated))
+            truncated_flags.append(int(truncated))
+            cycle_cap_flags.append(
+                int(
+                    automaton.is_continuing
+                    and episode_completed_cycles >= max_cycles_per_episode
+                )
+            )
+            dfa_transition_counts.append(episode_dfa_transitions)
+            reached_state_sets.append(tuple(sorted(reached_states, key=str)))
             for reached_q in reached_states:
                 state_reach_counts[reached_q] += 1
             task_returns.append(float(goal_reward) * (episode_completed_cycles if automaton.is_continuing else int(success)))
@@ -251,12 +272,23 @@ def evaluate_policy(policy, policy_dir, episodes, render, task_config, regions, 
         "path": str(policy_path),
         "task_description": automaton.formula_str,
         "is_continuing": automaton.is_continuing,
+        "max_cycles_per_episode": max_cycles_per_episode,
+        "max_episode_steps": 5000 if no_limit else (
+            CYCLIC_GROUND_MAX_EPISODE_STEPS if automaton.is_continuing else "gym_default"
+        ),
         "task_returns": task_returns,
         "environment_returns": environment_returns,
         "episode_lengths": episode_lengths,
         "successes": successes,
         "failures": failures,
         "completed_cycles": completed_cycles,
+        "episode_successes": episode_successes,
+        "episode_failures": episode_failures,
+        "terminated_flags": terminated_flags,
+        "truncated_flags": truncated_flags,
+        "cycle_cap_flags": cycle_cap_flags,
+        "dfa_transition_counts": dfa_transition_counts,
+        "reached_state_sets": reached_state_sets,
         "state_reach_counts": state_reach_counts,
     }
 
@@ -312,9 +344,51 @@ def plot_comparison(results, window_size, output_dir):
     return output_path
 
 
+def _policy_metrics(result):
+    """Return thesis-oriented scalar metrics for one evaluated checkpoint."""
+    episode_count = len(result["task_returns"])
+    cycles = np.asarray(result["completed_cycles"], dtype=np.float64)
+    task_returns = np.asarray(result["task_returns"], dtype=np.float64)
+    environment_returns = np.asarray(result["environment_returns"], dtype=np.float64)
+    lengths = np.asarray(result["episode_lengths"], dtype=np.float64)
+    terminated = np.asarray(result["terminated_flags"], dtype=np.float64)
+    truncated = np.asarray(result["truncated_flags"], dtype=np.float64)
+    cycle_caps = np.asarray(result["cycle_cap_flags"], dtype=np.float64)
+    transitions = np.asarray(result["dfa_transition_counts"], dtype=np.float64)
+
+    return {
+        "success_rate": result["successes"] / episode_count,
+        "failure_rate": result["failures"] / episode_count,
+        "mean_completed_cycles": float(np.mean(cycles)),
+        "std_completed_cycles": float(np.std(cycles)),
+        "zero_cycles_rate": float(np.mean(cycles == 0)),
+        "exactly_one_cycle_rate": float(np.mean(cycles == 1)),
+        "exactly_two_cycles_rate": float(np.mean(cycles == 2)),
+        "three_cycles_rate": float(np.mean(cycles >= 3)),
+        "at_least_one_cycle_rate": float(np.mean(cycles >= 1)),
+        "at_least_two_cycles_rate": float(np.mean(cycles >= 2)),
+        "at_least_three_cycles_rate": float(np.mean(cycles >= 3)),
+        "mean_task_return": float(np.mean(task_returns)),
+        "std_task_return": float(np.std(task_returns)),
+        "mean_environment_return": float(np.mean(environment_returns)),
+        "std_environment_return": float(np.std(environment_returns)),
+        "mean_episode_length": float(np.mean(lengths)),
+        "std_episode_length": float(np.std(lengths)),
+        "mean_dfa_transitions": float(np.mean(transitions)),
+        "std_dfa_transitions": float(np.std(transitions)),
+        "terminated_rate": float(np.mean(terminated)),
+        "truncated_rate": float(np.mean(truncated)),
+        "cycle_cap_rate": float(np.mean(cycle_caps)),
+    }
+
+
 def best_last_summary_rows(results, task_description, experiment_name):
     """Build machine-readable best/last aggregates across training seeds."""
     groups = {
+        "primary": {"best": [], "last": []},
+        "unbiased": {"best": [], "last": []},
+    }
+    statistics_groups = {
         "primary": {"best": [], "last": []},
         "unbiased": {"best": [], "last": []},
     }
@@ -340,6 +414,7 @@ def best_last_summary_rows(results, task_description, experiment_name):
             else float(result["successes"]) / episode_count
         )
         groups[learner][category].append(metric)
+        statistics_groups[learner][category].append(_policy_metrics(result))
         episode_counts[learner].add(episode_count)
         if seed_text is not None:
             seeds[learner][category].add(int(seed_text))
@@ -381,8 +456,7 @@ def best_last_summary_rows(results, task_description, experiment_name):
                 "All policies in one aggregate evaluation must use the same "
                 "number of evaluation episodes"
             )
-        rows.append(
-            {
+        row = {
                 "experiment": experiment_name,
                 "task": task_description,
                 "learner": "unbiased" if learner == "unbiased" else "primary",
@@ -394,7 +468,16 @@ def best_last_summary_rows(results, task_description, experiment_name):
                 "last_mean": last_mean,
                 "last_std": last_std,
             }
-        )
+        # Each value below is first computed per policy over evaluation
+        # episodes, then aggregated across training seeds.
+        for category in ("best", "last"):
+            category_metrics = statistics_groups[learner][category]
+            for metric_key in category_metrics[0]:
+                values = [metrics[metric_key] for metrics in category_metrics]
+                mean, std = aggregate(values)
+                row[f"{category}_{metric_key}_mean_across_seeds"] = mean
+                row[f"{category}_{metric_key}_std_across_seeds"] = std
+        rows.append(row)
     return rows
 
 
@@ -418,7 +501,7 @@ def policy_evaluation_rows(results, evaluation_seed, experiment_name):
         category = match.group(1).lower() if match else "unknown"
         training_seed = int(match.group(3)) if match and match.group(3) else ""
         episodes = len(result["task_returns"])
-        rows.append({
+        row = {
             "experiment": experiment_name,
             "policy": result["policy"],
             "category": category,
@@ -426,8 +509,49 @@ def policy_evaluation_rows(results, evaluation_seed, experiment_name):
             "evaluation_seed": "" if evaluation_seed is None else evaluation_seed,
             "evaluation_episodes": episodes,
             "successes": result["successes"],
-            "success_rate": result["successes"] / episodes,
-        })
+            "failures": result["failures"],
+            "is_continuing": int(bool(result["is_continuing"])),
+            "max_cycles_per_episode": result["max_cycles_per_episode"],
+            "max_episode_steps": result["max_episode_steps"],
+        }
+        row.update(_policy_metrics(result))
+        rows.append(row)
+    return rows
+
+
+def episode_evaluation_rows(results, evaluation_seed, experiment_name):
+    """Preserve every post-training episode for later statistical analyses."""
+    rows = []
+    for result in results:
+        match = SEEDED_POLICY_RE.fullmatch(result["policy"])
+        category = match.group(1).lower() if match else "unknown"
+        training_seed = int(match.group(3)) if match and match.group(3) else ""
+        for index in range(len(result["task_returns"])):
+            cycles = int(result["completed_cycles"][index])
+            rows.append({
+                "experiment": experiment_name,
+                "policy": result["policy"],
+                "category": category,
+                "training_seed": training_seed,
+                "evaluation_seed": "" if evaluation_seed is None else evaluation_seed + index,
+                "episode": index + 1,
+                "max_cycles_per_episode": result["max_cycles_per_episode"],
+                "max_episode_steps": result["max_episode_steps"],
+                "success": result["episode_successes"][index],
+                "failure": result["episode_failures"][index],
+                "completed_cycles": cycles,
+                "at_least_one_cycle": int(cycles >= 1),
+                "at_least_two_cycles": int(cycles >= 2),
+                "at_least_three_cycles": int(cycles >= 3),
+                "task_return": result["task_returns"][index],
+                "environment_return": result["environment_returns"][index],
+                "episode_length": result["episode_lengths"][index],
+                "dfa_transitions": result["dfa_transition_counts"][index],
+                "reached_dfa_states": "|".join(map(str, result["reached_state_sets"][index])),
+                "env_terminated": result["terminated_flags"][index],
+                "env_truncated": result["truncated_flags"][index],
+                "stopped_at_cycle_cap": result["cycle_cap_flags"][index],
+            })
     return rows
 
 
@@ -436,6 +560,18 @@ def save_policy_evaluation_csv(rows, output_dir):
     if not rows:
         return None
     output_path = output_dir / "evaluation_by_policy.csv"
+    with output_path.open("w", newline="", encoding="utf-8") as csv_file:
+        writer = csv.DictWriter(csv_file, fieldnames=tuple(rows[0]))
+        writer.writeheader()
+        writer.writerows(rows)
+    return output_path
+
+
+def save_episode_evaluation_csv(rows, output_dir):
+    """Save raw episode-level evidence so new thesis metrics need no rerun."""
+    if not rows:
+        return None
+    output_path = output_dir / "evaluation_episodes.csv"
     with output_path.open("w", newline="", encoding="utf-8") as csv_file:
         writer = csv.DictWriter(csv_file, fieldnames=tuple(rows[0]))
         writer.writeheader()
@@ -697,6 +833,11 @@ def main():
     detail_csv = save_policy_evaluation_csv(detail_rows, output_dir)
     if detail_csv is not None:
         print(f"Per-policy evaluation saved to: {detail_csv}")
+
+    episode_rows = episode_evaluation_rows(results, args.seed, experiment_dir.name)
+    episode_csv = save_episode_evaluation_csv(episode_rows, output_dir)
+    if episode_csv is not None:
+        print(f"Episode-level evaluation saved to: {episode_csv}")
 
     summary_rows = best_last_summary_rows(
         results, results[0]["task_description"], experiment_dir.name
