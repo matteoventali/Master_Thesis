@@ -44,15 +44,62 @@ def build_task_automaton(config):
     task_type = config.get("task_type")
     if task_type is None:
         task_type = "cyclic_waypoints" if "waypoint_cycle" in config else "ltlf"
+    ground_acceptance_condition = config.get("ground_acceptance_condition")
+    if ground_acceptance_condition not in (None, "successful_landing"):
+        raise ValueError(
+            "ground_acceptance_condition must be omitted, null, or "
+            "'successful_landing'"
+        )
+    if ground_acceptance_condition is not None and task_type != "ltlf":
+        raise ValueError(
+            "ground_acceptance_condition is supported only for episodic LTLf tasks"
+        )
     if task_type == "ltlf":
         if "waypoint_cycle" in config:
             raise ValueError("An LTLf task must not define waypoint_cycle")
-        return LTLfAutomaton(config.get("formula", "F(goal)"))
-    if task_type == "cyclic_waypoints":
+        automaton = LTLfAutomaton(config.get("formula", "F(goal)"))
+    elif task_type == "cyclic_waypoints":
         if "formula" in config:
             raise ValueError("A cyclic_waypoints task must not define formula")
-        return CyclicWaypointsAutomaton(config.get("waypoint_cycle"))
-    raise ValueError("task_type must be either 'ltlf' or 'cyclic_waypoints'")
+        automaton = CyclicWaypointsAutomaton(config.get("waypoint_cycle"))
+    else:
+        raise ValueError("task_type must be either 'ltlf' or 'cyclic_waypoints'")
+    automaton.ground_acceptance_condition = ground_acceptance_condition
+    return automaton
+
+
+def advance_ground_automaton(
+    automaton,
+    current_q,
+    truth_assignment,
+    *,
+    env_reward=None,
+    env_terminated=False,
+    env_truncated=False,
+):
+    """Advance a task automaton, applying any ground-only acceptance guard.
+
+    The guard deliberately wraps ``advance`` instead of changing the automaton
+    itself: planning and abstract learning therefore retain their original,
+    purely spatial task semantics.
+    """
+    step = automaton.advance(current_q, truth_assignment)
+    condition = getattr(automaton, "ground_acceptance_condition", None)
+    if not step.accepted or condition is None:
+        return step
+
+    if condition == "successful_landing":
+        landed = (
+            bool(env_terminated)
+            and not bool(env_truncated)
+            and env_reward is not None
+            and math.isclose(float(env_reward), 100.0)
+        )
+        if landed:
+            return step
+        return AutomatonStep(next_state=current_q)
+
+    raise RuntimeError(f"Unsupported ground acceptance condition: {condition!r}")
 
 
 class LTLfAutomaton:

@@ -21,7 +21,11 @@ import numpy as np
 import torch
 
 from abstraction import AbstractionConfig
-from abstract_mdps import MultiLevelWaypointMDP, build_task_automaton
+from abstract_mdps import (
+    MultiLevelWaypointMDP,
+    advance_ground_automaton,
+    build_task_automaton,
+)
 from agent import HierarchicalDQNLearner, TabularQLearner
 from automaton_validator import validate_automaton
 from spatial_regions import load_task_propositions
@@ -215,7 +219,11 @@ def _evaluate_initial_automaton_state(observation, abstract_mdp):
     """Consume the initial observation and return the first active task state."""
     initial_truth_assignment = abstract_mdp.get_environment_truth_assignment(observation)
     pre_trace_q = abstract_mdp.automaton.get_initial_q()
-    return abstract_mdp.automaton.get_next_q(pre_trace_q, initial_truth_assignment)
+    return advance_ground_automaton(
+        abstract_mdp.automaton,
+        pre_trace_q,
+        initial_truth_assignment,
+    ).next_state
 
 
 def _format_counter(counter):
@@ -389,9 +397,16 @@ def _evaluate_agent_greedily(agent, abstract_mdp, episodes, goal_reward, seed, m
                 action, known = _greedy_action(agent, augmented_state, return_known=True)
                 known_states += int(known)
                 evaluated_states += 1
-                next_raw_state, _ignored_reward, terminated, truncated, _ = evaluation_env.step(action)
+                next_raw_state, env_reward, terminated, truncated, _ = evaluation_env.step(action)
                 previous_q = q
-                automaton_step = automaton.advance(previous_q, abstract_mdp.get_environment_truth_assignment(next_raw_state))
+                automaton_step = advance_ground_automaton(
+                    automaton,
+                    previous_q,
+                    abstract_mdp.get_environment_truth_assignment(next_raw_state),
+                    env_reward=env_reward,
+                    env_terminated=terminated,
+                    env_truncated=truncated,
+                )
                 q = automaton_step.next_state
                 if q not in state_to_index:
                     raise RuntimeError(f"DFA returned unknown evaluation state {q!r}")
@@ -693,16 +708,23 @@ def _perform_training_step(context, raw_state, augmented_state, q):
     """Execute one action, advance the DFA, compute rewards, and update the learner."""
     action = context.agent.select_action(augmented_state)
 
-    # Gym's reward is deliberately discarded: task completion is defined only
-    # by the DFA, while the abstract V-function supplies the shaping signal.
-    next_raw_state, _ignored_env_reward, env_terminated, env_truncated, _ = context.env.step(action)
+    # Gym's reward is excluded from the learning signal. An optional task-level
+    # guard may inspect it only to classify a successful LunarLander landing.
+    next_raw_state, env_reward, env_terminated, env_truncated, _ = context.env.step(action)
     x, y = _abstract_position(raw_state, context.abstract_mdp)
     next_x, next_y = _abstract_position(next_raw_state, context.abstract_mdp)
     abstract_state = (x, y, q)
     abstract_next_state_without_q = (next_x, next_y)
 
     truth_assignment = context.abstract_mdp.get_environment_truth_assignment(next_raw_state)
-    automaton_step = context.automaton.advance(q, truth_assignment)
+    automaton_step = advance_ground_automaton(
+        context.automaton,
+        q,
+        truth_assignment,
+        env_reward=env_reward,
+        env_terminated=env_terminated,
+        env_truncated=env_truncated,
+    )
     next_q = automaton_step.next_state
     if next_q not in context.state_to_index:
         raise RuntimeError(f"DFA returned unknown state {next_q!r} from state {q!r}")

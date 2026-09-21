@@ -27,7 +27,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 
-from abstract_mdps import LTLfWaypointMDP, build_task_automaton
+from abstract_mdps import (
+    LTLfWaypointMDP,
+    advance_ground_automaton,
+    build_task_automaton,
+)
 from agent import DuelingQNetwork, QNetwork, TabularQLearner
 from spatial_regions import load_task_propositions
 from utils import (
@@ -179,7 +183,11 @@ def evaluate_policy(policy, policy_dir, episodes, render, task_config, regions, 
             # Training consumes the valuation at s0 before choosing the first action.
             initial_q = automaton.get_initial_q()
             initial_truth_assignment = abstract_mdp.get_environment_truth_assignment(observation)
-            q = automaton.get_next_q(initial_q, initial_truth_assignment)
+            q = advance_ground_automaton(
+                automaton,
+                initial_q,
+                initial_truth_assignment,
+            ).next_state
             if q not in state_to_index:
                 raise RuntimeError(f"DFA returned unknown state {q!r}")
 
@@ -212,7 +220,14 @@ def evaluate_policy(policy, policy_dir, episodes, render, task_config, regions, 
 
                 # Advance the DFA using the propositions true in the arrival state.
                 truth_assignment = abstract_mdp.get_environment_truth_assignment(next_observation)
-                automaton_step = automaton.advance(q, truth_assignment)
+                automaton_step = advance_ground_automaton(
+                    automaton,
+                    q,
+                    truth_assignment,
+                    env_reward=env_reward,
+                    env_terminated=terminated,
+                    env_truncated=truncated,
+                )
                 next_q = automaton_step.next_state
                 if next_q not in state_to_index:
                     raise RuntimeError(f"DFA returned unknown state {next_q!r}")
