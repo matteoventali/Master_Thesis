@@ -1,0 +1,2641 @@
+
+=== NEW RUN ===
+episodes=10000, shaping=True, goal_reward=10000.0, gamma=0.99
+gamma_shaping=1.0, shaping_formula=gamma_shaping*Phi(next)-Phi(state)
+ground_unbiased_learner=False
+ground_max_episode_steps=Gym default
+eval_interval=500, eval_episodes=1000, eval_seed=100000
+inter_level_shaping=False, inter_level_formula=gamma*Phi(next)-Phi(state)
+task_type=ltlf, task=F(wp1) & G(wp1 -> X(left_zone U (low & (low U (right_zone & X(right_zone U g1))))))
+regions={wp1: {'center': [-0.75, 1.0625], 'radius': 0.1}, g1: {'center': [0.75, 1.0625], 'radius': 0.1}, low: {'type': 'half_plane', 'axis': 'y', 'operator': '<', 'threshold': 0.7}, right_zone: {'type': 'half_plane', 'axis': 'x', 'operator': '>', 'threshold': 0.45}, left_zone: {'type': 'half_plane', 'axis': 'x', 'operator': '<', 'threshold': -0.45}}
+dfa_states=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], pre_trace=1, accepting=[12], failure=[3]
+
+[Episode 1/10000 | last 1]
+success rate                : 0.0% (cumulative 0.0%)
+failure rate                : 0.0% (cumulative 0.0%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 0.000
+shaping reward              : -726.259
+learning reward             : -726.259
+episode length              : 107.0
+abstract changes / episode  : 51.0
+same abstract-state steps   : 52.3%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : -726.259
+terminal shaping / episode  : 0.000
+DFA transitions / episode   : 0.00
+DFA transitions in window   : none
+epsilon (next episode)       : 0.99960
+replay buffer                : 107 samples [1: 100.0%, 2: 0.0%, 3: 0.0%, 4: 0.0%, 5: 0.0%, 6: 0.0%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 0.0%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 108, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state visits cumulative  : 1: 108, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries in window  : 1: 1, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries cumulative : 1: 1, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+transitions cumulative       : none
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=1, truncated=0
+
+[Episode 100/10000 | last 100]
+success rate                : 0.0% (cumulative 0.0%)
+failure rate                : 0.0% (cumulative 0.0%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 0.000
+shaping reward              : -723.203
+learning reward             : -723.203
+episode length              : 95.3
+abstract changes / episode  : 49.8
+same abstract-state steps   : 47.8%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : -723.203
+terminal shaping / episode  : -8.933
+DFA transitions / episode   : 0.04
+DFA transitions in window   : 1->2: 2, 2->6: 2
+epsilon (next episode)       : 0.96078
+replay buffer                : 9527 samples [1: 99.5%, 2: 0.4%, 3: 0.0%, 4: 0.0%, 5: 0.0%, 6: 0.2%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 0.0%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 9573, 2: 37, 3: 0, 4: 0, 5: 0, 6: 17, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state visits cumulative  : 1: 9573, 2: 37, 3: 0, 4: 0, 5: 0, 6: 17, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries in window  : 1: 100, 2: 2, 3: 0, 4: 0, 5: 0, 6: 2, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries cumulative : 1: 100, 2: 2, 3: 0, 4: 0, 5: 0, 6: 2, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+transitions cumulative       : 1->2: 2, 2->6: 2
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=100, truncated=0
+
+[Episode 200/10000 | last 100]
+success rate                : 0.0% (cumulative 0.0%)
+failure rate                : 0.0% (cumulative 0.0%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 0.000
+shaping reward              : -653.417
+learning reward             : -653.417
+episode length              : 91.8
+abstract changes / episode  : 48.9
+same abstract-state steps   : 46.8%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : -653.417
+terminal shaping / episode  : -6.296
+DFA transitions / episode   : 0.05
+DFA transitions in window   : 1->2: 3, 2->6: 2
+epsilon (next episode)       : 0.92310
+replay buffer                : 18705 samples [1: 99.4%, 2: 0.5%, 3: 0.0%, 4: 0.0%, 5: 0.0%, 6: 0.1%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 0.0%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 9213, 2: 56, 3: 0, 4: 0, 5: 0, 6: 9, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state visits cumulative  : 1: 18786, 2: 93, 3: 0, 4: 0, 5: 0, 6: 26, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries in window  : 1: 100, 2: 3, 3: 0, 4: 0, 5: 0, 6: 2, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries cumulative : 1: 200, 2: 5, 3: 0, 4: 0, 5: 0, 6: 4, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+transitions cumulative       : 1->2: 5, 2->6: 4
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=200, truncated=0
+
+[Episode 300/10000 | last 100]
+success rate                : 0.0% (cumulative 0.0%)
+failure rate                : 0.0% (cumulative 0.0%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 0.000
+shaping reward              : -637.597
+learning reward             : -637.597
+episode length              : 96.2
+abstract changes / episode  : 49.4
+same abstract-state steps   : 48.7%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : -637.597
+terminal shaping / episode  : -6.001
+DFA transitions / episode   : 0.03
+DFA transitions in window   : 1->2: 3
+epsilon (next episode)       : 0.88690
+replay buffer                : 28327 samples [1: 99.4%, 2: 0.5%, 3: 0.0%, 4: 0.0%, 5: 0.0%, 6: 0.1%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 0.0%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 9668, 2: 54, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state visits cumulative  : 1: 28454, 2: 147, 3: 0, 4: 0, 5: 0, 6: 26, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries in window  : 1: 100, 2: 3, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries cumulative : 1: 300, 2: 8, 3: 0, 4: 0, 5: 0, 6: 4, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+transitions cumulative       : 1->2: 8, 2->6: 4
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=300, truncated=0
+
+[Episode 400/10000 | last 100]
+success rate                : 0.0% (cumulative 0.0%)
+failure rate                : 0.0% (cumulative 0.0%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 0.000
+shaping reward              : -619.807
+learning reward             : -619.807
+episode length              : 94.6
+abstract changes / episode  : 49.7
+same abstract-state steps   : 47.4%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : -619.807
+terminal shaping / episode  : -11.960
+DFA transitions / episode   : 0.05
+DFA transitions in window   : 1->2: 3, 2->6: 2
+epsilon (next episode)       : 0.85212
+replay buffer                : 37783 samples [1: 99.4%, 2: 0.5%, 3: 0.0%, 4: 0.0%, 5: 0.0%, 6: 0.1%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 0.0%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 9484, 2: 64, 3: 0, 4: 0, 5: 0, 6: 8, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state visits cumulative  : 1: 37938, 2: 211, 3: 0, 4: 0, 5: 0, 6: 34, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries in window  : 1: 100, 2: 3, 3: 0, 4: 0, 5: 0, 6: 2, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries cumulative : 1: 400, 2: 11, 3: 0, 4: 0, 5: 0, 6: 6, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+transitions cumulative       : 1->2: 11, 2->6: 6
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=400, truncated=0
+
+[Episode 500/10000 | last 100]
+success rate                : 0.0% (cumulative 0.0%)
+failure rate                : 0.0% (cumulative 0.0%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 0.000
+shaping reward              : -580.117
+learning reward             : -580.117
+episode length              : 111.0
+abstract changes / episode  : 49.5
+same abstract-state steps   : 55.4%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : -580.117
+terminal shaping / episode  : -7.648
+DFA transitions / episode   : 0.06
+DFA transitions in window   : 1->2: 3, 2->6: 3
+epsilon (next episode)       : 0.81870
+replay buffer                : 48882 samples [1: 99.3%, 2: 0.6%, 3: 0.0%, 4: 0.0%, 5: 0.0%, 6: 0.2%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 0.0%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 11078, 2: 71, 3: 0, 4: 0, 5: 0, 6: 50, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state visits cumulative  : 1: 49016, 2: 282, 3: 0, 4: 0, 5: 0, 6: 84, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries in window  : 1: 100, 2: 3, 3: 0, 4: 0, 5: 0, 6: 3, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries cumulative : 1: 500, 2: 14, 3: 0, 4: 0, 5: 0, 6: 9, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+transitions cumulative       : 1->2: 14, 2->6: 9
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=499, truncated=1
+
+Starting autonomous greedy evaluation at episode 500 (1000 fixed-seed episodes)...
+[Greedy evaluation at episode 500 | 1000 fixed-seed episodes]
+success=0.0%, failure=0.0%, task reward=0.000, length=183.4
+DFA transitions: 1->2: 1
+Best policy updated from autonomous greedy evaluation at episode 500.
+
+[Episode 600/10000 | last 100]
+success rate                : 0.0% (cumulative 0.0%)
+failure rate                : 0.0% (cumulative 0.0%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 0.000
+shaping reward              : -541.938
+learning reward             : -541.938
+episode length              : 111.1
+abstract changes / episode  : 50.4
+same abstract-state steps   : 54.7%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : -541.938
+terminal shaping / episode  : -8.187
+DFA transitions / episode   : 0.09
+DFA transitions in window   : 1->2: 6, 2->6: 3
+epsilon (next episode)       : 0.78659
+replay buffer                : 59988 samples [1: 99.2%, 2: 0.7%, 3: 0.0%, 4: 0.0%, 5: 0.0%, 6: 0.2%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 0.0%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 11047, 2: 138, 3: 0, 4: 0, 5: 0, 6: 21, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state visits cumulative  : 1: 60063, 2: 420, 3: 0, 4: 0, 5: 0, 6: 105, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries in window  : 1: 100, 2: 6, 3: 0, 4: 0, 5: 0, 6: 3, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries cumulative : 1: 600, 2: 20, 3: 0, 4: 0, 5: 0, 6: 12, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+transitions cumulative       : 1->2: 20, 2->6: 12
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=599, truncated=1
+
+[Episode 700/10000 | last 100]
+success rate                : 0.0% (cumulative 0.0%)
+failure rate                : 0.0% (cumulative 0.0%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 0.000
+shaping reward              : -554.343
+learning reward             : -554.343
+episode length              : 112.0
+abstract changes / episode  : 50.1
+same abstract-state steps   : 55.3%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : -554.343
+terminal shaping / episode  : -7.767
+DFA transitions / episode   : 0.09
+DFA transitions in window   : 1->2: 6, 2->6: 3
+epsilon (next episode)       : 0.75574
+replay buffer                : 71185 samples [1: 99.1%, 2: 0.8%, 3: 0.0%, 4: 0.0%, 5: 0.0%, 6: 0.1%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 0.0%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 11157, 2: 126, 3: 0, 4: 0, 5: 0, 6: 14, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state visits cumulative  : 1: 71220, 2: 546, 3: 0, 4: 0, 5: 0, 6: 119, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries in window  : 1: 100, 2: 6, 3: 0, 4: 0, 5: 0, 6: 3, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries cumulative : 1: 700, 2: 26, 3: 0, 4: 0, 5: 0, 6: 15, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+transitions cumulative       : 1->2: 26, 2->6: 15
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=699, truncated=1
+
+[Episode 800/10000 | last 100]
+success rate                : 0.0% (cumulative 0.0%)
+failure rate                : 0.0% (cumulative 0.0%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 0.000
+shaping reward              : -514.077
+learning reward             : -514.077
+episode length              : 112.9
+abstract changes / episode  : 49.9
+same abstract-state steps   : 55.8%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : -514.077
+terminal shaping / episode  : -7.866
+DFA transitions / episode   : 0.06
+DFA transitions in window   : 1->2: 5, 2->6: 1
+epsilon (next episode)       : 0.72610
+replay buffer                : 82479 samples [1: 99.1%, 2: 0.8%, 3: 0.0%, 4: 0.0%, 5: 0.0%, 6: 0.1%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 0.0%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 11255, 2: 125, 3: 0, 4: 0, 5: 0, 6: 14, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state visits cumulative  : 1: 82475, 2: 671, 3: 0, 4: 0, 5: 0, 6: 133, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries in window  : 1: 100, 2: 5, 3: 0, 4: 0, 5: 0, 6: 1, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries cumulative : 1: 800, 2: 31, 3: 0, 4: 0, 5: 0, 6: 16, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+transitions cumulative       : 1->2: 31, 2->6: 16
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=799, truncated=1
+
+[Episode 900/10000 | last 100]
+success rate                : 0.0% (cumulative 0.0%)
+failure rate                : 0.0% (cumulative 0.0%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 0.000
+shaping reward              : -589.738
+learning reward             : -589.738
+episode length              : 118.7
+abstract changes / episode  : 51.3
+same abstract-state steps   : 56.8%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : -589.738
+terminal shaping / episode  : -4.867
+DFA transitions / episode   : 0.03
+DFA transitions in window   : 1->2: 2, 2->6: 1
+epsilon (next episode)       : 0.69763
+replay buffer                : 94351 samples [1: 99.1%, 2: 0.7%, 3: 0.0%, 4: 0.0%, 5: 0.0%, 6: 0.1%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 0.0%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 11903, 2: 48, 3: 0, 4: 0, 5: 0, 6: 21, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state visits cumulative  : 1: 94378, 2: 719, 3: 0, 4: 0, 5: 0, 6: 154, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries in window  : 1: 100, 2: 2, 3: 0, 4: 0, 5: 0, 6: 1, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries cumulative : 1: 900, 2: 33, 3: 0, 4: 0, 5: 0, 6: 17, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+transitions cumulative       : 1->2: 33, 2->6: 17
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=899, truncated=1
+
+[Episode 1000/10000 | last 100]
+success rate                : 0.0% (cumulative 0.0%)
+failure rate                : 0.0% (cumulative 0.0%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 0.000
+shaping reward              : -523.323
+learning reward             : -523.323
+episode length              : 143.7
+abstract changes / episode  : 52.8
+same abstract-state steps   : 63.2%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : -523.323
+terminal shaping / episode  : -10.649
+DFA transitions / episode   : 0.06
+DFA transitions in window   : 1->2: 3, 2->6: 3
+epsilon (next episode)       : 0.67027
+replay buffer                : 108717 samples [1: 99.1%, 2: 0.7%, 3: 0.0%, 4: 0.0%, 5: 0.0%, 6: 0.2%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 0.0%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 14358, 2: 59, 3: 0, 4: 0, 5: 0, 6: 49, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state visits cumulative  : 1: 108736, 2: 778, 3: 0, 4: 0, 5: 0, 6: 203, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries in window  : 1: 100, 2: 3, 3: 0, 4: 0, 5: 0, 6: 3, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries cumulative : 1: 1000, 2: 36, 3: 0, 4: 0, 5: 0, 6: 20, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+transitions cumulative       : 1->2: 36, 2->6: 20
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=998, truncated=2
+
+Starting autonomous greedy evaluation at episode 1000 (1000 fixed-seed episodes)...
+[Greedy evaluation at episode 1000 | 1000 fixed-seed episodes]
+success=0.0%, failure=0.0%, task reward=0.000, length=144.3
+DFA transitions: 1->2: 2
+Best policy updated from autonomous greedy evaluation at episode 1000.
+
+[Episode 1100/10000 | last 100]
+success rate                : 0.0% (cumulative 0.0%)
+failure rate                : 0.0% (cumulative 0.0%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 0.000
+shaping reward              : -479.485
+learning reward             : -479.485
+episode length              : 136.6
+abstract changes / episode  : 51.1
+same abstract-state steps   : 62.6%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : -479.485
+terminal shaping / episode  : -7.207
+DFA transitions / episode   : 0.06
+DFA transitions in window   : 1->2: 4, 2->6: 2
+epsilon (next episode)       : 0.64398
+replay buffer                : 122379 samples [1: 99.1%, 2: 0.7%, 3: 0.0%, 4: 0.0%, 5: 0.0%, 6: 0.2%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 0.0%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 13626, 2: 100, 3: 0, 4: 0, 5: 0, 6: 36, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state visits cumulative  : 1: 122362, 2: 878, 3: 0, 4: 0, 5: 0, 6: 239, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries in window  : 1: 100, 2: 4, 3: 0, 4: 0, 5: 0, 6: 2, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries cumulative : 1: 1100, 2: 40, 3: 0, 4: 0, 5: 0, 6: 22, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+transitions cumulative       : 1->2: 40, 2->6: 22
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=1098, truncated=2
+
+[Episode 1200/10000 | last 100]
+success rate                : 0.0% (cumulative 0.0%)
+failure rate                : 0.0% (cumulative 0.0%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 0.000
+shaping reward              : -543.126
+learning reward             : -543.126
+episode length              : 168.3
+abstract changes / episode  : 55.4
+same abstract-state steps   : 67.1%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : -543.126
+terminal shaping / episode  : -7.800
+DFA transitions / episode   : 0.10
+DFA transitions in window   : 1->2: 5, 2->6: 5
+epsilon (next episode)       : 0.61872
+replay buffer                : 139206 samples [1: 99.1%, 2: 0.7%, 3: 0.0%, 4: 0.0%, 5: 0.0%, 6: 0.2%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 0.0%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 16699, 2: 120, 3: 0, 4: 0, 5: 0, 6: 108, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state visits cumulative  : 1: 139061, 2: 998, 3: 0, 4: 0, 5: 0, 6: 347, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries in window  : 1: 100, 2: 5, 3: 0, 4: 0, 5: 0, 6: 5, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries cumulative : 1: 1200, 2: 45, 3: 0, 4: 0, 5: 0, 6: 27, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+transitions cumulative       : 1->2: 45, 2->6: 27
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=1197, truncated=3
+
+[Episode 1300/10000 | last 100]
+success rate                : 0.0% (cumulative 0.0%)
+failure rate                : 0.0% (cumulative 0.0%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 0.000
+shaping reward              : -414.124
+learning reward             : -414.124
+episode length              : 159.2
+abstract changes / episode  : 51.6
+same abstract-state steps   : 67.6%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : -414.124
+terminal shaping / episode  : -3.858
+DFA transitions / episode   : 0.10
+DFA transitions in window   : 1->2: 6, 2->6: 4
+epsilon (next episode)       : 0.59446
+replay buffer                : 155122 samples [1: 99.0%, 2: 0.7%, 3: 0.0%, 4: 0.0%, 5: 0.0%, 6: 0.2%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 0.0%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 15787, 2: 167, 3: 0, 4: 0, 5: 0, 6: 62, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state visits cumulative  : 1: 154848, 2: 1165, 3: 0, 4: 0, 5: 0, 6: 409, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries in window  : 1: 100, 2: 6, 3: 0, 4: 0, 5: 0, 6: 4, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries cumulative : 1: 1300, 2: 51, 3: 0, 4: 0, 5: 0, 6: 31, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+transitions cumulative       : 1->2: 51, 2->6: 31
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=1297, truncated=3
+
+[Episode 1400/10000 | last 100]
+success rate                : 0.0% (cumulative 0.0%)
+failure rate                : 0.0% (cumulative 0.0%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 0.000
+shaping reward              : -413.026
+learning reward             : -413.026
+episode length              : 159.8
+abstract changes / episode  : 49.9
+same abstract-state steps   : 68.8%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : -413.026
+terminal shaping / episode  : -1.315
+DFA transitions / episode   : 0.08
+DFA transitions in window   : 1->2: 5, 2->6: 3
+epsilon (next episode)       : 0.57115
+replay buffer                : 171107 samples [1: 99.0%, 2: 0.8%, 3: 0.0%, 4: 0.0%, 5: 0.0%, 6: 0.3%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 0.0%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 15808, 2: 152, 3: 0, 4: 0, 5: 0, 6: 125, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state visits cumulative  : 1: 170656, 2: 1317, 3: 0, 4: 0, 5: 0, 6: 534, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries in window  : 1: 100, 2: 5, 3: 0, 4: 0, 5: 0, 6: 3, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries cumulative : 1: 1400, 2: 56, 3: 0, 4: 0, 5: 0, 6: 34, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+transitions cumulative       : 1->2: 56, 2->6: 34
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=1397, truncated=3
+
+[Episode 1500/10000 | last 100]
+success rate                : 0.0% (cumulative 0.0%)
+failure rate                : 0.0% (cumulative 0.0%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 0.000
+shaping reward              : -651.121
+learning reward             : -651.121
+episode length              : 197.7
+abstract changes / episode  : 57.9
+same abstract-state steps   : 70.7%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : -651.121
+terminal shaping / episode  : 0.735
+DFA transitions / episode   : 0.06
+DFA transitions in window   : 1->2: 3, 2->6: 3
+epsilon (next episode)       : 0.54875
+replay buffer                : 190874 samples [1: 99.0%, 2: 0.7%, 3: 0.0%, 4: 0.0%, 5: 0.0%, 6: 0.3%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 0.0%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 19710, 2: 86, 3: 0, 4: 0, 5: 0, 6: 71, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state visits cumulative  : 1: 190366, 2: 1403, 3: 0, 4: 0, 5: 0, 6: 605, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries in window  : 1: 100, 2: 3, 3: 0, 4: 0, 5: 0, 6: 3, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries cumulative : 1: 1500, 2: 59, 3: 0, 4: 0, 5: 0, 6: 37, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+transitions cumulative       : 1->2: 59, 2->6: 37
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=1497, truncated=3
+
+Starting autonomous greedy evaluation at episode 1500 (1000 fixed-seed episodes)...
+[Greedy evaluation at episode 1500 | 1000 fixed-seed episodes]
+success=0.0%, failure=0.0%, task reward=0.000, length=247.6
+DFA transitions: none
+
+[Episode 1600/10000 | last 100]
+success rate                : 0.0% (cumulative 0.0%)
+failure rate                : 0.0% (cumulative 0.0%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 0.000
+shaping reward              : -667.884
+learning reward             : -667.884
+episode length              : 156.4
+abstract changes / episode  : 55.3
+same abstract-state steps   : 64.7%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : -667.884
+terminal shaping / episode  : -2.514
+DFA transitions / episode   : 0.05
+DFA transitions in window   : 1->2: 2, 2->6: 2, 6->4: 1
+epsilon (next episode)       : 0.52722
+replay buffer                : 206519 samples [1: 98.9%, 2: 0.8%, 3: 0.0%, 4: 0.0%, 5: 0.0%, 6: 0.3%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 0.0%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 15495, 2: 195, 3: 0, 4: 32, 5: 0, 6: 23, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state visits cumulative  : 1: 205861, 2: 1598, 3: 0, 4: 32, 5: 0, 6: 628, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries in window  : 1: 100, 2: 2, 3: 0, 4: 1, 5: 0, 6: 2, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries cumulative : 1: 1600, 2: 61, 3: 0, 4: 1, 5: 0, 6: 39, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+transitions cumulative       : 1->2: 61, 2->6: 39, 6->4: 1
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=1597, truncated=3
+
+[Episode 1700/10000 | last 100]
+success rate                : 0.0% (cumulative 0.0%)
+failure rate                : 0.0% (cumulative 0.0%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 0.000
+shaping reward              : -742.199
+learning reward             : -742.199
+episode length              : 138.4
+abstract changes / episode  : 55.2
+same abstract-state steps   : 60.1%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : -742.199
+terminal shaping / episode  : -2.576
+DFA transitions / episode   : 0.00
+DFA transitions in window   : none
+epsilon (next episode)       : 0.50655
+replay buffer                : 220363 samples [1: 99.0%, 2: 0.7%, 3: 0.0%, 4: 0.0%, 5: 0.0%, 6: 0.3%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 0.0%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 13944, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state visits cumulative  : 1: 219805, 2: 1598, 3: 0, 4: 32, 5: 0, 6: 628, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries in window  : 1: 100, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries cumulative : 1: 1700, 2: 61, 3: 0, 4: 1, 5: 0, 6: 39, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+transitions cumulative       : 1->2: 61, 2->6: 39, 6->4: 1
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=1696, truncated=4
+
+[Episode 1800/10000 | last 100]
+success rate                : 0.0% (cumulative 0.0%)
+failure rate                : 0.0% (cumulative 0.0%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 0.000
+shaping reward              : -774.939
+learning reward             : -774.939
+episode length              : 231.8
+abstract changes / episode  : 59.9
+same abstract-state steps   : 74.1%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : -774.939
+terminal shaping / episode  : -2.059
+DFA transitions / episode   : 0.00
+DFA transitions in window   : none
+epsilon (next episode)       : 0.48668
+replay buffer                : 243539 samples [1: 99.1%, 2: 0.6%, 3: 0.0%, 4: 0.0%, 5: 0.0%, 6: 0.2%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 0.0%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 23276, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state visits cumulative  : 1: 243081, 2: 1598, 3: 0, 4: 32, 5: 0, 6: 628, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries in window  : 1: 100, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries cumulative : 1: 1800, 2: 61, 3: 0, 4: 1, 5: 0, 6: 39, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+transitions cumulative       : 1->2: 61, 2->6: 39, 6->4: 1
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=1788, truncated=12
+
+[Episode 1900/10000 | last 100]
+success rate                : 0.0% (cumulative 0.0%)
+failure rate                : 0.0% (cumulative 0.0%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 0.000
+shaping reward              : -719.329
+learning reward             : -719.329
+episode length              : 233.2
+abstract changes / episode  : 55.6
+same abstract-state steps   : 76.2%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : -719.329
+terminal shaping / episode  : -2.693
+DFA transitions / episode   : 0.00
+DFA transitions in window   : none
+epsilon (next episode)       : 0.46760
+replay buffer                : 266861 samples [1: 99.2%, 2: 0.6%, 3: 0.0%, 4: 0.0%, 5: 0.0%, 6: 0.2%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 0.0%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 23422, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state visits cumulative  : 1: 266503, 2: 1598, 3: 0, 4: 32, 5: 0, 6: 628, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries in window  : 1: 100, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries cumulative : 1: 1900, 2: 61, 3: 0, 4: 1, 5: 0, 6: 39, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+transitions cumulative       : 1->2: 61, 2->6: 39, 6->4: 1
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=1877, truncated=23
+
+[Episode 2000/10000 | last 100]
+success rate                : 0.0% (cumulative 0.0%)
+failure rate                : 0.0% (cumulative 0.0%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 0.000
+shaping reward              : -697.435
+learning reward             : -697.435
+episode length              : 243.1
+abstract changes / episode  : 55.4
+same abstract-state steps   : 77.2%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : -697.435
+terminal shaping / episode  : -3.223
+DFA transitions / episode   : 0.00
+DFA transitions in window   : none
+epsilon (next episode)       : 0.44926
+replay buffer                : 291171 samples [1: 99.2%, 2: 0.5%, 3: 0.0%, 4: 0.0%, 5: 0.0%, 6: 0.2%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 0.0%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 24410, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state visits cumulative  : 1: 290913, 2: 1598, 3: 0, 4: 32, 5: 0, 6: 628, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries in window  : 1: 100, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries cumulative : 1: 2000, 2: 61, 3: 0, 4: 1, 5: 0, 6: 39, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+transitions cumulative       : 1->2: 61, 2->6: 39, 6->4: 1
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=1963, truncated=37
+
+Starting autonomous greedy evaluation at episode 2000 (1000 fixed-seed episodes)...
+[Greedy evaluation at episode 2000 | 1000 fixed-seed episodes]
+success=0.0%, failure=0.0%, task reward=0.000, length=992.1
+DFA transitions: none
+
+[Episode 2100/10000 | last 100]
+success rate                : 0.0% (cumulative 0.0%)
+failure rate                : 0.0% (cumulative 0.0%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 0.000
+shaping reward              : -695.732
+learning reward             : -695.732
+episode length              : 262.2
+abstract changes / episode  : 64.2
+same abstract-state steps   : 75.5%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : -695.732
+terminal shaping / episode  : -2.623
+DFA transitions / episode   : 0.00
+DFA transitions in window   : none
+epsilon (next episode)       : 0.43164
+replay buffer                : 300000 samples [1: 99.3%, 2: 0.5%, 3: 0.0%, 4: 0.0%, 5: 0.0%, 6: 0.2%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 0.0%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 26319, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state visits cumulative  : 1: 317232, 2: 1598, 3: 0, 4: 32, 5: 0, 6: 628, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries in window  : 1: 100, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries cumulative : 1: 2100, 2: 61, 3: 0, 4: 1, 5: 0, 6: 39, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+transitions cumulative       : 1->2: 61, 2->6: 39, 6->4: 1
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=2054, truncated=46
+
+[Episode 2200/10000 | last 100]
+success rate                : 0.0% (cumulative 0.0%)
+failure rate                : 0.0% (cumulative 0.0%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 0.000
+shaping reward              : -707.873
+learning reward             : -707.873
+episode length              : 243.2
+abstract changes / episode  : 62.4
+same abstract-state steps   : 74.3%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : -707.873
+terminal shaping / episode  : -2.977
+DFA transitions / episode   : 0.04
+DFA transitions in window   : 1->2: 3, 2->6: 1
+epsilon (next episode)       : 0.41471
+replay buffer                : 300000 samples [1: 99.3%, 2: 0.5%, 3: 0.0%, 4: 0.0%, 5: 0.0%, 6: 0.2%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 0.0%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 24286, 2: 105, 3: 0, 4: 0, 5: 0, 6: 29, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state visits cumulative  : 1: 341518, 2: 1703, 3: 0, 4: 32, 5: 0, 6: 657, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries in window  : 1: 100, 2: 3, 3: 0, 4: 0, 5: 0, 6: 1, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries cumulative : 1: 2200, 2: 64, 3: 0, 4: 1, 5: 0, 6: 40, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+transitions cumulative       : 1->2: 64, 2->6: 40, 6->4: 1
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=2152, truncated=48
+
+[Episode 2300/10000 | last 100]
+success rate                : 0.0% (cumulative 0.0%)
+failure rate                : 2.0% (cumulative 0.1%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 0.000
+shaping reward              : -409.671
+learning reward             : -409.671
+episode length              : 305.2
+abstract changes / episode  : 64.3
+same abstract-state steps   : 78.9%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : -409.671
+terminal shaping / episode  : -144.098
+DFA transitions / episode   : 0.09
+DFA transitions in window   : 1->2: 5, 2->3: 2, 2->6: 2
+epsilon (next episode)       : 0.39845
+replay buffer                : 300000 samples [1: 99.4%, 2: 0.4%, 3: 0.0%, 4: 0.0%, 5: 0.0%, 6: 0.2%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 0.0%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 30411, 2: 174, 3: 2, 4: 0, 5: 0, 6: 31, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state visits cumulative  : 1: 371929, 2: 1877, 3: 2, 4: 32, 5: 0, 6: 688, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries in window  : 1: 100, 2: 5, 3: 2, 4: 0, 5: 0, 6: 2, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries cumulative : 1: 2300, 2: 69, 3: 2, 4: 1, 5: 0, 6: 42, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+transitions cumulative       : 1->2: 69, 2->3: 2, 2->6: 42, 6->4: 1
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=2250, truncated=48
+
+[Episode 2400/10000 | last 100]
+success rate                : 0.0% (cumulative 0.0%)
+failure rate                : 5.0% (cumulative 0.3%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 0.000
+shaping reward              : -518.348
+learning reward             : -518.348
+episode length              : 339.6
+abstract changes / episode  : 71.8
+same abstract-state steps   : 78.8%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : -518.348
+terminal shaping / episode  : -323.840
+DFA transitions / episode   : 0.28
+DFA transitions in window   : 1->2: 16, 2->3: 5, 2->6: 7
+epsilon (next episode)       : 0.38282
+replay buffer                : 300000 samples [1: 99.1%, 2: 0.7%, 3: 0.0%, 4: 0.0%, 5: 0.0%, 6: 0.2%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 0.0%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 32800, 2: 996, 3: 5, 4: 0, 5: 0, 6: 262, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state visits cumulative  : 1: 404729, 2: 2873, 3: 7, 4: 32, 5: 0, 6: 950, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries in window  : 1: 100, 2: 16, 3: 5, 4: 0, 5: 0, 6: 7, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries cumulative : 1: 2400, 2: 85, 3: 7, 4: 1, 5: 0, 6: 49, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+transitions cumulative       : 1->2: 85, 2->3: 7, 2->6: 49, 6->4: 1
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=2345, truncated=48
+
+[Episode 2500/10000 | last 100]
+success rate                : 0.0% (cumulative 0.0%)
+failure rate                : 1.0% (cumulative 0.3%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 0.000
+shaping reward              : -368.672
+learning reward             : -368.672
+episode length              : 451.6
+abstract changes / episode  : 98.7
+same abstract-state steps   : 78.1%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : -368.672
+terminal shaping / episode  : -63.486
+DFA transitions / episode   : 0.29
+DFA transitions in window   : 1->2: 14, 2->3: 1, 2->6: 13, 6->4: 1
+epsilon (next episode)       : 0.36781
+replay buffer                : 300000 samples [1: 98.9%, 2: 0.8%, 3: 0.0%, 4: 0.0%, 5: 0.0%, 6: 0.3%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 0.0%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 44263, 2: 660, 3: 1, 4: 5, 5: 0, 6: 331, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state visits cumulative  : 1: 448992, 2: 3533, 3: 8, 4: 37, 5: 0, 6: 1281, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries in window  : 1: 100, 2: 14, 3: 1, 4: 1, 5: 0, 6: 13, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries cumulative : 1: 2500, 2: 99, 3: 8, 4: 2, 5: 0, 6: 62, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+transitions cumulative       : 1->2: 99, 2->3: 8, 2->6: 62, 6->4: 2
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=2432, truncated=60
+
+Starting autonomous greedy evaluation at episode 2500 (1000 fixed-seed episodes)...
+[Greedy evaluation at episode 2500 | 1000 fixed-seed episodes]
+success=0.0%, failure=0.0%, task reward=0.000, length=359.9
+DFA transitions: 1->2: 309, 2->6: 308, 4->5: 1, 6->2: 11, 6->4: 163
+
+[Episode 2600/10000 | last 100]
+success rate                : 0.0% (cumulative 0.0%)
+failure rate                : 0.0% (cumulative 0.3%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 0.000
+shaping reward              : 312.461
+learning reward             : 312.461
+episode length              : 276.1
+abstract changes / episode  : 76.5
+same abstract-state steps   : 72.3%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 312.461
+terminal shaping / episode  : -0.425
+DFA transitions / episode   : 0.70
+DFA transitions in window   : 1->2: 44, 2->6: 26
+epsilon (next episode)       : 0.35338
+replay buffer                : 300000 samples [1: 98.2%, 2: 1.3%, 3: 0.0%, 4: 0.0%, 5: 0.0%, 6: 0.4%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 0.0%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 25166, 2: 1865, 3: 0, 4: 0, 5: 0, 6: 676, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state visits cumulative  : 1: 474158, 2: 5398, 3: 8, 4: 37, 5: 0, 6: 1957, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries in window  : 1: 100, 2: 44, 3: 0, 4: 0, 5: 0, 6: 26, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries cumulative : 1: 2600, 2: 143, 3: 8, 4: 2, 5: 0, 6: 88, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+transitions cumulative       : 1->2: 143, 2->3: 8, 2->6: 88, 6->4: 2
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=2531, truncated=61
+
+[Episode 2700/10000 | last 100]
+success rate                : 0.0% (cumulative 0.0%)
+failure rate                : 1.0% (cumulative 0.3%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 0.000
+shaping reward              : 272.175
+learning reward             : 272.175
+episode length              : 223.3
+abstract changes / episode  : 64.7
+same abstract-state steps   : 71.0%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 272.175
+terminal shaping / episode  : -75.704
+DFA transitions / episode   : 0.60
+DFA transitions in window   : 1->2: 37, 2->3: 1, 2->6: 20, 6->4: 2
+epsilon (next episode)       : 0.33952
+replay buffer                : 300000 samples [1: 97.8%, 2: 1.6%, 3: 0.0%, 4: 0.0%, 5: 0.0%, 6: 0.5%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 0.0%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 20868, 2: 1182, 3: 1, 4: 34, 5: 0, 6: 350, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state visits cumulative  : 1: 495026, 2: 6580, 3: 9, 4: 71, 5: 0, 6: 2307, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries in window  : 1: 100, 2: 37, 3: 1, 4: 2, 5: 0, 6: 20, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries cumulative : 1: 2700, 2: 180, 3: 9, 4: 4, 5: 0, 6: 108, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+transitions cumulative       : 1->2: 180, 2->3: 9, 2->6: 108, 6->4: 4
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=2630, truncated=61
+
+[Episode 2800/10000 | last 100]
+success rate                : 0.0% (cumulative 0.0%)
+failure rate                : 0.0% (cumulative 0.3%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 0.000
+shaping reward              : 417.783
+learning reward             : 417.783
+episode length              : 226.8
+abstract changes / episode  : 62.2
+same abstract-state steps   : 72.6%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 417.783
+terminal shaping / episode  : -1.717
+DFA transitions / episode   : 0.61
+DFA transitions in window   : 1->2: 42, 2->6: 18, 6->4: 1
+epsilon (next episode)       : 0.32621
+replay buffer                : 300000 samples [1: 96.7%, 2: 2.6%, 3: 0.0%, 4: 0.0%, 5: 0.0%, 6: 0.7%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 0.0%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 19336, 2: 2976, 3: 0, 4: 38, 5: 0, 6: 426, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state visits cumulative  : 1: 514362, 2: 9556, 3: 9, 4: 109, 5: 0, 6: 2733, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries in window  : 1: 100, 2: 42, 3: 0, 4: 1, 5: 0, 6: 18, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries cumulative : 1: 2800, 2: 222, 3: 9, 4: 5, 5: 0, 6: 126, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+transitions cumulative       : 1->2: 222, 2->3: 9, 2->6: 126, 6->4: 5
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=2730, truncated=61
+
+[Episode 2900/10000 | last 100]
+success rate                : 0.0% (cumulative 0.0%)
+failure rate                : 5.0% (cumulative 0.5%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 0.000
+shaping reward              : 252.747
+learning reward             : 252.747
+episode length              : 332.4
+abstract changes / episode  : 74.5
+same abstract-state steps   : 77.6%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 252.747
+terminal shaping / episode  : -391.324
+DFA transitions / episode   : 1.08
+DFA transitions in window   : 1->2: 52, 2->3: 3, 2->6: 36, 4->3: 2, 4->5: 1, 6->4: 14
+epsilon (next episode)       : 0.31341
+replay buffer                : 300000 samples [1: 92.3%, 2: 4.6%, 3: 0.0%, 4: 1.7%, 5: 0.0%, 6: 1.4%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 0.0%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 20143, 2: 5799, 3: 5, 4: 5166, 5: 52, 6: 2171, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state visits cumulative  : 1: 534505, 2: 15355, 3: 14, 4: 5275, 5: 52, 6: 4904, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries in window  : 1: 100, 2: 52, 3: 5, 4: 14, 5: 1, 6: 36, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries cumulative : 1: 2900, 2: 274, 3: 14, 4: 19, 5: 1, 6: 162, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+transitions cumulative       : 1->2: 274, 2->3: 12, 2->6: 162, 4->3: 2, 4->5: 1, 6->4: 19
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=2819, truncated=67
+
+[Episode 3000/10000 | last 100]
+success rate                : 0.0% (cumulative 0.0%)
+failure rate                : 3.0% (cumulative 0.6%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 0.000
+shaping reward              : 458.464
+learning reward             : 458.464
+episode length              : 354.5
+abstract changes / episode  : 77.6
+same abstract-state steps   : 78.1%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 458.464
+terminal shaping / episode  : -241.047
+DFA transitions / episode   : 1.10
+DFA transitions in window   : 1->2: 45, 2->3: 2, 2->4: 1, 2->6: 35, 4->3: 1, 4->5: 1, 6->4: 25
+epsilon (next episode)       : 0.30112
+replay buffer                : 300000 samples [1: 87.3%, 2: 6.4%, 3: 0.0%, 4: 4.1%, 5: 0.2%, 6: 2.0%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 0.0%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 20385, 2: 5494, 3: 3, 4: 7233, 5: 576, 6: 1856, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state visits cumulative  : 1: 554890, 2: 20849, 3: 17, 4: 12508, 5: 628, 6: 6760, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries in window  : 1: 100, 2: 45, 3: 3, 4: 26, 5: 1, 6: 35, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries cumulative : 1: 3000, 2: 319, 3: 17, 4: 45, 5: 2, 6: 197, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+transitions cumulative       : 1->2: 319, 2->3: 14, 2->4: 1, 2->6: 197, 4->3: 3, 4->5: 2, 6->4: 44
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=2908, truncated=75
+
+Starting autonomous greedy evaluation at episode 3000 (1000 fixed-seed episodes)...
+[Greedy evaluation at episode 3000 | 1000 fixed-seed episodes]
+success=0.0%, failure=7.4%, task reward=0.000, length=450.4
+DFA transitions: 1->2: 546, 2->3: 9, 2->4: 1, 2->6: 439, 4->3: 65, 6->2: 1, 6->4: 423
+
+[Episode 3100/10000 | last 100]
+success rate                : 0.0% (cumulative 0.0%)
+failure rate                : 2.0% (cumulative 0.6%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 0.000
+shaping reward              : 452.746
+learning reward             : 452.746
+episode length              : 308.8
+abstract changes / episode  : 74.3
+same abstract-state steps   : 75.9%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 452.746
+terminal shaping / episode  : -150.365
+DFA transitions / episode   : 0.87
+DFA transitions in window   : 1->2: 36, 2->3: 1, 2->6: 27, 4->3: 1, 4->5: 1, 5->4: 1, 6->4: 20
+epsilon (next episode)       : 0.28931
+replay buffer                : 300000 samples [1: 83.7%, 2: 7.2%, 3: 0.0%, 4: 6.3%, 5: 0.2%, 6: 2.5%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 0.0%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 20427, 2: 2371, 3: 2, 4: 6552, 5: 34, 6: 1593, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state visits cumulative  : 1: 575317, 2: 23220, 3: 19, 4: 19060, 5: 662, 6: 8353, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries in window  : 1: 100, 2: 36, 3: 2, 4: 21, 5: 1, 6: 27, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries cumulative : 1: 3100, 2: 355, 3: 19, 4: 66, 5: 3, 6: 224, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+transitions cumulative       : 1->2: 355, 2->3: 15, 2->4: 1, 2->6: 224, 4->3: 4, 4->5: 3, 5->4: 1, 6->4: 64
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=2998, truncated=83
+
+[Episode 3200/10000 | last 100]
+success rate                : 0.0% (cumulative 0.0%)
+failure rate                : 0.0% (cumulative 0.6%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 0.000
+shaping reward              : 712.777
+learning reward             : 712.777
+episode length              : 308.8
+abstract changes / episode  : 69.8
+same abstract-state steps   : 77.4%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 712.777
+terminal shaping / episode  : 3.304
+DFA transitions / episode   : 0.81
+DFA transitions in window   : 1->2: 42, 2->6: 25, 6->4: 14
+epsilon (next episode)       : 0.27797
+replay buffer                : 300000 samples [1: 80.0%, 2: 8.0%, 3: 0.0%, 4: 8.5%, 5: 0.2%, 6: 3.2%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 0.0%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 19510, 2: 2695, 3: 0, 4: 6569, 5: 0, 6: 2205, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state visits cumulative  : 1: 594827, 2: 25915, 3: 19, 4: 25629, 5: 662, 6: 10558, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries in window  : 1: 100, 2: 42, 3: 0, 4: 14, 5: 0, 6: 25, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries cumulative : 1: 3200, 2: 397, 3: 19, 4: 80, 5: 3, 6: 249, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+transitions cumulative       : 1->2: 397, 2->3: 15, 2->4: 1, 2->6: 249, 4->3: 4, 4->5: 3, 5->4: 1, 6->4: 78
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=3089, truncated=92
+
+[Episode 3300/10000 | last 100]
+success rate                : 0.0% (cumulative 0.0%)
+failure rate                : 0.0% (cumulative 0.6%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 0.000
+shaping reward              : 809.289
+learning reward             : 809.289
+episode length              : 376.2
+abstract changes / episode  : 80.6
+same abstract-state steps   : 78.6%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 809.289
+terminal shaping / episode  : 1.133
+DFA transitions / episode   : 1.14
+DFA transitions in window   : 1->2: 45, 2->6: 40, 4->5: 2, 6->4: 27
+epsilon (next episode)       : 0.26706
+replay buffer                : 300000 samples [1: 74.6%, 2: 8.8%, 3: 0.0%, 4: 12.4%, 5: 0.2%, 6: 4.0%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 0.0%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 20681, 2: 3150, 3: 0, 4: 11607, 5: 56, 6: 2222, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state visits cumulative  : 1: 615508, 2: 29065, 3: 19, 4: 37236, 5: 718, 6: 12780, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries in window  : 1: 100, 2: 45, 3: 0, 4: 27, 5: 2, 6: 40, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries cumulative : 1: 3300, 2: 442, 3: 19, 4: 107, 5: 5, 6: 289, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+transitions cumulative       : 1->2: 442, 2->3: 15, 2->4: 1, 2->6: 289, 4->3: 4, 4->5: 5, 5->4: 1, 6->4: 105
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=3175, truncated=106
+
+[Episode 3400/10000 | last 100]
+success rate                : 0.0% (cumulative 0.0%)
+failure rate                : 2.0% (cumulative 0.6%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 0.000
+shaping reward              : 1027.541
+learning reward             : 1027.541
+episode length              : 543.9
+abstract changes / episode  : 91.7
+same abstract-state steps   : 83.1%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 1027.541
+terminal shaping / episode  : -138.935
+DFA transitions / episode   : 1.66
+DFA transitions in window   : 1->2: 58, 2->3: 2, 2->6: 55, 4->5: 2, 5->4: 1, 6->4: 48
+epsilon (next episode)       : 0.25659
+replay buffer                : 300000 samples [1: 63.4%, 2: 10.1%, 3: 0.0%, 4: 21.3%, 5: 0.3%, 6: 4.9%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 0.0%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 19446, 2: 4847, 3: 2, 4: 26836, 5: 125, 6: 3232, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state visits cumulative  : 1: 634954, 2: 33912, 3: 21, 4: 64072, 5: 843, 6: 16012, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries in window  : 1: 100, 2: 58, 3: 2, 4: 49, 5: 2, 6: 55, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries cumulative : 1: 3400, 2: 500, 3: 21, 4: 156, 5: 7, 6: 344, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+transitions cumulative       : 1->2: 500, 2->3: 17, 2->4: 1, 2->6: 344, 4->3: 4, 4->5: 7, 5->4: 2, 6->4: 153
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=3235, truncated=144
+
+[Episode 3500/10000 | last 100]
+success rate                : 0.0% (cumulative 0.0%)
+failure rate                : 0.0% (cumulative 0.6%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 0.000
+shaping reward              : 1458.931
+learning reward             : 1458.931
+episode length              : 654.3
+abstract changes / episode  : 113.7
+same abstract-state steps   : 82.6%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 1458.931
+terminal shaping / episode  : -0.220
+DFA transitions / episode   : 2.27
+DFA transitions in window   : 1->2: 74, 2->6: 70, 4->5: 11, 5->4: 4, 6->4: 68
+epsilon (next episode)       : 0.24653
+replay buffer                : 300000 samples [1: 49.9%, 2: 10.7%, 3: 0.0%, 4: 33.2%, 5: 0.5%, 6: 5.8%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 0.0%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 19705, 2: 5765, 3: 0, 4: 35682, 5: 576, 6: 3803, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state visits cumulative  : 1: 654659, 2: 39677, 3: 21, 4: 99754, 5: 1419, 6: 19815, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries in window  : 1: 100, 2: 74, 3: 0, 4: 72, 5: 11, 6: 70, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+DFA state entries cumulative : 1: 3500, 2: 574, 3: 21, 4: 228, 5: 18, 6: 414, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0
+transitions cumulative       : 1->2: 574, 2->3: 17, 2->4: 1, 2->6: 414, 4->3: 4, 4->5: 18, 5->4: 6, 6->4: 221
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=3285, truncated=194
+
+Starting autonomous greedy evaluation at episode 3500 (1000 fixed-seed episodes)...
+[Greedy evaluation at episode 3500 | 1000 fixed-seed episodes]
+success=0.0%, failure=0.0%, task reward=0.000, length=995.0
+DFA transitions: 1->2: 975, 2->6: 975, 6->4: 975
+
+[Episode 3600/10000 | last 100]
+success rate                : 0.0% (cumulative 0.0%)
+failure rate                : 6.0% (cumulative 0.8%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 0.000
+shaping reward              : 867.004
+learning reward             : 867.004
+episode length              : 549.8
+abstract changes / episode  : 112.0
+same abstract-state steps   : 79.6%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 867.004
+terminal shaping / episode  : -480.733
+DFA transitions / episode   : 2.24
+DFA transitions in window   : 1->2: 72, 2->3: 4, 2->6: 66, 4->5: 13, 5->4: 5, 5->10: 3, 6->4: 59, 10->3: 2
+epsilon (next episode)       : 0.23686
+replay buffer                : 300000 samples [1: 45.8%, 2: 9.0%, 3: 0.0%, 4: 38.8%, 5: 0.6%, 6: 5.8%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 0.0%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 22332, 2: 5442, 3: 6, 4: 23745, 5: 528, 6: 2917, 7: 0, 8: 0, 9: 0, 10: 107, 11: 0, 12: 0
+DFA state visits cumulative  : 1: 676991, 2: 45119, 3: 27, 4: 123499, 5: 1947, 6: 22732, 7: 0, 8: 0, 9: 0, 10: 107, 11: 0, 12: 0
+DFA state entries in window  : 1: 100, 2: 72, 3: 6, 4: 64, 5: 13, 6: 66, 7: 0, 8: 0, 9: 0, 10: 3, 11: 0, 12: 0
+DFA state entries cumulative : 1: 3600, 2: 646, 3: 27, 4: 292, 5: 31, 6: 480, 7: 0, 8: 0, 9: 0, 10: 3, 11: 0, 12: 0
+transitions cumulative       : 1->2: 646, 2->3: 21, 2->4: 1, 2->6: 480, 4->3: 4, 4->5: 31, 5->4: 11, 5->10: 3, 6->4: 280, 10->3: 2
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=3346, truncated=227
+
+[Episode 3700/10000 | last 100]
+success rate                : 4.0% (cumulative 0.1%)
+failure rate                : 3.0% (cumulative 0.8%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 400.000
+shaping reward              : 1116.343
+learning reward             : 1516.343
+episode length              : 401.5
+abstract changes / episode  : 105.0
+same abstract-state steps   : 73.9%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 1116.343
+terminal shaping / episode  : -243.735
+DFA transitions / episode   : 2.55
+DFA transitions in window   : 1->2: 70, 2->6: 63, 4->3: 1, 4->5: 38, 5->4: 11, 5->10: 12, 6->4: 54, 10->3: 2, 10->12: 4
+epsilon (next episode)       : 0.22757
+replay buffer                : 300000 samples [1: 44.4%, 2: 9.1%, 3: 0.0%, 4: 39.3%, 5: 0.9%, 6: 6.1%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 0.2%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 19953, 2: 4298, 3: 3, 4: 11111, 5: 1406, 6: 3039, 7: 0, 8: 0, 9: 0, 10: 438, 11: 0, 12: 4
+DFA state visits cumulative  : 1: 696944, 2: 49417, 3: 30, 4: 134610, 5: 3353, 6: 25771, 7: 0, 8: 0, 9: 0, 10: 545, 11: 0, 12: 4
+DFA state entries in window  : 1: 100, 2: 70, 3: 3, 4: 65, 5: 38, 6: 63, 7: 0, 8: 0, 9: 0, 10: 12, 11: 0, 12: 4
+DFA state entries cumulative : 1: 3700, 2: 716, 3: 30, 4: 357, 5: 69, 6: 543, 7: 0, 8: 0, 9: 0, 10: 15, 11: 0, 12: 4
+transitions cumulative       : 1->2: 716, 2->3: 21, 2->4: 1, 2->6: 543, 4->3: 5, 4->5: 69, 5->4: 22, 5->10: 15, 6->4: 334, 10->3: 4, 10->12: 4
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=3435, truncated=231
+
+[Episode 3800/10000 | last 100]
+success rate                : 4.0% (cumulative 0.2%)
+failure rate                : 9.0% (cumulative 1.0%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 400.000
+shaping reward              : 670.551
+learning reward             : 1070.551
+episode length              : 355.7
+abstract changes / episode  : 102.5
+same abstract-state steps   : 71.2%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 670.551
+terminal shaping / episode  : -813.716
+DFA transitions / episode   : 2.35
+DFA transitions in window   : 1->2: 69, 2->6: 61, 4->3: 7, 4->5: 30, 5->4: 1, 5->10: 14, 6->4: 47, 10->3: 2, 10->12: 4
+epsilon (next episode)       : 0.21865
+replay buffer                : 300000 samples [1: 43.8%, 2: 9.6%, 3: 0.0%, 4: 38.7%, 5: 1.2%, 6: 6.4%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 0.3%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 21786, 2: 4235, 3: 9, 4: 5364, 5: 1066, 6: 2824, 7: 0, 8: 0, 9: 0, 10: 378, 11: 0, 12: 4
+DFA state visits cumulative  : 1: 718730, 2: 53652, 3: 39, 4: 139974, 5: 4419, 6: 28595, 7: 0, 8: 0, 9: 0, 10: 923, 11: 0, 12: 8
+DFA state entries in window  : 1: 100, 2: 69, 3: 9, 4: 48, 5: 30, 6: 61, 7: 0, 8: 0, 9: 0, 10: 14, 11: 0, 12: 4
+DFA state entries cumulative : 1: 3800, 2: 785, 3: 39, 4: 405, 5: 99, 6: 604, 7: 0, 8: 0, 9: 0, 10: 29, 11: 0, 12: 8
+transitions cumulative       : 1->2: 785, 2->3: 21, 2->4: 1, 2->6: 604, 4->3: 12, 4->5: 99, 5->4: 23, 5->10: 29, 6->4: 381, 10->3: 6, 10->12: 8
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=3522, truncated=231
+
+[Episode 3900/10000 | last 100]
+success rate                : 7.0% (cumulative 0.4%)
+failure rate                : 4.0% (cumulative 1.1%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 700.000
+shaping reward              : 1197.367
+learning reward             : 1897.367
+episode length              : 316.1
+abstract changes / episode  : 93.4
+same abstract-state steps   : 70.5%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 1197.367
+terminal shaping / episode  : -352.762
+DFA transitions / episode   : 2.13
+DFA transitions in window   : 1->2: 55, 2->6: 51, 4->3: 2, 4->5: 30, 5->10: 23, 6->4: 43, 10->3: 2, 10->12: 7
+epsilon (next episode)       : 0.21007
+replay buffer                : 300000 samples [1: 44.2%, 2: 9.9%, 3: 0.0%, 4: 37.5%, 5: 1.5%, 6: 6.4%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 0.6%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 19921, 2: 3463, 3: 4, 4: 4300, 5: 822, 6: 2400, 7: 0, 8: 0, 9: 0, 10: 791, 11: 0, 12: 7
+DFA state visits cumulative  : 1: 738651, 2: 57115, 3: 43, 4: 144274, 5: 5241, 6: 30995, 7: 0, 8: 0, 9: 0, 10: 1714, 11: 0, 12: 15
+DFA state entries in window  : 1: 100, 2: 55, 3: 4, 4: 43, 5: 30, 6: 51, 7: 0, 8: 0, 9: 0, 10: 23, 11: 0, 12: 7
+DFA state entries cumulative : 1: 3900, 2: 840, 3: 43, 4: 448, 5: 129, 6: 655, 7: 0, 8: 0, 9: 0, 10: 52, 11: 0, 12: 15
+transitions cumulative       : 1->2: 840, 2->3: 21, 2->4: 1, 2->6: 655, 4->3: 14, 4->5: 129, 5->4: 23, 5->10: 52, 6->4: 424, 10->3: 8, 10->12: 15
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=3611, truncated=231
+
+[Episode 4000/10000 | last 100]
+success rate                : 7.0% (cumulative 0.5%)
+failure rate                : 6.0% (cumulative 1.2%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 700.000
+shaping reward              : 1032.717
+learning reward             : 1732.717
+episode length              : 326.4
+abstract changes / episode  : 102.9
+same abstract-state steps   : 68.5%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 1032.717
+terminal shaping / episode  : -538.059
+DFA transitions / episode   : 2.61
+DFA transitions in window   : 1->2: 66, 2->6: 58, 4->3: 5, 4->5: 45, 5->4: 2, 5->10: 22, 6->4: 55, 10->3: 1, 10->12: 7
+epsilon (next episode)       : 0.20183
+replay buffer                : 300000 samples [1: 45.7%, 2: 10.2%, 3: 0.0%, 4: 35.0%, 5: 1.9%, 6: 6.4%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 0.8%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 19791, 2: 4095, 3: 6, 4: 4679, 5: 1422, 6: 2107, 7: 0, 8: 0, 9: 0, 10: 638, 11: 0, 12: 7
+DFA state visits cumulative  : 1: 758442, 2: 61210, 3: 49, 4: 148953, 5: 6663, 6: 33102, 7: 0, 8: 0, 9: 0, 10: 2352, 11: 0, 12: 22
+DFA state entries in window  : 1: 100, 2: 66, 3: 6, 4: 57, 5: 45, 6: 58, 7: 0, 8: 0, 9: 0, 10: 22, 11: 0, 12: 7
+DFA state entries cumulative : 1: 4000, 2: 906, 3: 49, 4: 505, 5: 174, 6: 713, 7: 0, 8: 0, 9: 0, 10: 74, 11: 0, 12: 22
+transitions cumulative       : 1->2: 906, 2->3: 21, 2->4: 1, 2->6: 713, 4->3: 19, 4->5: 174, 5->4: 25, 5->10: 74, 6->4: 479, 10->3: 9, 10->12: 22
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=3698, truncated=231
+
+Starting autonomous greedy evaluation at episode 4000 (1000 fixed-seed episodes)...
+[Greedy evaluation at episode 4000 | 1000 fixed-seed episodes]
+success=0.3%, failure=0.5%, task reward=30.000, length=274.3
+DFA transitions: 1->2: 750, 2->6: 671, 4->3: 3, 4->5: 520, 5->4: 2, 5->10: 33, 6->4: 662, 10->3: 2, 10->12: 3
+Best policy updated from autonomous greedy evaluation at episode 4000.
+
+[Episode 4100/10000 | last 100]
+success rate                : 10.0% (cumulative 0.8%)
+failure rate                : 8.0% (cumulative 1.4%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 1000.000
+shaping reward              : 1198.200
+learning reward             : 2198.200
+episode length              : 360.5
+abstract changes / episode  : 111.3
+same abstract-state steps   : 69.1%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 1198.200
+terminal shaping / episode  : -714.468
+DFA transitions / episode   : 3.38
+DFA transitions in window   : 1->2: 78, 2->6: 76, 4->5: 57, 5->4: 5, 5->10: 30, 6->4: 74, 10->3: 8, 10->12: 10
+epsilon (next episode)       : 0.19392
+replay buffer                : 300000 samples [1: 48.1%, 2: 10.7%, 3: 0.0%, 4: 30.7%, 5: 2.6%, 6: 6.6%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 1.3%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 20426, 2: 4547, 3: 8, 4: 5097, 5: 2026, 6: 2510, 7: 0, 8: 0, 9: 0, 10: 1528, 11: 0, 12: 10
+DFA state visits cumulative  : 1: 778868, 2: 65757, 3: 57, 4: 154050, 5: 8689, 6: 35612, 7: 0, 8: 0, 9: 0, 10: 3880, 11: 0, 12: 32
+DFA state entries in window  : 1: 100, 2: 78, 3: 8, 4: 79, 5: 57, 6: 76, 7: 0, 8: 0, 9: 0, 10: 30, 11: 0, 12: 10
+DFA state entries cumulative : 1: 4100, 2: 984, 3: 57, 4: 584, 5: 231, 6: 789, 7: 0, 8: 0, 9: 0, 10: 104, 11: 0, 12: 32
+transitions cumulative       : 1->2: 984, 2->3: 21, 2->4: 1, 2->6: 789, 4->3: 19, 4->5: 231, 5->4: 30, 5->10: 104, 6->4: 553, 10->3: 17, 10->12: 32
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=3779, truncated=232
+
+[Episode 4200/10000 | last 100]
+success rate                : 22.0% (cumulative 1.3%)
+failure rate                : 1.0% (cumulative 1.4%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 2200.000
+shaping reward              : 2274.477
+learning reward             : 4474.477
+episode length              : 370.7
+abstract changes / episode  : 111.8
+same abstract-state steps   : 69.8%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 2274.477
+terminal shaping / episode  : -66.275
+DFA transitions / episode   : 3.63
+DFA transitions in window   : 1->2: 78, 2->6: 75, 4->3: 1, 4->5: 66, 5->4: 2, 5->10: 48, 6->4: 71, 10->12: 22
+epsilon (next episode)       : 0.18631
+replay buffer                : 300000 samples [1: 50.9%, 2: 11.1%, 3: 0.0%, 4: 26.1%, 5: 3.2%, 6: 6.8%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 2.0%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 19642, 2: 4276, 3: 1, 4: 6617, 5: 1894, 6: 2552, 7: 0, 8: 0, 9: 0, 10: 2166, 11: 0, 12: 22
+DFA state visits cumulative  : 1: 798510, 2: 70033, 3: 58, 4: 160667, 5: 10583, 6: 38164, 7: 0, 8: 0, 9: 0, 10: 6046, 11: 0, 12: 54
+DFA state entries in window  : 1: 100, 2: 78, 3: 1, 4: 73, 5: 66, 6: 75, 7: 0, 8: 0, 9: 0, 10: 48, 11: 0, 12: 22
+DFA state entries cumulative : 1: 4200, 2: 1062, 3: 58, 4: 657, 5: 297, 6: 864, 7: 0, 8: 0, 9: 0, 10: 152, 11: 0, 12: 54
+transitions cumulative       : 1->2: 1062, 2->3: 21, 2->4: 1, 2->6: 864, 4->3: 20, 4->5: 297, 5->4: 32, 5->10: 152, 6->4: 624, 10->3: 17, 10->12: 54
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=3856, truncated=232
+
+[Episode 4300/10000 | last 100]
+success rate                : 42.0% (cumulative 2.2%)
+failure rate                : 0.0% (cumulative 1.3%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 4200.000
+shaping reward              : 2999.653
+learning reward             : 7199.653
+episode length              : 388.2
+abstract changes / episode  : 114.2
+same abstract-state steps   : 70.6%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 2999.653
+terminal shaping / episode  : 42.849
+DFA transitions / episode   : 4.55
+DFA transitions in window   : 1->2: 88, 2->6: 87, 4->5: 80, 5->4: 5, 5->10: 70, 6->4: 83, 10->12: 42
+epsilon (next episode)       : 0.17900
+replay buffer                : 300000 samples [1: 52.9%, 2: 11.6%, 3: 0.0%, 4: 21.9%, 5: 3.8%, 6: 7.1%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 2.8%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 17521, 2: 5151, 3: 0, 4: 8325, 5: 2349, 6: 3122, 7: 0, 8: 0, 9: 0, 10: 2409, 11: 0, 12: 42
+DFA state visits cumulative  : 1: 816031, 2: 75184, 3: 58, 4: 168992, 5: 12932, 6: 41286, 7: 0, 8: 0, 9: 0, 10: 8455, 11: 0, 12: 96
+DFA state entries in window  : 1: 100, 2: 88, 3: 0, 4: 88, 5: 80, 6: 87, 7: 0, 8: 0, 9: 0, 10: 70, 11: 0, 12: 42
+DFA state entries cumulative : 1: 4300, 2: 1150, 3: 58, 4: 745, 5: 377, 6: 951, 7: 0, 8: 0, 9: 0, 10: 222, 11: 0, 12: 96
+transitions cumulative       : 1->2: 1150, 2->3: 21, 2->4: 1, 2->6: 951, 4->3: 20, 4->5: 377, 5->4: 37, 5->10: 222, 6->4: 707, 10->3: 17, 10->12: 96
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=3914, truncated=232
+
+[Episode 4400/10000 | last 100]
+success rate                : 65.0% (cumulative 3.7%)
+failure rate                : 1.0% (cumulative 1.3%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 6500.000
+shaping reward              : 3063.631
+learning reward             : 9563.631
+episode length              : 377.5
+abstract changes / episode  : 109.0
+same abstract-state steps   : 71.1%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 3063.631
+terminal shaping / episode  : -29.732
+DFA transitions / episode   : 4.72
+DFA transitions in window   : 1->2: 86, 2->6: 85, 4->5: 78, 5->10: 74, 6->4: 83, 10->3: 1, 10->12: 65
+epsilon (next episode)       : 0.17198
+replay buffer                : 300000 samples [1: 54.1%, 2: 12.3%, 3: 0.0%, 4: 18.5%, 5: 4.4%, 6: 7.3%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 3.5%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 17159, 2: 5426, 3: 1, 4: 8135, 5: 2057, 6: 2749, 7: 0, 8: 0, 9: 0, 10: 2260, 11: 0, 12: 65
+DFA state visits cumulative  : 1: 833190, 2: 80610, 3: 59, 4: 177127, 5: 14989, 6: 44035, 7: 0, 8: 0, 9: 0, 10: 10715, 11: 0, 12: 161
+DFA state entries in window  : 1: 100, 2: 86, 3: 1, 4: 83, 5: 78, 6: 85, 7: 0, 8: 0, 9: 0, 10: 74, 11: 0, 12: 65
+DFA state entries cumulative : 1: 4400, 2: 1236, 3: 59, 4: 828, 5: 455, 6: 1036, 7: 0, 8: 0, 9: 0, 10: 296, 11: 0, 12: 161
+transitions cumulative       : 1->2: 1236, 2->3: 21, 2->4: 1, 2->6: 1036, 4->3: 20, 4->5: 455, 5->4: 37, 5->10: 296, 6->4: 790, 10->3: 18, 10->12: 161
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=3948, truncated=233
+
+[Episode 4500/10000 | last 100]
+success rate                : 60.0% (cumulative 4.9%)
+failure rate                : 0.0% (cumulative 1.3%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 6000.000
+shaping reward              : 2838.245
+learning reward             : 8838.245
+episode length              : 385.4
+abstract changes / episode  : 110.9
+same abstract-state steps   : 71.2%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 2838.245
+terminal shaping / episode  : 55.823
+DFA transitions / episode   : 4.38
+DFA transitions in window   : 1->2: 80, 2->6: 79, 4->5: 72, 5->4: 1, 5->10: 69, 6->4: 77, 10->12: 60
+epsilon (next episode)       : 0.16524
+replay buffer                : 300000 samples [1: 53.6%, 2: 12.5%, 3: 0.0%, 4: 18.0%, 5: 4.7%, 6: 7.2%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 4.1%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 18588, 2: 4965, 3: 0, 4: 8374, 5: 2022, 6: 2501, 7: 0, 8: 0, 9: 0, 10: 2129, 11: 0, 12: 60
+DFA state visits cumulative  : 1: 851778, 2: 85575, 3: 59, 4: 185501, 5: 17011, 6: 46536, 7: 0, 8: 0, 9: 0, 10: 12844, 11: 0, 12: 221
+DFA state entries in window  : 1: 100, 2: 80, 3: 0, 4: 78, 5: 72, 6: 79, 7: 0, 8: 0, 9: 0, 10: 69, 11: 0, 12: 60
+DFA state entries cumulative : 1: 4500, 2: 1316, 3: 59, 4: 906, 5: 527, 6: 1115, 7: 0, 8: 0, 9: 0, 10: 365, 11: 0, 12: 221
+transitions cumulative       : 1->2: 1316, 2->3: 21, 2->4: 1, 2->6: 1115, 4->3: 20, 4->5: 527, 5->4: 38, 5->10: 365, 6->4: 867, 10->3: 18, 10->12: 221
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=3988, truncated=233
+
+Starting autonomous greedy evaluation at episode 4500 (1000 fixed-seed episodes)...
+[Greedy evaluation at episode 4500 | 1000 fixed-seed episodes]
+success=99.1%, failure=0.0%, task reward=9910.000, length=380.3
+DFA transitions: 1->2: 996, 2->6: 996, 4->5: 995, 5->10: 995, 6->4: 996, 10->12: 991
+Best policy updated from autonomous greedy evaluation at episode 4500.
+
+[Episode 4600/10000 | last 100]
+success rate                : 43.0% (cumulative 5.7%)
+failure rate                : 0.0% (cumulative 1.3%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 4300.000
+shaping reward              : 2471.604
+learning reward             : 6771.604
+episode length              : 346.9
+abstract changes / episode  : 103.9
+same abstract-state steps   : 70.1%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 2471.604
+terminal shaping / episode  : 41.433
+DFA transitions / episode   : 3.70
+DFA transitions in window   : 1->2: 73, 2->6: 66, 4->5: 64, 5->4: 1, 5->10: 58, 6->4: 65, 10->12: 43
+epsilon (next episode)       : 0.15876
+replay buffer                : 300000 samples [1: 53.2%, 2: 12.5%, 3: 0.0%, 4: 17.7%, 5: 5.0%, 6: 7.0%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 4.7%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 17930, 2: 4381, 3: 0, 4: 6155, 5: 2067, 6: 2107, 7: 0, 8: 0, 9: 0, 10: 2111, 11: 0, 12: 43
+DFA state visits cumulative  : 1: 869708, 2: 89956, 3: 59, 4: 191656, 5: 19078, 6: 48643, 7: 0, 8: 0, 9: 0, 10: 14955, 11: 0, 12: 264
+DFA state entries in window  : 1: 100, 2: 73, 3: 0, 4: 66, 5: 64, 6: 66, 7: 0, 8: 0, 9: 0, 10: 58, 11: 0, 12: 43
+DFA state entries cumulative : 1: 4600, 2: 1389, 3: 59, 4: 972, 5: 591, 6: 1181, 7: 0, 8: 0, 9: 0, 10: 423, 11: 0, 12: 264
+transitions cumulative       : 1->2: 1389, 2->3: 21, 2->4: 1, 2->6: 1181, 4->3: 20, 4->5: 591, 5->4: 39, 5->10: 423, 6->4: 932, 10->3: 18, 10->12: 264
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=4045, truncated=233
+
+[Episode 4700/10000 | last 100]
+success rate                : 60.0% (cumulative 6.9%)
+failure rate                : 1.0% (cumulative 1.3%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 6000.000
+shaping reward              : 3258.394
+learning reward             : 9258.394
+episode length              : 418.5
+abstract changes / episode  : 118.9
+same abstract-state steps   : 71.6%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 3258.394
+terminal shaping / episode  : -31.589
+DFA transitions / episode   : 5.02
+DFA transitions in window   : 1->2: 89, 2->6: 89, 4->5: 89, 5->4: 2, 5->10: 83, 6->4: 89, 10->3: 1, 10->12: 60
+epsilon (next episode)       : 0.15253
+replay buffer                : 300000 samples [1: 50.3%, 2: 13.1%, 3: 0.0%, 4: 18.8%, 5: 5.4%, 6: 6.7%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 5.6%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 18348, 2: 6340, 3: 1, 4: 8790, 5: 2392, 6: 2404, 7: 0, 8: 0, 9: 0, 10: 3618, 11: 0, 12: 60
+DFA state visits cumulative  : 1: 888056, 2: 96296, 3: 60, 4: 200446, 5: 21470, 6: 51047, 7: 0, 8: 0, 9: 0, 10: 18573, 11: 0, 12: 324
+DFA state entries in window  : 1: 100, 2: 89, 3: 1, 4: 91, 5: 89, 6: 89, 7: 0, 8: 0, 9: 0, 10: 83, 11: 0, 12: 60
+DFA state entries cumulative : 1: 4700, 2: 1478, 3: 60, 4: 1063, 5: 680, 6: 1270, 7: 0, 8: 0, 9: 0, 10: 506, 11: 0, 12: 324
+transitions cumulative       : 1->2: 1478, 2->3: 21, 2->4: 1, 2->6: 1270, 4->3: 20, 4->5: 680, 5->4: 41, 5->10: 506, 6->4: 1021, 10->3: 19, 10->12: 324
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=4083, truncated=234
+
+[Episode 4800/10000 | last 100]
+success rate                : 50.0% (cumulative 7.8%)
+failure rate                : 3.0% (cumulative 1.3%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 5000.000
+shaping reward              : 2640.971
+learning reward             : 7640.971
+episode length              : 387.4
+abstract changes / episode  : 110.3
+same abstract-state steps   : 71.5%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 2640.971
+terminal shaping / episode  : -175.073
+DFA transitions / episode   : 4.38
+DFA transitions in window   : 1->2: 82, 2->3: 2, 2->6: 79, 4->3: 1, 4->5: 74, 5->4: 1, 5->10: 71, 6->4: 78, 10->12: 50
+epsilon (next episode)       : 0.14655
+replay buffer                : 300000 samples [1: 48.5%, 2: 13.2%, 3: 0.0%, 4: 19.4%, 5: 5.5%, 6: 6.6%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 6.8%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 18418, 2: 4987, 3: 3, 4: 7160, 5: 1801, 6: 2077, 7: 0, 8: 0, 9: 0, 10: 4344, 11: 0, 12: 50
+DFA state visits cumulative  : 1: 906474, 2: 101283, 3: 63, 4: 207606, 5: 23271, 6: 53124, 7: 0, 8: 0, 9: 0, 10: 22917, 11: 0, 12: 374
+DFA state entries in window  : 1: 100, 2: 82, 3: 3, 4: 79, 5: 74, 6: 79, 7: 0, 8: 0, 9: 0, 10: 71, 11: 0, 12: 50
+DFA state entries cumulative : 1: 4800, 2: 1560, 3: 63, 4: 1142, 5: 754, 6: 1349, 7: 0, 8: 0, 9: 0, 10: 577, 11: 0, 12: 374
+transitions cumulative       : 1->2: 1560, 2->3: 23, 2->4: 1, 2->6: 1349, 4->3: 21, 4->5: 754, 5->4: 42, 5->10: 577, 6->4: 1099, 10->3: 19, 10->12: 374
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=4128, truncated=236
+
+[Episode 4900/10000 | last 100]
+success rate                : 45.0% (cumulative 8.6%)
+failure rate                : 3.0% (cumulative 1.3%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 4500.000
+shaping reward              : 2537.451
+learning reward             : 7037.451
+episode length              : 441.7
+abstract changes / episode  : 119.6
+same abstract-state steps   : 72.9%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 2537.451
+terminal shaping / episode  : -234.564
+DFA transitions / episode   : 4.37
+DFA transitions in window   : 1->2: 79, 2->6: 78, 4->3: 1, 4->5: 78, 5->4: 1, 5->10: 75, 6->4: 78, 10->3: 2, 10->12: 45
+epsilon (next episode)       : 0.14080
+replay buffer                : 300000 samples [1: 46.1%, 2: 13.1%, 3: 0.0%, 4: 19.8%, 5: 5.2%, 6: 6.3%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 9.5%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 18345, 2: 5180, 3: 3, 4: 7306, 5: 1458, 6: 2079, 7: 0, 8: 0, 9: 0, 10: 9853, 11: 0, 12: 45
+DFA state visits cumulative  : 1: 924819, 2: 106463, 3: 66, 4: 214912, 5: 24729, 6: 55203, 7: 0, 8: 0, 9: 0, 10: 32770, 11: 0, 12: 419
+DFA state entries in window  : 1: 100, 2: 79, 3: 3, 4: 79, 5: 78, 6: 78, 7: 0, 8: 0, 9: 0, 10: 75, 11: 0, 12: 45
+DFA state entries cumulative : 1: 4900, 2: 1639, 3: 66, 4: 1221, 5: 832, 6: 1427, 7: 0, 8: 0, 9: 0, 10: 652, 11: 0, 12: 419
+transitions cumulative       : 1->2: 1639, 2->3: 23, 2->4: 1, 2->6: 1427, 4->3: 22, 4->5: 832, 5->4: 43, 5->10: 652, 6->4: 1177, 10->3: 21, 10->12: 419
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=4178, truncated=238
+
+[Episode 5000/10000 | last 100]
+success rate                : 51.0% (cumulative 9.4%)
+failure rate                : 1.0% (cumulative 1.3%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 5100.000
+shaping reward              : 2729.626
+learning reward             : 7829.626
+episode length              : 362.5
+abstract changes / episode  : 105.5
+same abstract-state steps   : 70.9%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 2729.626
+terminal shaping / episode  : -24.986
+DFA transitions / episode   : 4.14
+DFA transitions in window   : 1->2: 80, 2->3: 1, 2->6: 73, 4->5: 68, 4->10: 3, 5->10: 66, 6->4: 72, 10->12: 51
+epsilon (next episode)       : 0.13528
+replay buffer                : 300000 samples [1: 46.0%, 2: 13.3%, 3: 0.0%, 4: 19.1%, 5: 4.8%, 6: 6.0%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 10.8%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 16467, 2: 4876, 3: 1, 4: 5580, 5: 916, 6: 1869, 7: 0, 8: 0, 9: 0, 10: 6594, 11: 0, 12: 51
+DFA state visits cumulative  : 1: 941286, 2: 111339, 3: 67, 4: 220492, 5: 25645, 6: 57072, 7: 0, 8: 0, 9: 0, 10: 39364, 11: 0, 12: 470
+DFA state entries in window  : 1: 100, 2: 80, 3: 1, 4: 72, 5: 68, 6: 73, 7: 0, 8: 0, 9: 0, 10: 69, 11: 0, 12: 51
+DFA state entries cumulative : 1: 5000, 2: 1719, 3: 67, 4: 1293, 5: 900, 6: 1500, 7: 0, 8: 0, 9: 0, 10: 721, 11: 0, 12: 470
+transitions cumulative       : 1->2: 1719, 2->3: 24, 2->4: 1, 2->6: 1500, 4->3: 22, 4->5: 900, 4->10: 3, 5->4: 43, 5->10: 718, 6->4: 1249, 10->3: 21, 10->12: 470
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=4225, truncated=239
+
+Starting autonomous greedy evaluation at episode 5000 (1000 fixed-seed episodes)...
+[Greedy evaluation at episode 5000 | 1000 fixed-seed episodes]
+success=39.3%, failure=11.8%, task reward=3930.000, length=342.6
+DFA transitions: 1->2: 626, 2->6: 576, 4->3: 115, 4->5: 412, 4->10: 48, 5->10: 412, 6->4: 575, 10->3: 3, 10->12: 393
+
+[Episode 5100/10000 | last 100]
+success rate                : 47.0% (cumulative 10.1%)
+failure rate                : 5.0% (cumulative 1.4%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 4700.000
+shaping reward              : 2620.440
+learning reward             : 7320.440
+episode length              : 352.5
+abstract changes / episode  : 111.5
+same abstract-state steps   : 68.4%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 2620.440
+terminal shaping / episode  : -415.674
+DFA transitions / episode   : 4.57
+DFA transitions in window   : 1->2: 89, 2->6: 82, 4->3: 2, 4->5: 79, 4->10: 1, 5->4: 3, 5->10: 71, 6->4: 80, 10->3: 3, 10->12: 47
+epsilon (next episode)       : 0.12998
+replay buffer                : 300000 samples [1: 45.5%, 2: 13.4%, 3: 0.0%, 4: 18.8%, 5: 4.8%, 6: 5.8%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 11.8%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 14894, 2: 5120, 3: 5, 4: 6291, 5: 2018, 6: 2089, 7: 0, 8: 0, 9: 0, 10: 4887, 11: 0, 12: 47
+DFA state visits cumulative  : 1: 956180, 2: 116459, 3: 72, 4: 226783, 5: 27663, 6: 59161, 7: 0, 8: 0, 9: 0, 10: 44251, 11: 0, 12: 517
+DFA state entries in window  : 1: 100, 2: 89, 3: 5, 4: 83, 5: 79, 6: 82, 7: 0, 8: 0, 9: 0, 10: 72, 11: 0, 12: 47
+DFA state entries cumulative : 1: 5100, 2: 1808, 3: 72, 4: 1376, 5: 979, 6: 1582, 7: 0, 8: 0, 9: 0, 10: 793, 11: 0, 12: 517
+transitions cumulative       : 1->2: 1808, 2->3: 24, 2->4: 1, 2->6: 1582, 4->3: 24, 4->5: 979, 4->10: 4, 5->4: 46, 5->10: 789, 6->4: 1329, 10->3: 24, 10->12: 517
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=4273, truncated=239
+
+[Episode 5200/10000 | last 100]
+success rate                : 51.0% (cumulative 10.9%)
+failure rate                : 3.0% (cumulative 1.4%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 5100.000
+shaping reward              : 2439.302
+learning reward             : 7539.302
+episode length              : 331.9
+abstract changes / episode  : 108.0
+same abstract-state steps   : 67.5%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 2439.302
+terminal shaping / episode  : -209.754
+DFA transitions / episode   : 4.19
+DFA transitions in window   : 1->2: 79, 2->3: 1, 2->6: 74, 4->3: 2, 4->5: 72, 4->10: 2, 5->4: 6, 5->10: 61, 6->4: 71, 10->12: 51
+epsilon (next episode)       : 0.12488
+replay buffer                : 300000 samples [1: 46.0%, 2: 13.4%, 3: 0.0%, 4: 18.2%, 5: 4.9%, 6: 5.6%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 12.0%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 16196, 2: 4745, 3: 3, 4: 5673, 5: 2088, 6: 1856, 7: 0, 8: 0, 9: 0, 10: 2679, 11: 0, 12: 51
+DFA state visits cumulative  : 1: 972376, 2: 121204, 3: 75, 4: 232456, 5: 29751, 6: 61017, 7: 0, 8: 0, 9: 0, 10: 46930, 11: 0, 12: 568
+DFA state entries in window  : 1: 100, 2: 79, 3: 3, 4: 77, 5: 72, 6: 74, 7: 0, 8: 0, 9: 0, 10: 63, 11: 0, 12: 51
+DFA state entries cumulative : 1: 5200, 2: 1887, 3: 75, 4: 1453, 5: 1051, 6: 1656, 7: 0, 8: 0, 9: 0, 10: 856, 11: 0, 12: 568
+transitions cumulative       : 1->2: 1887, 2->3: 25, 2->4: 1, 2->6: 1656, 4->3: 26, 4->5: 1051, 4->10: 6, 5->4: 52, 5->10: 850, 6->4: 1400, 10->3: 24, 10->12: 568
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=4319, truncated=239
+
+[Episode 5300/10000 | last 100]
+success rate                : 65.0% (cumulative 11.9%)
+failure rate                : 3.0% (cumulative 1.5%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 6500.000
+shaping reward              : 2849.163
+learning reward             : 9349.163
+episode length              : 348.1
+abstract changes / episode  : 111.2
+same abstract-state steps   : 68.1%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 2849.163
+terminal shaping / episode  : -214.306
+DFA transitions / episode   : 4.70
+DFA transitions in window   : 1->2: 87, 2->6: 81, 4->3: 2, 4->5: 77, 4->10: 3, 5->4: 4, 5->10: 69, 6->4: 81, 10->3: 1, 10->12: 65
+epsilon (next episode)       : 0.11998
+replay buffer                : 300000 samples [1: 46.5%, 2: 13.7%, 3: 0.0%, 4: 17.6%, 5: 4.7%, 6: 5.5%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 12.0%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 18351, 2: 5301, 3: 3, 4: 5603, 5: 1362, 6: 2087, 7: 0, 8: 0, 9: 0, 10: 2142, 11: 0, 12: 65
+DFA state visits cumulative  : 1: 990727, 2: 126505, 3: 78, 4: 238059, 5: 31113, 6: 63104, 7: 0, 8: 0, 9: 0, 10: 49072, 11: 0, 12: 633
+DFA state entries in window  : 1: 100, 2: 87, 3: 3, 4: 85, 5: 77, 6: 81, 7: 0, 8: 0, 9: 0, 10: 72, 11: 0, 12: 65
+DFA state entries cumulative : 1: 5300, 2: 1974, 3: 78, 4: 1538, 5: 1128, 6: 1737, 7: 0, 8: 0, 9: 0, 10: 928, 11: 0, 12: 633
+transitions cumulative       : 1->2: 1974, 2->3: 25, 2->4: 1, 2->6: 1737, 4->3: 28, 4->5: 1128, 4->10: 9, 5->4: 56, 5->10: 919, 6->4: 1481, 10->3: 25, 10->12: 633
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=4350, truncated=240
+
+[Episode 5400/10000 | last 100]
+success rate                : 57.0% (cumulative 12.8%)
+failure rate                : 6.0% (cumulative 1.6%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 5700.000
+shaping reward              : 2402.552
+learning reward             : 8102.552
+episode length              : 329.3
+abstract changes / episode  : 104.4
+same abstract-state steps   : 68.3%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 2402.552
+terminal shaping / episode  : -496.885
+DFA transitions / episode   : 4.41
+DFA transitions in window   : 1->2: 80, 2->6: 78, 4->3: 5, 4->5: 71, 4->10: 2, 5->4: 3, 5->10: 67, 6->4: 77, 10->3: 1, 10->12: 57
+epsilon (next episode)       : 0.11528
+replay buffer                : 300000 samples [1: 46.1%, 2: 14.0%, 3: 0.0%, 4: 17.5%, 5: 4.6%, 6: 5.5%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 12.3%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 16371, 2: 5011, 3: 6, 4: 5486, 5: 1617, 6: 1835, 7: 0, 8: 0, 9: 0, 10: 2650, 11: 0, 12: 57
+DFA state visits cumulative  : 1: 1007098, 2: 131516, 3: 84, 4: 243545, 5: 32730, 6: 64939, 7: 0, 8: 0, 9: 0, 10: 51722, 11: 0, 12: 690
+DFA state entries in window  : 1: 100, 2: 80, 3: 6, 4: 80, 5: 71, 6: 78, 7: 0, 8: 0, 9: 0, 10: 69, 11: 0, 12: 57
+DFA state entries cumulative : 1: 5400, 2: 2054, 3: 84, 4: 1618, 5: 1199, 6: 1815, 7: 0, 8: 0, 9: 0, 10: 997, 11: 0, 12: 690
+transitions cumulative       : 1->2: 2054, 2->3: 25, 2->4: 1, 2->6: 1815, 4->3: 33, 4->5: 1199, 4->10: 11, 5->4: 59, 5->10: 986, 6->4: 1558, 10->3: 26, 10->12: 690
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=4387, truncated=240
+
+[Episode 5500/10000 | last 100]
+success rate                : 55.0% (cumulative 13.5%)
+failure rate                : 7.0% (cumulative 1.7%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 5500.000
+shaping reward              : 2149.345
+learning reward             : 7649.345
+episode length              : 331.1
+abstract changes / episode  : 104.8
+same abstract-state steps   : 68.4%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 2149.345
+terminal shaping / episode  : -575.451
+DFA transitions / episode   : 4.14
+DFA transitions in window   : 1->2: 76, 2->3: 1, 2->6: 73, 4->3: 6, 4->5: 65, 5->4: 1, 5->10: 64, 6->4: 73, 10->12: 55
+epsilon (next episode)       : 0.11075
+replay buffer                : 300000 samples [1: 47.3%, 2: 13.9%, 3: 0.0%, 4: 16.9%, 5: 4.3%, 6: 5.5%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 12.2%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 18027, 2: 4711, 3: 7, 4: 5130, 5: 1042, 6: 1895, 7: 0, 8: 0, 9: 0, 10: 2340, 11: 0, 12: 55
+DFA state visits cumulative  : 1: 1025125, 2: 136227, 3: 91, 4: 248675, 5: 33772, 6: 66834, 7: 0, 8: 0, 9: 0, 10: 54062, 11: 0, 12: 745
+DFA state entries in window  : 1: 100, 2: 76, 3: 7, 4: 74, 5: 65, 6: 73, 7: 0, 8: 0, 9: 0, 10: 64, 11: 0, 12: 55
+DFA state entries cumulative : 1: 5500, 2: 2130, 3: 91, 4: 1692, 5: 1264, 6: 1888, 7: 0, 8: 0, 9: 0, 10: 1061, 11: 0, 12: 745
+transitions cumulative       : 1->2: 2130, 2->3: 26, 2->4: 1, 2->6: 1888, 4->3: 39, 4->5: 1264, 4->10: 11, 5->4: 60, 5->10: 1050, 6->4: 1631, 10->3: 26, 10->12: 745
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=4425, truncated=240
+
+Starting autonomous greedy evaluation at episode 5500 (1000 fixed-seed episodes)...
+[Greedy evaluation at episode 5500 | 1000 fixed-seed episodes]
+success=40.6%, failure=5.0%, task reward=4060.000, length=322.7
+DFA transitions: 1->2: 859, 2->6: 724, 4->3: 50, 4->5: 603, 4->10: 70, 5->10: 603, 6->4: 723, 10->12: 406
+
+[Episode 5600/10000 | last 100]
+success rate                : 52.0% (cumulative 14.2%)
+failure rate                : 0.0% (cumulative 1.6%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 5200.000
+shaping reward              : 2366.503
+learning reward             : 7566.503
+episode length              : 390.2
+abstract changes / episode  : 106.7
+same abstract-state steps   : 72.7%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 2366.503
+terminal shaping / episode  : 51.248
+DFA transitions / episode   : 3.72
+DFA transitions in window   : 1->2: 68, 2->4: 1, 2->6: 64, 4->5: 63, 4->10: 1, 5->10: 59, 6->4: 64, 10->12: 52
+epsilon (next episode)       : 0.10641
+replay buffer                : 300000 samples [1: 50.0%, 2: 13.5%, 3: 0.0%, 4: 15.7%, 5: 4.0%, 6: 5.3%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 11.5%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 25631, 2: 4299, 3: 0, 4: 4340, 5: 946, 6: 1403, 7: 0, 8: 0, 9: 0, 10: 2450, 11: 0, 12: 52
+DFA state visits cumulative  : 1: 1050756, 2: 140526, 3: 91, 4: 253015, 5: 34718, 6: 68237, 7: 0, 8: 0, 9: 0, 10: 56512, 11: 0, 12: 797
+DFA state entries in window  : 1: 100, 2: 68, 3: 0, 4: 65, 5: 63, 6: 64, 7: 0, 8: 0, 9: 0, 10: 60, 11: 0, 12: 52
+DFA state entries cumulative : 1: 5600, 2: 2198, 3: 91, 4: 1757, 5: 1327, 6: 1952, 7: 0, 8: 0, 9: 0, 10: 1121, 11: 0, 12: 797
+transitions cumulative       : 1->2: 2198, 2->3: 26, 2->4: 2, 2->6: 1952, 4->3: 39, 4->5: 1327, 4->10: 12, 5->4: 60, 5->10: 1109, 6->4: 1695, 10->3: 26, 10->12: 797
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=4465, truncated=248
+
+[Episode 5700/10000 | last 100]
+success rate                : 55.0% (cumulative 14.9%)
+failure rate                : 7.0% (cumulative 1.7%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 5500.000
+shaping reward              : 1801.955
+learning reward             : 7301.955
+episode length              : 332.3
+abstract changes / episode  : 92.9
+same abstract-state steps   : 72.0%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 1801.955
+terminal shaping / episode  : -588.489
+DFA transitions / episode   : 3.93
+DFA transitions in window   : 1->2: 70, 2->6: 68, 4->3: 4, 4->5: 62, 4->10: 3, 5->4: 1, 5->10: 59, 6->4: 68, 10->3: 3, 10->12: 55
+epsilon (next episode)       : 0.10224
+replay buffer                : 300000 samples [1: 51.3%, 2: 13.8%, 3: 0.0%, 4: 15.4%, 5: 3.9%, 6: 5.2%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 10.5%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 18291, 2: 4776, 3: 7, 4: 4882, 5: 947, 6: 1495, 7: 0, 8: 0, 9: 0, 10: 2874, 11: 0, 12: 55
+DFA state visits cumulative  : 1: 1069047, 2: 145302, 3: 98, 4: 257897, 5: 35665, 6: 69732, 7: 0, 8: 0, 9: 0, 10: 59386, 11: 0, 12: 852
+DFA state entries in window  : 1: 100, 2: 70, 3: 7, 4: 69, 5: 62, 6: 68, 7: 0, 8: 0, 9: 0, 10: 62, 11: 0, 12: 55
+DFA state entries cumulative : 1: 5700, 2: 2268, 3: 98, 4: 1826, 5: 1389, 6: 2020, 7: 0, 8: 0, 9: 0, 10: 1183, 11: 0, 12: 852
+transitions cumulative       : 1->2: 2268, 2->3: 26, 2->4: 2, 2->6: 2020, 4->3: 43, 4->5: 1389, 4->10: 15, 5->4: 61, 5->10: 1168, 6->4: 1763, 10->3: 29, 10->12: 852
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=4502, truncated=249
+
+[Episode 5800/10000 | last 100]
+success rate                : 75.0% (cumulative 16.0%)
+failure rate                : 6.0% (cumulative 1.8%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 7500.000
+shaping reward              : 2765.322
+learning reward             : 10265.322
+episode length              : 344.3
+abstract changes / episode  : 105.6
+same abstract-state steps   : 69.3%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 2765.322
+terminal shaping / episode  : -446.950
+DFA transitions / episode   : 5.00
+DFA transitions in window   : 1->2: 88, 2->3: 2, 2->6: 86, 4->3: 4, 4->5: 80, 4->10: 1, 5->4: 1, 5->10: 78, 6->4: 85, 10->12: 75
+epsilon (next episode)       : 0.09823
+replay buffer                : 300000 samples [1: 51.6%, 2: 14.4%, 3: 0.0%, 4: 15.8%, 5: 4.0%, 6: 5.3%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 8.9%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 16824, 2: 5770, 3: 6, 4: 6331, 5: 1341, 6: 1722, 7: 0, 8: 0, 9: 0, 10: 2462, 11: 0, 12: 75
+DFA state visits cumulative  : 1: 1085871, 2: 151072, 3: 104, 4: 264228, 5: 37006, 6: 71454, 7: 0, 8: 0, 9: 0, 10: 61848, 11: 0, 12: 927
+DFA state entries in window  : 1: 100, 2: 88, 3: 6, 4: 86, 5: 80, 6: 86, 7: 0, 8: 0, 9: 0, 10: 79, 11: 0, 12: 75
+DFA state entries cumulative : 1: 5800, 2: 2356, 3: 104, 4: 1912, 5: 1469, 6: 2106, 7: 0, 8: 0, 9: 0, 10: 1262, 11: 0, 12: 927
+transitions cumulative       : 1->2: 2356, 2->3: 28, 2->4: 2, 2->6: 2106, 4->3: 47, 4->5: 1469, 4->10: 16, 5->4: 62, 5->10: 1246, 6->4: 1848, 10->3: 29, 10->12: 927
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=4521, truncated=249
+
+[Episode 5900/10000 | last 100]
+success rate                : 71.0% (cumulative 16.9%)
+failure rate                : 6.0% (cumulative 1.9%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 7100.000
+shaping reward              : 2834.533
+learning reward             : 9934.533
+episode length              : 373.4
+abstract changes / episode  : 114.6
+same abstract-state steps   : 69.3%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 2834.533
+terminal shaping / episode  : -436.902
+DFA transitions / episode   : 5.04
+DFA transitions in window   : 1->2: 92, 2->3: 3, 2->6: 89, 4->3: 2, 4->5: 79, 4->10: 1, 5->4: 1, 5->10: 76, 6->4: 89, 10->3: 1, 10->12: 71
+epsilon (next episode)       : 0.09438
+replay buffer                : 300000 samples [1: 52.2%, 2: 14.7%, 3: 0.0%, 4: 16.5%, 5: 4.0%, 6: 5.2%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 7.4%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 17441, 2: 6000, 3: 6, 4: 7644, 5: 1385, 6: 1854, 7: 0, 8: 0, 9: 0, 10: 3037, 11: 0, 12: 71
+DFA state visits cumulative  : 1: 1103312, 2: 157072, 3: 110, 4: 271872, 5: 38391, 6: 73308, 7: 0, 8: 0, 9: 0, 10: 64885, 11: 0, 12: 998
+DFA state entries in window  : 1: 100, 2: 92, 3: 6, 4: 90, 5: 79, 6: 89, 7: 0, 8: 0, 9: 0, 10: 77, 11: 0, 12: 71
+DFA state entries cumulative : 1: 5900, 2: 2448, 3: 110, 4: 2002, 5: 1548, 6: 2195, 7: 0, 8: 0, 9: 0, 10: 1339, 11: 0, 12: 998
+transitions cumulative       : 1->2: 2448, 2->3: 31, 2->4: 2, 2->6: 2195, 4->3: 49, 4->5: 1548, 4->10: 17, 5->4: 63, 5->10: 1322, 6->4: 1937, 10->3: 30, 10->12: 998
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=4544, truncated=249
+
+[Episode 6000/10000 | last 100]
+success rate                : 71.0% (cumulative 17.8%)
+failure rate                : 3.0% (cumulative 1.9%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 7100.000
+shaping reward              : 3001.680
+learning reward             : 10101.680
+episode length              : 323.2
+abstract changes / episode  : 104.3
+same abstract-state steps   : 67.7%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 3001.680
+terminal shaping / episode  : -208.057
+DFA transitions / episode   : 4.94
+DFA transitions in window   : 1->2: 87, 2->6: 87, 4->3: 3, 4->5: 82, 5->4: 2, 5->10: 78, 6->4: 84, 10->12: 71
+epsilon (next episode)       : 0.09067
+replay buffer                : 300000 samples [1: 52.0%, 2: 14.8%, 3: 0.0%, 4: 16.7%, 5: 3.8%, 6: 5.2%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 7.5%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 14299, 2: 5233, 3: 3, 4: 6480, 5: 1512, 6: 1877, 7: 0, 8: 0, 9: 0, 10: 2946, 11: 0, 12: 71
+DFA state visits cumulative  : 1: 1117611, 2: 162305, 3: 113, 4: 278352, 5: 39903, 6: 75185, 7: 0, 8: 0, 9: 0, 10: 67831, 11: 0, 12: 1069
+DFA state entries in window  : 1: 100, 2: 87, 3: 3, 4: 86, 5: 82, 6: 87, 7: 0, 8: 0, 9: 0, 10: 78, 11: 0, 12: 71
+DFA state entries cumulative : 1: 6000, 2: 2535, 3: 113, 4: 2088, 5: 1630, 6: 2282, 7: 0, 8: 0, 9: 0, 10: 1417, 11: 0, 12: 1069
+transitions cumulative       : 1->2: 2535, 2->3: 31, 2->4: 2, 2->6: 2282, 4->3: 52, 4->5: 1630, 4->10: 17, 5->4: 65, 5->10: 1400, 6->4: 2021, 10->3: 30, 10->12: 1069
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=4570, truncated=249
+
+Starting autonomous greedy evaluation at episode 6000 (1000 fixed-seed episodes)...
+[Greedy evaluation at episode 6000 | 1000 fixed-seed episodes]
+success=62.8%, failure=33.8%, task reward=6280.000, length=306.5
+DFA transitions: 1->2: 968, 2->6: 968, 4->3: 338, 4->5: 450, 4->10: 178, 5->10: 450, 6->4: 966, 10->12: 628
+
+[Episode 6100/10000 | last 100]
+success rate                : 85.0% (cumulative 18.9%)
+failure rate                : 0.0% (cumulative 1.9%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 8500.000
+shaping reward              : 3683.338
+learning reward             : 12183.338
+episode length              : 340.1
+abstract changes / episode  : 107.0
+same abstract-state steps   : 68.5%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 3683.338
+terminal shaping / episode  : 83.358
+DFA transitions / episode   : 5.61
+DFA transitions in window   : 1->2: 95, 2->6: 95, 4->5: 97, 5->4: 5, 5->10: 89, 6->4: 95, 10->12: 85
+epsilon (next episode)       : 0.08712
+replay buffer                : 300000 samples [1: 51.4%, 2: 15.2%, 3: 0.0%, 4: 17.0%, 5: 3.7%, 6: 5.1%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 7.6%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 14532, 2: 6247, 3: 0, 4: 6821, 5: 1769, 6: 2020, 7: 0, 8: 0, 9: 0, 10: 2635, 11: 0, 12: 85
+DFA state visits cumulative  : 1: 1132143, 2: 168552, 3: 113, 4: 285173, 5: 41672, 6: 77205, 7: 0, 8: 0, 9: 0, 10: 70466, 11: 0, 12: 1154
+DFA state entries in window  : 1: 100, 2: 95, 3: 0, 4: 100, 5: 97, 6: 95, 7: 0, 8: 0, 9: 0, 10: 89, 11: 0, 12: 85
+DFA state entries cumulative : 1: 6100, 2: 2630, 3: 113, 4: 2188, 5: 1727, 6: 2377, 7: 0, 8: 0, 9: 0, 10: 1506, 11: 0, 12: 1154
+transitions cumulative       : 1->2: 2630, 2->3: 31, 2->4: 2, 2->6: 2377, 4->3: 52, 4->5: 1727, 4->10: 17, 5->4: 70, 5->10: 1489, 6->4: 2116, 10->3: 30, 10->12: 1154
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=4585, truncated=249
+
+[Episode 6200/10000 | last 100]
+success rate                : 64.0% (cumulative 19.6%)
+failure rate                : 1.0% (cumulative 1.8%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 6400.000
+shaping reward              : 2444.137
+learning reward             : 8844.137
+episode length              : 331.4
+abstract changes / episode  : 100.2
+same abstract-state steps   : 69.8%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 2444.137
+terminal shaping / episode  : -29.031
+DFA transitions / episode   : 4.11
+DFA transitions in window   : 1->2: 70, 2->6: 70, 4->5: 68, 4->10: 1, 5->10: 67, 6->4: 70, 10->3: 1, 10->12: 64
+epsilon (next episode)       : 0.08370
+replay buffer                : 300000 samples [1: 51.7%, 2: 15.1%, 3: 0.0%, 4: 16.8%, 5: 3.7%, 6: 5.1%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 7.6%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 19028, 2: 4675, 3: 1, 4: 4738, 5: 929, 6: 1604, 7: 0, 8: 0, 9: 0, 10: 2198, 11: 0, 12: 64
+DFA state visits cumulative  : 1: 1151171, 2: 173227, 3: 114, 4: 289911, 5: 42601, 6: 78809, 7: 0, 8: 0, 9: 0, 10: 72664, 11: 0, 12: 1218
+DFA state entries in window  : 1: 100, 2: 70, 3: 1, 4: 70, 5: 68, 6: 70, 7: 0, 8: 0, 9: 0, 10: 68, 11: 0, 12: 64
+DFA state entries cumulative : 1: 6200, 2: 2700, 3: 114, 4: 2258, 5: 1795, 6: 2447, 7: 0, 8: 0, 9: 0, 10: 1574, 11: 0, 12: 1218
+transitions cumulative       : 1->2: 2700, 2->3: 31, 2->4: 2, 2->6: 2447, 4->3: 52, 4->5: 1795, 4->10: 18, 5->4: 70, 5->10: 1556, 6->4: 2186, 10->3: 31, 10->12: 1218
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=4620, truncated=249
+
+[Episode 6300/10000 | last 100]
+success rate                : 34.0% (cumulative 19.9%)
+failure rate                : 2.0% (cumulative 1.8%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 3400.000
+shaping reward              : 1277.769
+learning reward             : 4677.769
+episode length              : 295.2
+abstract changes / episode  : 95.6
+same abstract-state steps   : 67.6%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 1277.769
+terminal shaping / episode  : -154.126
+DFA transitions / episode   : 2.87
+DFA transitions in window   : 1->2: 54, 2->6: 53, 4->3: 2, 4->5: 47, 5->4: 2, 5->10: 43, 6->4: 52, 10->12: 34
+epsilon (next episode)       : 0.08042
+replay buffer                : 300000 samples [1: 52.6%, 2: 14.9%, 3: 0.0%, 4: 16.3%, 5: 3.6%, 6: 5.0%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 7.5%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 17819, 2: 3623, 3: 2, 4: 3289, 5: 1216, 6: 1399, 7: 0, 8: 0, 9: 0, 10: 2235, 11: 0, 12: 34
+DFA state visits cumulative  : 1: 1168990, 2: 176850, 3: 116, 4: 293200, 5: 43817, 6: 80208, 7: 0, 8: 0, 9: 0, 10: 74899, 11: 0, 12: 1252
+DFA state entries in window  : 1: 100, 2: 54, 3: 2, 4: 54, 5: 47, 6: 53, 7: 0, 8: 0, 9: 0, 10: 43, 11: 0, 12: 34
+DFA state entries cumulative : 1: 6300, 2: 2754, 3: 116, 4: 2312, 5: 1842, 6: 2500, 7: 0, 8: 0, 9: 0, 10: 1617, 11: 0, 12: 1252
+transitions cumulative       : 1->2: 2754, 2->3: 31, 2->4: 2, 2->6: 2500, 4->3: 54, 4->5: 1842, 4->10: 18, 5->4: 72, 5->10: 1599, 6->4: 2238, 10->3: 31, 10->12: 1252
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=4684, truncated=249
+
+[Episode 6400/10000 | last 100]
+success rate                : 52.0% (cumulative 20.4%)
+failure rate                : 3.0% (cumulative 1.9%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 5200.000
+shaping reward              : 2136.046
+learning reward             : 7336.046
+episode length              : 314.3
+abstract changes / episode  : 104.3
+same abstract-state steps   : 66.8%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 2136.046
+terminal shaping / episode  : -227.941
+DFA transitions / episode   : 4.01
+DFA transitions in window   : 1->2: 76, 2->6: 75, 4->3: 2, 4->5: 66, 4->10: 1, 5->4: 4, 5->10: 56, 6->4: 68, 10->3: 1, 10->12: 52
+epsilon (next episode)       : 0.07727
+replay buffer                : 300000 samples [1: 52.4%, 2: 15.0%, 3: 0.0%, 4: 16.2%, 5: 3.8%, 6: 5.1%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 7.5%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 16507, 2: 4669, 3: 3, 4: 4555, 5: 1486, 6: 2236, 7: 0, 8: 0, 9: 0, 10: 2025, 11: 0, 12: 52
+DFA state visits cumulative  : 1: 1185497, 2: 181519, 3: 119, 4: 297755, 5: 45303, 6: 82444, 7: 0, 8: 0, 9: 0, 10: 76924, 11: 0, 12: 1304
+DFA state entries in window  : 1: 100, 2: 76, 3: 3, 4: 72, 5: 66, 6: 75, 7: 0, 8: 0, 9: 0, 10: 57, 11: 0, 12: 52
+DFA state entries cumulative : 1: 6400, 2: 2830, 3: 119, 4: 2384, 5: 1908, 6: 2575, 7: 0, 8: 0, 9: 0, 10: 1674, 11: 0, 12: 1304
+transitions cumulative       : 1->2: 2830, 2->3: 31, 2->4: 2, 2->6: 2575, 4->3: 56, 4->5: 1908, 4->10: 19, 5->4: 76, 5->10: 1655, 6->4: 2306, 10->3: 32, 10->12: 1304
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=4729, truncated=249
+
+[Episode 6500/10000 | last 100]
+success rate                : 68.0% (cumulative 21.1%)
+failure rate                : 1.0% (cumulative 1.8%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 6800.000
+shaping reward              : 3131.580
+learning reward             : 9931.580
+episode length              : 343.4
+abstract changes / episode  : 111.0
+same abstract-state steps   : 67.7%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 3131.580
+terminal shaping / episode  : -8.287
+DFA transitions / episode   : 4.95
+DFA transitions in window   : 1->2: 90, 2->3: 1, 2->6: 86, 4->5: 85, 5->4: 1, 5->10: 79, 6->4: 85, 10->12: 68
+epsilon (next episode)       : 0.07423
+replay buffer                : 300000 samples [1: 50.2%, 2: 15.8%, 3: 0.0%, 4: 16.7%, 5: 4.1%, 6: 5.4%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 7.9%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 15826, 2: 6395, 3: 1, 4: 5280, 5: 1736, 6: 1887, 7: 0, 8: 0, 9: 0, 10: 3251, 11: 0, 12: 68
+DFA state visits cumulative  : 1: 1201323, 2: 187914, 3: 120, 4: 303035, 5: 47039, 6: 84331, 7: 0, 8: 0, 9: 0, 10: 80175, 11: 0, 12: 1372
+DFA state entries in window  : 1: 100, 2: 90, 3: 1, 4: 86, 5: 85, 6: 86, 7: 0, 8: 0, 9: 0, 10: 79, 11: 0, 12: 68
+DFA state entries cumulative : 1: 6500, 2: 2920, 3: 120, 4: 2470, 5: 1993, 6: 2661, 7: 0, 8: 0, 9: 0, 10: 1753, 11: 0, 12: 1372
+transitions cumulative       : 1->2: 2920, 2->3: 32, 2->4: 2, 2->6: 2661, 4->3: 56, 4->5: 1993, 4->10: 19, 5->4: 77, 5->10: 1734, 6->4: 2391, 10->3: 32, 10->12: 1372
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=4760, truncated=249
+
+Starting autonomous greedy evaluation at episode 6500 (1000 fixed-seed episodes)...
+[Greedy evaluation at episode 6500 | 1000 fixed-seed episodes]
+success=9.7%, failure=0.1%, task reward=970.000, length=312.9
+DFA transitions: 1->2: 111, 2->3: 1, 2->6: 108, 4->5: 101, 5->10: 100, 6->4: 101, 10->12: 97
+
+[Episode 6600/10000 | last 100]
+success rate                : 74.0% (cumulative 21.9%)
+failure rate                : 2.0% (cumulative 1.8%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 7400.000
+shaping reward              : 3234.774
+learning reward             : 10634.774
+episode length              : 321.9
+abstract changes / episode  : 105.3
+same abstract-state steps   : 67.3%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 3234.774
+terminal shaping / episode  : -112.180
+DFA transitions / episode   : 5.01
+DFA transitions in window   : 1->2: 89, 2->6: 86, 4->3: 2, 4->5: 83, 4->10: 1, 5->4: 1, 5->10: 79, 6->4: 86, 10->12: 74
+epsilon (next episode)       : 0.07132
+replay buffer                : 300000 samples [1: 49.0%, 2: 16.4%, 3: 0.0%, 4: 16.9%, 5: 4.2%, 6: 5.6%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 7.9%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 14005, 2: 6580, 3: 2, 4: 5420, 5: 1228, 6: 2051, 7: 0, 8: 0, 9: 0, 10: 2934, 11: 0, 12: 74
+DFA state visits cumulative  : 1: 1215328, 2: 194494, 3: 122, 4: 308455, 5: 48267, 6: 86382, 7: 0, 8: 0, 9: 0, 10: 83109, 11: 0, 12: 1446
+DFA state entries in window  : 1: 100, 2: 89, 3: 2, 4: 87, 5: 83, 6: 86, 7: 0, 8: 0, 9: 0, 10: 80, 11: 0, 12: 74
+DFA state entries cumulative : 1: 6600, 2: 3009, 3: 122, 4: 2557, 5: 2076, 6: 2747, 7: 0, 8: 0, 9: 0, 10: 1833, 11: 0, 12: 1446
+transitions cumulative       : 1->2: 3009, 2->3: 32, 2->4: 2, 2->6: 2747, 4->3: 58, 4->5: 2076, 4->10: 20, 5->4: 78, 5->10: 1813, 6->4: 2477, 10->3: 32, 10->12: 1446
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=4784, truncated=249
+
+[Episode 6700/10000 | last 100]
+success rate                : 70.0% (cumulative 22.6%)
+failure rate                : 1.0% (cumulative 1.8%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 7000.000
+shaping reward              : 3155.908
+learning reward             : 10155.908
+episode length              : 317.3
+abstract changes / episode  : 105.9
+same abstract-state steps   : 66.6%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 3155.908
+terminal shaping / episode  : -24.415
+DFA transitions / episode   : 4.77
+DFA transitions in window   : 1->2: 85, 2->6: 83, 4->3: 1, 4->5: 79, 5->10: 78, 6->4: 81, 10->12: 70
+epsilon (next episode)       : 0.06853
+replay buffer                : 300000 samples [1: 48.5%, 2: 16.7%, 3: 0.0%, 4: 16.7%, 5: 4.2%, 6: 5.6%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 8.2%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 14147, 2: 6026, 3: 1, 4: 5319, 5: 1150, 6: 1869, 7: 0, 8: 0, 9: 0, 10: 3247, 11: 0, 12: 70
+DFA state visits cumulative  : 1: 1229475, 2: 200520, 3: 123, 4: 313774, 5: 49417, 6: 88251, 7: 0, 8: 0, 9: 0, 10: 86356, 11: 0, 12: 1516
+DFA state entries in window  : 1: 100, 2: 85, 3: 1, 4: 81, 5: 79, 6: 83, 7: 0, 8: 0, 9: 0, 10: 78, 11: 0, 12: 70
+DFA state entries cumulative : 1: 6700, 2: 3094, 3: 123, 4: 2638, 5: 2155, 6: 2830, 7: 0, 8: 0, 9: 0, 10: 1911, 11: 0, 12: 1516
+transitions cumulative       : 1->2: 3094, 2->3: 32, 2->4: 2, 2->6: 2830, 4->3: 59, 4->5: 2155, 4->10: 20, 5->4: 78, 5->10: 1891, 6->4: 2558, 10->3: 32, 10->12: 1516
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=4813, truncated=249
+
+[Episode 6800/10000 | last 100]
+success rate                : 64.0% (cumulative 23.2%)
+failure rate                : 9.0% (cumulative 1.9%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 6400.000
+shaping reward              : 2319.095
+learning reward             : 8719.095
+episode length              : 326.1
+abstract changes / episode  : 105.7
+same abstract-state steps   : 67.6%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 2319.095
+terminal shaping / episode  : -749.437
+DFA transitions / episode   : 4.68
+DFA transitions in window   : 1->2: 86, 2->3: 1, 2->6: 81, 4->3: 4, 4->5: 73, 4->10: 2, 5->10: 72, 6->2: 1, 6->4: 80, 10->3: 4, 10->12: 64
+epsilon (next episode)       : 0.06584
+replay buffer                : 300000 samples [1: 48.6%, 2: 16.9%, 3: 0.0%, 4: 16.3%, 5: 4.2%, 6: 5.6%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 8.4%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 15613, 2: 5954, 3: 9, 4: 5430, 5: 1228, 6: 1476, 7: 0, 8: 0, 9: 0, 10: 2939, 11: 0, 12: 64
+DFA state visits cumulative  : 1: 1245088, 2: 206474, 3: 132, 4: 319204, 5: 50645, 6: 89727, 7: 0, 8: 0, 9: 0, 10: 89295, 11: 0, 12: 1580
+DFA state entries in window  : 1: 100, 2: 87, 3: 9, 4: 80, 5: 73, 6: 81, 7: 0, 8: 0, 9: 0, 10: 74, 11: 0, 12: 64
+DFA state entries cumulative : 1: 6800, 2: 3181, 3: 132, 4: 2718, 5: 2228, 6: 2911, 7: 0, 8: 0, 9: 0, 10: 1985, 11: 0, 12: 1580
+transitions cumulative       : 1->2: 3180, 2->3: 33, 2->4: 2, 2->6: 2911, 4->3: 63, 4->5: 2228, 4->10: 22, 5->4: 78, 5->10: 1963, 6->2: 1, 6->4: 2638, 10->3: 36, 10->12: 1580
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=4840, truncated=249
+
+[Episode 6900/10000 | last 100]
+success rate                : 78.0% (cumulative 24.0%)
+failure rate                : 3.0% (cumulative 2.0%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 7800.000
+shaping reward              : 3444.519
+learning reward             : 11244.519
+episode length              : 334.2
+abstract changes / episode  : 111.3
+same abstract-state steps   : 66.7%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 3444.519
+terminal shaping / episode  : -204.355
+DFA transitions / episode   : 5.46
+DFA transitions in window   : 1->2: 95, 2->6: 95, 4->3: 2, 4->5: 88, 4->10: 4, 5->10: 88, 6->4: 95, 10->3: 1, 10->12: 78
+epsilon (next episode)       : 0.06326
+replay buffer                : 300000 samples [1: 48.0%, 2: 17.4%, 3: 0.0%, 4: 16.4%, 5: 4.1%, 6: 5.6%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 8.6%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 13729, 2: 6522, 3: 3, 4: 6724, 5: 1428, 6: 1585, 7: 0, 8: 0, 9: 0, 10: 3449, 11: 0, 12: 78
+DFA state visits cumulative  : 1: 1258817, 2: 212996, 3: 135, 4: 325928, 5: 52073, 6: 91312, 7: 0, 8: 0, 9: 0, 10: 92744, 11: 0, 12: 1658
+DFA state entries in window  : 1: 100, 2: 95, 3: 3, 4: 95, 5: 88, 6: 95, 7: 0, 8: 0, 9: 0, 10: 92, 11: 0, 12: 78
+DFA state entries cumulative : 1: 6900, 2: 3276, 3: 135, 4: 2813, 5: 2316, 6: 3006, 7: 0, 8: 0, 9: 0, 10: 2077, 11: 0, 12: 1658
+transitions cumulative       : 1->2: 3275, 2->3: 33, 2->4: 2, 2->6: 3006, 4->3: 65, 4->5: 2316, 4->10: 26, 5->4: 78, 5->10: 2051, 6->2: 1, 6->4: 2733, 10->3: 37, 10->12: 1658
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=4859, truncated=249
+
+[Episode 7000/10000 | last 100]
+success rate                : 78.0% (cumulative 24.8%)
+failure rate                : 6.0% (cumulative 2.0%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 7800.000
+shaping reward              : 3104.359
+learning reward             : 10904.359
+episode length              : 329.0
+abstract changes / episode  : 109.4
+same abstract-state steps   : 66.8%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 3104.359
+terminal shaping / episode  : -427.090
+DFA transitions / episode   : 5.35
+DFA transitions in window   : 1->2: 96, 2->3: 3, 2->6: 93, 4->3: 3, 4->5: 86, 4->10: 1, 5->10: 84, 6->4: 91, 10->12: 78
+epsilon (next episode)       : 0.06078
+replay buffer                : 300000 samples [1: 48.2%, 2: 17.5%, 3: 0.0%, 4: 16.2%, 5: 4.1%, 6: 5.3%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 8.7%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 14507, 2: 6421, 3: 6, 4: 6275, 5: 1400, 6: 1349, 7: 0, 8: 0, 9: 0, 10: 2968, 11: 0, 12: 78
+DFA state visits cumulative  : 1: 1273324, 2: 219417, 3: 141, 4: 332203, 5: 53473, 6: 92661, 7: 0, 8: 0, 9: 0, 10: 95712, 11: 0, 12: 1736
+DFA state entries in window  : 1: 100, 2: 96, 3: 6, 4: 91, 5: 86, 6: 93, 7: 0, 8: 0, 9: 0, 10: 85, 11: 0, 12: 78
+DFA state entries cumulative : 1: 7000, 2: 3372, 3: 141, 4: 2904, 5: 2402, 6: 3099, 7: 0, 8: 0, 9: 0, 10: 2162, 11: 0, 12: 1736
+transitions cumulative       : 1->2: 3371, 2->3: 36, 2->4: 2, 2->6: 3099, 4->3: 68, 4->5: 2402, 4->10: 27, 5->4: 78, 5->10: 2135, 6->2: 1, 6->4: 2824, 10->3: 37, 10->12: 1736
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=4875, truncated=249
+
+Starting autonomous greedy evaluation at episode 7000 (1000 fixed-seed episodes)...
+[Greedy evaluation at episode 7000 | 1000 fixed-seed episodes]
+success=92.7%, failure=0.3%, task reward=9270.000, length=313.4
+DFA transitions: 1->2: 944, 2->3: 3, 2->6: 938, 4->5: 937, 4->10: 1, 5->4: 2, 5->10: 932, 6->4: 937, 10->12: 927
+
+[Episode 7100/10000 | last 100]
+success rate                : 76.0% (cumulative 25.5%)
+failure rate                : 3.0% (cumulative 2.0%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 7600.000
+shaping reward              : 3203.085
+learning reward             : 10803.085
+episode length              : 331.2
+abstract changes / episode  : 104.7
+same abstract-state steps   : 68.4%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 3203.085
+terminal shaping / episode  : -166.364
+DFA transitions / episode   : 5.13
+DFA transitions in window   : 1->2: 90, 2->3: 2, 2->6: 87, 4->3: 1, 4->5: 86, 4->10: 1, 5->4: 2, 5->10: 81, 6->4: 87, 10->12: 76
+epsilon (next episode)       : 0.05839
+replay buffer                : 300000 samples [1: 47.5%, 2: 17.9%, 3: 0.0%, 4: 16.4%, 5: 4.1%, 6: 5.3%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 8.7%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 15509, 2: 6280, 3: 3, 4: 5989, 5: 1338, 6: 1534, 7: 0, 8: 0, 9: 0, 10: 2488, 11: 0, 12: 76
+DFA state visits cumulative  : 1: 1288833, 2: 225697, 3: 144, 4: 338192, 5: 54811, 6: 94195, 7: 0, 8: 0, 9: 0, 10: 98200, 11: 0, 12: 1812
+DFA state entries in window  : 1: 100, 2: 90, 3: 3, 4: 89, 5: 86, 6: 87, 7: 0, 8: 0, 9: 0, 10: 82, 11: 0, 12: 76
+DFA state entries cumulative : 1: 7100, 2: 3462, 3: 144, 4: 2993, 5: 2488, 6: 3186, 7: 0, 8: 0, 9: 0, 10: 2244, 11: 0, 12: 1812
+transitions cumulative       : 1->2: 3461, 2->3: 38, 2->4: 2, 2->6: 3186, 4->3: 69, 4->5: 2488, 4->10: 28, 5->4: 80, 5->10: 2216, 6->2: 1, 6->4: 2911, 10->3: 37, 10->12: 1812
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=4894, truncated=251
+
+[Episode 7200/10000 | last 100]
+success rate                : 56.0% (cumulative 25.9%)
+failure rate                : 5.0% (cumulative 2.1%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 5600.000
+shaping reward              : 2308.907
+learning reward             : 7908.907
+episode length              : 335.9
+abstract changes / episode  : 105.3
+same abstract-state steps   : 68.6%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 2308.907
+terminal shaping / episode  : -369.207
+DFA transitions / episode   : 4.27
+DFA transitions in window   : 1->2: 78, 2->3: 2, 2->4: 1, 2->6: 74, 4->3: 2, 4->5: 71, 4->10: 2, 5->4: 3, 5->10: 64, 6->4: 73, 10->3: 1, 10->12: 56
+epsilon (next episode)       : 0.05610
+replay buffer                : 300000 samples [1: 46.4%, 2: 18.2%, 3: 0.0%, 4: 16.9%, 5: 4.3%, 6: 5.4%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 8.8%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 17493, 2: 5223, 3: 5, 4: 5050, 5: 1464, 6: 1756, 7: 0, 8: 0, 9: 0, 10: 2640, 11: 0, 12: 56
+DFA state visits cumulative  : 1: 1306326, 2: 230920, 3: 149, 4: 343242, 5: 56275, 6: 95951, 7: 0, 8: 0, 9: 0, 10: 100840, 11: 0, 12: 1868
+DFA state entries in window  : 1: 100, 2: 78, 3: 5, 4: 77, 5: 71, 6: 74, 7: 0, 8: 0, 9: 0, 10: 66, 11: 0, 12: 56
+DFA state entries cumulative : 1: 7200, 2: 3540, 3: 149, 4: 3070, 5: 2559, 6: 3260, 7: 0, 8: 0, 9: 0, 10: 2310, 11: 0, 12: 1868
+transitions cumulative       : 1->2: 3539, 2->3: 40, 2->4: 3, 2->6: 3260, 4->3: 71, 4->5: 2559, 4->10: 30, 5->4: 83, 5->10: 2280, 6->2: 1, 6->4: 2984, 10->3: 38, 10->12: 1868
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=4932, truncated=252
+
+[Episode 7300/10000 | last 100]
+success rate                : 53.0% (cumulative 26.3%)
+failure rate                : 1.0% (cumulative 2.1%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 5300.000
+shaping reward              : 2620.170
+learning reward             : 7920.170
+episode length              : 290.3
+abstract changes / episode  : 94.1
+same abstract-state steps   : 67.6%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 2620.170
+terminal shaping / episode  : -38.612
+DFA transitions / episode   : 4.18
+DFA transitions in window   : 1->2: 95, 2->6: 69, 4->3: 1, 4->5: 67, 4->10: 1, 5->4: 5, 5->10: 58, 6->4: 69, 10->12: 53
+epsilon (next episode)       : 0.05390
+replay buffer                : 300000 samples [1: 45.7%, 2: 18.9%, 3: 0.0%, 4: 17.1%, 5: 4.3%, 6: 5.1%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 8.8%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 13167, 2: 6279, 3: 1, 4: 4491, 5: 1742, 6: 1498, 7: 0, 8: 0, 9: 0, 10: 1901, 11: 0, 12: 53
+DFA state visits cumulative  : 1: 1319493, 2: 237199, 3: 150, 4: 347733, 5: 58017, 6: 97449, 7: 0, 8: 0, 9: 0, 10: 102741, 11: 0, 12: 1921
+DFA state entries in window  : 1: 100, 2: 95, 3: 1, 4: 74, 5: 67, 6: 69, 7: 0, 8: 0, 9: 0, 10: 59, 11: 0, 12: 53
+DFA state entries cumulative : 1: 7300, 2: 3635, 3: 150, 4: 3144, 5: 2626, 6: 3329, 7: 0, 8: 0, 9: 0, 10: 2369, 11: 0, 12: 1921
+transitions cumulative       : 1->2: 3634, 2->3: 40, 2->4: 3, 2->6: 3329, 4->3: 72, 4->5: 2626, 4->10: 31, 5->4: 88, 5->10: 2338, 6->2: 1, 6->4: 3053, 10->3: 38, 10->12: 1921
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=4978, truncated=252
+
+[Episode 7400/10000 | last 100]
+success rate                : 78.0% (cumulative 27.0%)
+failure rate                : 0.0% (cumulative 2.0%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 7800.000
+shaping reward              : 3365.079
+learning reward             : 11165.079
+episode length              : 356.4
+abstract changes / episode  : 110.3
+same abstract-state steps   : 69.1%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 3365.079
+terminal shaping / episode  : 77.704
+DFA transitions / episode   : 5.04
+DFA transitions in window   : 1->2: 90, 2->4: 1, 2->6: 86, 4->5: 83, 4->10: 1, 5->10: 80, 6->4: 85, 10->12: 78
+epsilon (next episode)       : 0.05179
+replay buffer                : 300000 samples [1: 46.1%, 2: 18.9%, 3: 0.0%, 4: 17.0%, 5: 4.3%, 6: 5.1%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 8.6%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 18054, 2: 6141, 3: 0, 4: 5490, 5: 1674, 6: 1960, 7: 0, 8: 0, 9: 0, 10: 2340, 11: 0, 12: 78
+DFA state visits cumulative  : 1: 1337547, 2: 243340, 3: 150, 4: 353223, 5: 59691, 6: 99409, 7: 0, 8: 0, 9: 0, 10: 105081, 11: 0, 12: 1999
+DFA state entries in window  : 1: 100, 2: 90, 3: 0, 4: 86, 5: 83, 6: 86, 7: 0, 8: 0, 9: 0, 10: 81, 11: 0, 12: 78
+DFA state entries cumulative : 1: 7400, 2: 3725, 3: 150, 4: 3230, 5: 2709, 6: 3415, 7: 0, 8: 0, 9: 0, 10: 2450, 11: 0, 12: 1999
+transitions cumulative       : 1->2: 3724, 2->3: 40, 2->4: 4, 2->6: 3415, 4->3: 72, 4->5: 2709, 4->10: 32, 5->4: 88, 5->10: 2418, 6->2: 1, 6->4: 3138, 10->3: 38, 10->12: 1999
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=5000, truncated=252
+
+[Episode 7500/10000 | last 100]
+success rate                : 82.0% (cumulative 27.7%)
+failure rate                : 1.0% (cumulative 2.0%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 8200.000
+shaping reward              : 3328.075
+learning reward             : 11528.075
+episode length              : 338.7
+abstract changes / episode  : 104.9
+same abstract-state steps   : 69.0%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 3328.075
+terminal shaping / episode  : 4.094
+DFA transitions / episode   : 5.16
+DFA transitions in window   : 1->2: 87, 2->3: 1, 2->6: 86, 4->5: 87, 5->4: 2, 5->10: 85, 6->4: 86, 10->12: 82
+epsilon (next episode)       : 0.04976
+replay buffer                : 300000 samples [1: 46.5%, 2: 18.4%, 3: 0.0%, 4: 17.3%, 5: 4.3%, 6: 5.1%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 8.4%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 15946, 2: 5384, 3: 1, 4: 6476, 5: 1299, 6: 2057, 7: 0, 8: 0, 9: 0, 10: 2728, 11: 0, 12: 82
+DFA state visits cumulative  : 1: 1353493, 2: 248724, 3: 151, 4: 359699, 5: 60990, 6: 101466, 7: 0, 8: 0, 9: 0, 10: 107809, 11: 0, 12: 2081
+DFA state entries in window  : 1: 100, 2: 87, 3: 1, 4: 88, 5: 87, 6: 86, 7: 0, 8: 0, 9: 0, 10: 85, 11: 0, 12: 82
+DFA state entries cumulative : 1: 7500, 2: 3812, 3: 151, 4: 3318, 5: 2796, 6: 3501, 7: 0, 8: 0, 9: 0, 10: 2535, 11: 0, 12: 2081
+transitions cumulative       : 1->2: 3811, 2->3: 41, 2->4: 4, 2->6: 3501, 4->3: 72, 4->5: 2796, 4->10: 32, 5->4: 90, 5->10: 2503, 6->2: 1, 6->4: 3224, 10->3: 38, 10->12: 2081
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=5017, truncated=252
+
+Starting autonomous greedy evaluation at episode 7500 (1000 fixed-seed episodes)...
+[Greedy evaluation at episode 7500 | 1000 fixed-seed episodes]
+success=79.2%, failure=0.4%, task reward=7920.000, length=484.1
+DFA transitions: 1->2: 827, 2->6: 817, 4->5: 802, 5->10: 799, 6->4: 815, 10->3: 4, 10->12: 792
+
+[Episode 7600/10000 | last 100]
+success rate                : 85.0% (cumulative 28.5%)
+failure rate                : 1.0% (cumulative 2.0%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 8500.000
+shaping reward              : 3440.168
+learning reward             : 11940.168
+episode length              : 334.9
+abstract changes / episode  : 111.3
+same abstract-state steps   : 66.8%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 3440.168
+terminal shaping / episode  : -13.455
+DFA transitions / episode   : 5.39
+DFA transitions in window   : 1->2: 91, 2->6: 91, 4->5: 90, 5->10: 90, 6->4: 91, 10->3: 1, 10->12: 85
+epsilon (next episode)       : 0.04781
+replay buffer                : 300000 samples [1: 46.8%, 2: 18.2%, 3: 0.0%, 4: 17.5%, 5: 4.3%, 6: 5.1%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 8.1%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 15330, 2: 5927, 3: 1, 4: 6290, 5: 1210, 6: 2089, 7: 0, 8: 0, 9: 0, 10: 2660, 11: 0, 12: 85
+DFA state visits cumulative  : 1: 1368823, 2: 254651, 3: 152, 4: 365989, 5: 62200, 6: 103555, 7: 0, 8: 0, 9: 0, 10: 110469, 11: 0, 12: 2166
+DFA state entries in window  : 1: 100, 2: 91, 3: 1, 4: 91, 5: 90, 6: 91, 7: 0, 8: 0, 9: 0, 10: 90, 11: 0, 12: 85
+DFA state entries cumulative : 1: 7600, 2: 3903, 3: 152, 4: 3409, 5: 2886, 6: 3592, 7: 0, 8: 0, 9: 0, 10: 2625, 11: 0, 12: 2166
+transitions cumulative       : 1->2: 3902, 2->3: 41, 2->4: 4, 2->6: 3592, 4->3: 72, 4->5: 2886, 4->10: 32, 5->4: 90, 5->10: 2593, 6->2: 1, 6->4: 3315, 10->3: 39, 10->12: 2166
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=5031, truncated=252
+
+[Episode 7700/10000 | last 100]
+success rate                : 78.0% (cumulative 29.1%)
+failure rate                : 1.0% (cumulative 2.0%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 7800.000
+shaping reward              : 3120.226
+learning reward             : 10920.226
+episode length              : 347.3
+abstract changes / episode  : 115.5
+same abstract-state steps   : 66.8%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 3120.226
+terminal shaping / episode  : -17.223
+DFA transitions / episode   : 4.84
+DFA transitions in window   : 1->2: 82, 2->4: 1, 2->6: 81, 4->5: 81, 5->10: 80, 6->4: 80, 10->3: 1, 10->12: 78
+epsilon (next episode)       : 0.04593
+replay buffer                : 300000 samples [1: 47.4%, 2: 17.8%, 3: 0.0%, 4: 17.6%, 5: 4.2%, 6: 5.2%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 7.9%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 18551, 2: 5262, 3: 1, 4: 5915, 5: 970, 6: 1628, 7: 0, 8: 0, 9: 0, 10: 2426, 11: 0, 12: 78
+DFA state visits cumulative  : 1: 1387374, 2: 259913, 3: 153, 4: 371904, 5: 63170, 6: 105183, 7: 0, 8: 0, 9: 0, 10: 112895, 11: 0, 12: 2244
+DFA state entries in window  : 1: 100, 2: 82, 3: 1, 4: 81, 5: 81, 6: 81, 7: 0, 8: 0, 9: 0, 10: 80, 11: 0, 12: 78
+DFA state entries cumulative : 1: 7700, 2: 3985, 3: 153, 4: 3490, 5: 2967, 6: 3673, 7: 0, 8: 0, 9: 0, 10: 2705, 11: 0, 12: 2244
+transitions cumulative       : 1->2: 3984, 2->3: 41, 2->4: 5, 2->6: 3673, 4->3: 72, 4->5: 2967, 4->10: 32, 5->4: 90, 5->10: 2673, 6->2: 1, 6->4: 3395, 10->3: 40, 10->12: 2244
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=5052, truncated=252
+
+[Episode 7800/10000 | last 100]
+success rate                : 72.0% (cumulative 29.7%)
+failure rate                : 0.0% (cumulative 2.0%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 7200.000
+shaping reward              : 3085.012
+learning reward             : 10285.012
+episode length              : 300.7
+abstract changes / episode  : 104.7
+same abstract-state steps   : 65.2%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 3085.012
+terminal shaping / episode  : 71.802
+DFA transitions / episode   : 4.63
+DFA transitions in window   : 1->2: 80, 2->4: 1, 2->6: 78, 4->5: 77, 4->10: 1, 5->10: 76, 6->4: 78, 10->12: 72
+epsilon (next episode)       : 0.04413
+replay buffer                : 300000 samples [1: 48.0%, 2: 17.5%, 3: 0.0%, 4: 17.4%, 5: 4.2%, 6: 5.2%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 7.7%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 13916, 2: 4987, 3: 0, 4: 5462, 5: 1351, 6: 1727, 7: 0, 8: 0, 9: 0, 10: 2653, 11: 0, 12: 72
+DFA state visits cumulative  : 1: 1401290, 2: 264900, 3: 153, 4: 377366, 5: 64521, 6: 106910, 7: 0, 8: 0, 9: 0, 10: 115548, 11: 0, 12: 2316
+DFA state entries in window  : 1: 100, 2: 80, 3: 0, 4: 79, 5: 77, 6: 78, 7: 0, 8: 0, 9: 0, 10: 77, 11: 0, 12: 72
+DFA state entries cumulative : 1: 7800, 2: 4065, 3: 153, 4: 3569, 5: 3044, 6: 3751, 7: 0, 8: 0, 9: 0, 10: 2782, 11: 0, 12: 2316
+transitions cumulative       : 1->2: 4064, 2->3: 41, 2->4: 6, 2->6: 3751, 4->3: 72, 4->5: 3044, 4->10: 33, 5->4: 90, 5->10: 2749, 6->2: 1, 6->4: 3473, 10->3: 40, 10->12: 2316
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=5080, truncated=252
+
+[Episode 7900/10000 | last 100]
+success rate                : 58.0% (cumulative 30.1%)
+failure rate                : 1.0% (cumulative 1.9%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 5800.000
+shaping reward              : 2513.167
+learning reward             : 8313.167
+episode length              : 280.4
+abstract changes / episode  : 98.5
+same abstract-state steps   : 64.9%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 2513.167
+terminal shaping / episode  : -35.326
+DFA transitions / episode   : 3.96
+DFA transitions in window   : 1->2: 75, 2->6: 69, 4->3: 1, 4->5: 65, 5->10: 62, 6->4: 66, 10->12: 58
+epsilon (next episode)       : 0.04240
+replay buffer                : 300000 samples [1: 48.3%, 2: 17.3%, 3: 0.0%, 4: 16.9%, 5: 4.2%, 6: 5.4%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 7.9%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 13573, 2: 4737, 3: 1, 4: 4035, 5: 1158, 6: 1616, 7: 0, 8: 0, 9: 0, 10: 2966, 11: 0, 12: 58
+DFA state visits cumulative  : 1: 1414863, 2: 269637, 3: 154, 4: 381401, 5: 65679, 6: 108526, 7: 0, 8: 0, 9: 0, 10: 118514, 11: 0, 12: 2374
+DFA state entries in window  : 1: 100, 2: 75, 3: 1, 4: 66, 5: 65, 6: 69, 7: 0, 8: 0, 9: 0, 10: 62, 11: 0, 12: 58
+DFA state entries cumulative : 1: 7900, 2: 4140, 3: 154, 4: 3635, 5: 3109, 6: 3820, 7: 0, 8: 0, 9: 0, 10: 2844, 11: 0, 12: 2374
+transitions cumulative       : 1->2: 4139, 2->3: 41, 2->4: 6, 2->6: 3820, 4->3: 73, 4->5: 3109, 4->10: 33, 5->4: 90, 5->10: 2811, 6->2: 1, 6->4: 3539, 10->3: 40, 10->12: 2374
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=5121, truncated=252
+
+[Episode 8000/10000 | last 100]
+success rate                : 84.0% (cumulative 30.7%)
+failure rate                : 3.0% (cumulative 2.0%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 8400.000
+shaping reward              : 3317.603
+learning reward             : 11717.603
+episode length              : 311.6
+abstract changes / episode  : 102.3
+same abstract-state steps   : 67.2%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 3317.603
+terminal shaping / episode  : -194.369
+DFA transitions / episode   : 5.22
+DFA transitions in window   : 1->2: 91, 2->6: 91, 4->3: 3, 4->5: 77, 4->10: 10, 5->10: 76, 6->4: 90, 10->12: 84
+epsilon (next episode)       : 0.04074
+replay buffer                : 300000 samples [1: 48.5%, 2: 17.2%, 3: 0.0%, 4: 16.8%, 5: 4.0%, 6: 5.7%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 7.8%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 13549, 2: 6213, 3: 3, 4: 5961, 5: 721, 6: 2209, 7: 0, 8: 0, 9: 0, 10: 2521, 11: 0, 12: 84
+DFA state visits cumulative  : 1: 1428412, 2: 275850, 3: 157, 4: 387362, 5: 66400, 6: 110735, 7: 0, 8: 0, 9: 0, 10: 121035, 11: 0, 12: 2458
+DFA state entries in window  : 1: 100, 2: 91, 3: 3, 4: 90, 5: 77, 6: 91, 7: 0, 8: 0, 9: 0, 10: 86, 11: 0, 12: 84
+DFA state entries cumulative : 1: 8000, 2: 4231, 3: 157, 4: 3725, 5: 3186, 6: 3911, 7: 0, 8: 0, 9: 0, 10: 2930, 11: 0, 12: 2458
+transitions cumulative       : 1->2: 4230, 2->3: 41, 2->4: 6, 2->6: 3911, 4->3: 76, 4->5: 3186, 4->10: 43, 5->4: 90, 5->10: 2887, 6->2: 1, 6->4: 3629, 10->3: 40, 10->12: 2458
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=5134, truncated=252
+
+Starting autonomous greedy evaluation at episode 8000 (1000 fixed-seed episodes)...
+[Greedy evaluation at episode 8000 | 1000 fixed-seed episodes]
+success=91.3%, failure=1.3%, task reward=9130.000, length=314.4
+DFA transitions: 1->2: 941, 2->3: 11, 2->4: 4, 2->6: 926, 4->3: 2, 4->5: 914, 4->10: 3, 5->10: 914, 6->4: 920, 10->12: 913
+
+[Episode 8100/10000 | last 100]
+success rate                : 79.0% (cumulative 31.3%)
+failure rate                : 5.0% (cumulative 2.0%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 7900.000
+shaping reward              : 3032.586
+learning reward             : 10932.586
+episode length              : 328.4
+abstract changes / episode  : 107.0
+same abstract-state steps   : 67.4%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 3032.586
+terminal shaping / episode  : -384.246
+DFA transitions / episode   : 5.09
+DFA transitions in window   : 1->2: 91, 2->6: 87, 4->3: 4, 4->5: 79, 4->10: 3, 5->10: 79, 6->4: 86, 10->3: 1, 10->12: 79
+epsilon (next episode)       : 0.03914
+replay buffer                : 300000 samples [1: 46.9%, 2: 17.9%, 3: 0.0%, 4: 17.1%, 5: 3.9%, 6: 5.8%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 8.3%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 13895, 2: 6797, 3: 5, 4: 5380, 5: 1051, 6: 1855, 7: 0, 8: 0, 9: 0, 10: 3876, 11: 0, 12: 79
+DFA state visits cumulative  : 1: 1442307, 2: 282647, 3: 162, 4: 392742, 5: 67451, 6: 112590, 7: 0, 8: 0, 9: 0, 10: 124911, 11: 0, 12: 2537
+DFA state entries in window  : 1: 100, 2: 91, 3: 5, 4: 86, 5: 79, 6: 87, 7: 0, 8: 0, 9: 0, 10: 82, 11: 0, 12: 79
+DFA state entries cumulative : 1: 8100, 2: 4322, 3: 162, 4: 3811, 5: 3265, 6: 3998, 7: 0, 8: 0, 9: 0, 10: 3012, 11: 0, 12: 2537
+transitions cumulative       : 1->2: 4321, 2->3: 41, 2->4: 6, 2->6: 3998, 4->3: 80, 4->5: 3265, 4->10: 46, 5->4: 90, 5->10: 2966, 6->2: 1, 6->4: 3715, 10->3: 41, 10->12: 2537
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=5150, truncated=252
+
+[Episode 8200/10000 | last 100]
+success rate                : 80.0% (cumulative 31.9%)
+failure rate                : 1.0% (cumulative 2.0%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 8000.000
+shaping reward              : 3417.165
+learning reward             : 11417.165
+episode length              : 305.7
+abstract changes / episode  : 102.4
+same abstract-state steps   : 66.5%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 3417.165
+terminal shaping / episode  : -14.202
+DFA transitions / episode   : 5.15
+DFA transitions in window   : 1->2: 89, 2->6: 88, 4->3: 1, 4->5: 84, 4->10: 2, 5->10: 84, 6->4: 87, 10->12: 80
+epsilon (next episode)       : 0.03760
+replay buffer                : 300000 samples [1: 46.8%, 2: 18.0%, 3: 0.0%, 4: 17.3%, 5: 3.5%, 6: 5.8%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 8.5%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 13284, 2: 6444, 3: 1, 4: 5281, 5: 858, 6: 1869, 7: 0, 8: 0, 9: 0, 10: 2851, 11: 0, 12: 80
+DFA state visits cumulative  : 1: 1455591, 2: 289091, 3: 163, 4: 398023, 5: 68309, 6: 114459, 7: 0, 8: 0, 9: 0, 10: 127762, 11: 0, 12: 2617
+DFA state entries in window  : 1: 100, 2: 89, 3: 1, 4: 87, 5: 84, 6: 88, 7: 0, 8: 0, 9: 0, 10: 86, 11: 0, 12: 80
+DFA state entries cumulative : 1: 8200, 2: 4411, 3: 163, 4: 3898, 5: 3349, 6: 4086, 7: 0, 8: 0, 9: 0, 10: 3098, 11: 0, 12: 2617
+transitions cumulative       : 1->2: 4410, 2->3: 41, 2->4: 6, 2->6: 4086, 4->3: 81, 4->5: 3349, 4->10: 48, 5->4: 90, 5->10: 3050, 6->2: 1, 6->4: 3802, 10->3: 41, 10->12: 2617
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=5169, truncated=252
+
+[Episode 8300/10000 | last 100]
+success rate                : 77.0% (cumulative 32.5%)
+failure rate                : 0.0% (cumulative 2.0%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 7700.000
+shaping reward              : 3290.796
+learning reward             : 10990.796
+episode length              : 303.1
+abstract changes / episode  : 101.9
+same abstract-state steps   : 66.4%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 3290.796
+terminal shaping / episode  : 78.804
+DFA transitions / episode   : 5.06
+DFA transitions in window   : 1->2: 87, 2->6: 87, 4->5: 85, 5->10: 84, 6->4: 86, 10->12: 77
+epsilon (next episode)       : 0.03613
+replay buffer                : 300000 samples [1: 46.2%, 2: 17.8%, 3: 0.0%, 4: 17.3%, 5: 3.4%, 6: 5.9%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 9.3%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 12842, 2: 5392, 3: 0, 4: 4733, 5: 969, 6: 1944, 7: 0, 8: 0, 9: 0, 10: 4452, 11: 0, 12: 77
+DFA state visits cumulative  : 1: 1468433, 2: 294483, 3: 163, 4: 402756, 5: 69278, 6: 116403, 7: 0, 8: 0, 9: 0, 10: 132214, 11: 0, 12: 2694
+DFA state entries in window  : 1: 100, 2: 87, 3: 0, 4: 86, 5: 85, 6: 87, 7: 0, 8: 0, 9: 0, 10: 84, 11: 0, 12: 77
+DFA state entries cumulative : 1: 8300, 2: 4498, 3: 163, 4: 3984, 5: 3434, 6: 4173, 7: 0, 8: 0, 9: 0, 10: 3182, 11: 0, 12: 2694
+transitions cumulative       : 1->2: 4497, 2->3: 41, 2->4: 6, 2->6: 4173, 4->3: 81, 4->5: 3434, 4->10: 48, 5->4: 90, 5->10: 3134, 6->2: 1, 6->4: 3888, 10->3: 41, 10->12: 2694
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=5192, truncated=252
+
+[Episode 8400/10000 | last 100]
+success rate                : 68.0% (cumulative 32.9%)
+failure rate                : 8.0% (cumulative 2.0%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 6800.000
+shaping reward              : 2634.926
+learning reward             : 9434.926
+episode length              : 322.1
+abstract changes / episode  : 106.5
+same abstract-state steps   : 66.9%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 2634.926
+terminal shaping / episode  : -546.215
+DFA transitions / episode   : 4.94
+DFA transitions in window   : 1->2: 90, 2->3: 6, 2->6: 84, 4->3: 2, 4->5: 81, 5->10: 79, 6->4: 84, 10->12: 68
+epsilon (next episode)       : 0.03471
+replay buffer                : 300000 samples [1: 45.0%, 2: 18.2%, 3: 0.0%, 4: 17.3%, 5: 3.5%, 6: 5.8%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 10.2%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 12963, 2: 6270, 3: 8, 4: 5436, 5: 1295, 6: 1596, 7: 0, 8: 0, 9: 0, 10: 4679, 11: 0, 12: 68
+DFA state visits cumulative  : 1: 1481396, 2: 300753, 3: 171, 4: 408192, 5: 70573, 6: 117999, 7: 0, 8: 0, 9: 0, 10: 136893, 11: 0, 12: 2762
+DFA state entries in window  : 1: 100, 2: 90, 3: 8, 4: 84, 5: 81, 6: 84, 7: 0, 8: 0, 9: 0, 10: 79, 11: 0, 12: 68
+DFA state entries cumulative : 1: 8400, 2: 4588, 3: 171, 4: 4068, 5: 3515, 6: 4257, 7: 0, 8: 0, 9: 0, 10: 3261, 11: 0, 12: 2762
+transitions cumulative       : 1->2: 4587, 2->3: 47, 2->4: 6, 2->6: 4257, 4->3: 83, 4->5: 3515, 4->10: 48, 5->4: 90, 5->10: 3213, 6->2: 1, 6->4: 3972, 10->3: 41, 10->12: 2762
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=5215, truncated=253
+
+[Episode 8500/10000 | last 100]
+success rate                : 89.0% (cumulative 33.5%)
+failure rate                : 5.0% (cumulative 2.1%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 8900.000
+shaping reward              : 3441.260
+learning reward             : 12341.260
+episode length              : 331.2
+abstract changes / episode  : 109.7
+same abstract-state steps   : 66.9%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 3441.260
+terminal shaping / episode  : -364.316
+DFA transitions / episode   : 5.70
+DFA transitions in window   : 1->2: 98, 2->6: 97, 4->3: 4, 4->5: 92, 4->10: 2, 5->4: 1, 5->10: 89, 6->4: 97, 10->3: 1, 10->12: 89
+epsilon (next episode)       : 0.03335
+replay buffer                : 300000 samples [1: 44.9%, 2: 18.5%, 3: 0.0%, 4: 17.1%, 5: 3.3%, 6: 5.8%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 10.4%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 14167, 2: 6450, 3: 5, 4: 5978, 5: 1057, 6: 2085, 7: 0, 8: 0, 9: 0, 10: 3393, 11: 0, 12: 89
+DFA state visits cumulative  : 1: 1495563, 2: 307203, 3: 176, 4: 414170, 5: 71630, 6: 120084, 7: 0, 8: 0, 9: 0, 10: 140286, 11: 0, 12: 2851
+DFA state entries in window  : 1: 100, 2: 98, 3: 5, 4: 98, 5: 92, 6: 97, 7: 0, 8: 0, 9: 0, 10: 91, 11: 0, 12: 89
+DFA state entries cumulative : 1: 8500, 2: 4686, 3: 176, 4: 4166, 5: 3607, 6: 4354, 7: 0, 8: 0, 9: 0, 10: 3352, 11: 0, 12: 2851
+transitions cumulative       : 1->2: 4685, 2->3: 47, 2->4: 6, 2->6: 4354, 4->3: 87, 4->5: 3607, 4->10: 50, 5->4: 91, 5->10: 3302, 6->2: 1, 6->4: 4069, 10->3: 42, 10->12: 2851
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=5220, truncated=254
+
+Starting autonomous greedy evaluation at episode 8500 (1000 fixed-seed episodes)...
+[Greedy evaluation at episode 8500 | 1000 fixed-seed episodes]
+success=95.8%, failure=0.0%, task reward=9580.000, length=317.0
+DFA transitions: 1->2: 967, 2->6: 965, 4->5: 958, 5->10: 958, 6->4: 958, 10->12: 958
+
+[Episode 8600/10000 | last 100]
+success rate                : 88.0% (cumulative 34.2%)
+failure rate                : 1.0% (cumulative 2.1%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 8800.000
+shaping reward              : 3502.048
+learning reward             : 12302.048
+episode length              : 322.9
+abstract changes / episode  : 105.7
+same abstract-state steps   : 67.3%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 3502.048
+terminal shaping / episode  : -3.657
+DFA transitions / episode   : 5.38
+DFA transitions in window   : 1->2: 91, 2->6: 91, 4->3: 1, 4->5: 89, 5->10: 88, 6->4: 90, 10->12: 88
+epsilon (next episode)       : 0.03204
+replay buffer                : 300000 samples [1: 44.5%, 2: 18.7%, 3: 0.0%, 4: 16.9%, 5: 3.3%, 6: 5.8%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 10.7%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 14501, 2: 6189, 3: 1, 4: 5481, 5: 894, 6: 1804, 7: 0, 8: 0, 9: 0, 10: 3437, 11: 0, 12: 88
+DFA state visits cumulative  : 1: 1510064, 2: 313392, 3: 177, 4: 419651, 5: 72524, 6: 121888, 7: 0, 8: 0, 9: 0, 10: 143723, 11: 0, 12: 2939
+DFA state entries in window  : 1: 100, 2: 91, 3: 1, 4: 90, 5: 89, 6: 91, 7: 0, 8: 0, 9: 0, 10: 88, 11: 0, 12: 88
+DFA state entries cumulative : 1: 8600, 2: 4777, 3: 177, 4: 4256, 5: 3696, 6: 4445, 7: 0, 8: 0, 9: 0, 10: 3440, 11: 0, 12: 2939
+transitions cumulative       : 1->2: 4776, 2->3: 47, 2->4: 6, 2->6: 4445, 4->3: 88, 4->5: 3696, 4->10: 50, 5->4: 91, 5->10: 3390, 6->2: 1, 6->4: 4159, 10->3: 42, 10->12: 2939
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=5231, truncated=254
+
+[Episode 8700/10000 | last 100]
+success rate                : 71.0% (cumulative 34.6%)
+failure rate                : 6.0% (cumulative 2.1%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 7100.000
+shaping reward              : 2498.316
+learning reward             : 9598.316
+episode length              : 336.8
+abstract changes / episode  : 101.2
+same abstract-state steps   : 69.9%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 2498.316
+terminal shaping / episode  : -451.602
+DFA transitions / episode   : 4.66
+DFA transitions in window   : 1->2: 83, 2->3: 2, 2->4: 1, 2->6: 78, 4->3: 3, 4->5: 75, 5->10: 75, 6->4: 77, 10->3: 1, 10->12: 71
+epsilon (next episode)       : 0.03079
+replay buffer                : 300000 samples [1: 44.4%, 2: 18.7%, 3: 0.0%, 4: 16.7%, 5: 3.1%, 6: 6.2%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 10.9%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 16916, 2: 5211, 3: 6, 4: 5010, 5: 712, 6: 2663, 7: 0, 8: 0, 9: 0, 10: 3190, 11: 0, 12: 71
+DFA state visits cumulative  : 1: 1526980, 2: 318603, 3: 183, 4: 424661, 5: 73236, 6: 124551, 7: 0, 8: 0, 9: 0, 10: 146913, 11: 0, 12: 3010
+DFA state entries in window  : 1: 100, 2: 83, 3: 6, 4: 78, 5: 75, 6: 78, 7: 0, 8: 0, 9: 0, 10: 75, 11: 0, 12: 71
+DFA state entries cumulative : 1: 8700, 2: 4860, 3: 183, 4: 4334, 5: 3771, 6: 4523, 7: 0, 8: 0, 9: 0, 10: 3515, 11: 0, 12: 3010
+transitions cumulative       : 1->2: 4859, 2->3: 49, 2->4: 7, 2->6: 4523, 4->3: 91, 4->5: 3771, 4->10: 50, 5->4: 91, 5->10: 3465, 6->2: 1, 6->4: 4236, 10->3: 43, 10->12: 3010
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=5253, truncated=255
+
+[Episode 8800/10000 | last 100]
+success rate                : 84.0% (cumulative 35.2%)
+failure rate                : 1.0% (cumulative 2.1%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 8400.000
+shaping reward              : 3465.198
+learning reward             : 11865.198
+episode length              : 309.7
+abstract changes / episode  : 100.5
+same abstract-state steps   : 67.6%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 3465.198
+terminal shaping / episode  : 8.393
+DFA transitions / episode   : 5.33
+DFA transitions in window   : 1->2: 93, 2->3: 1, 2->6: 89, 4->5: 89, 4->10: 1, 5->4: 2, 5->10: 85, 6->4: 89, 10->12: 84
+epsilon (next episode)       : 0.02958
+replay buffer                : 300000 samples [1: 43.6%, 2: 19.2%, 3: 0.0%, 4: 17.0%, 5: 3.1%, 6: 6.3%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 10.8%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 12557, 2: 6391, 3: 1, 4: 5821, 5: 1201, 6: 2165, 7: 0, 8: 0, 9: 0, 10: 2846, 11: 0, 12: 84
+DFA state visits cumulative  : 1: 1539537, 2: 324994, 3: 184, 4: 430482, 5: 74437, 6: 126716, 7: 0, 8: 0, 9: 0, 10: 149759, 11: 0, 12: 3094
+DFA state entries in window  : 1: 100, 2: 93, 3: 1, 4: 91, 5: 89, 6: 89, 7: 0, 8: 0, 9: 0, 10: 86, 11: 0, 12: 84
+DFA state entries cumulative : 1: 8800, 2: 4953, 3: 184, 4: 4425, 5: 3860, 6: 4612, 7: 0, 8: 0, 9: 0, 10: 3601, 11: 0, 12: 3094
+transitions cumulative       : 1->2: 4952, 2->3: 50, 2->4: 7, 2->6: 4612, 4->3: 91, 4->5: 3860, 4->10: 51, 5->4: 93, 5->10: 3550, 6->2: 1, 6->4: 4325, 10->3: 43, 10->12: 3094
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=5268, truncated=255
+
+[Episode 8900/10000 | last 100]
+success rate                : 94.0% (cumulative 35.8%)
+failure rate                : 0.0% (cumulative 2.1%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 9400.000
+shaping reward              : 3889.326
+learning reward             : 13289.326
+episode length              : 322.4
+abstract changes / episode  : 107.7
+same abstract-state steps   : 66.6%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 3889.326
+terminal shaping / episode  : 93.474
+DFA transitions / episode   : 5.73
+DFA transitions in window   : 1->2: 96, 2->6: 96, 4->5: 96, 5->10: 95, 6->4: 96, 10->12: 94
+epsilon (next episode)       : 0.02842
+replay buffer                : 300000 samples [1: 42.6%, 2: 19.6%, 3: 0.0%, 4: 17.3%, 5: 3.4%, 6: 6.1%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 11.1%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 12141, 2: 7191, 3: 0, 4: 6283, 5: 1683, 6: 1353, 7: 0, 8: 0, 9: 0, 10: 3599, 11: 0, 12: 94
+DFA state visits cumulative  : 1: 1551678, 2: 332185, 3: 184, 4: 436765, 5: 76120, 6: 128069, 7: 0, 8: 0, 9: 0, 10: 153358, 11: 0, 12: 3188
+DFA state entries in window  : 1: 100, 2: 96, 3: 0, 4: 96, 5: 96, 6: 96, 7: 0, 8: 0, 9: 0, 10: 95, 11: 0, 12: 94
+DFA state entries cumulative : 1: 8900, 2: 5049, 3: 184, 4: 4521, 5: 3956, 6: 4708, 7: 0, 8: 0, 9: 0, 10: 3696, 11: 0, 12: 3188
+transitions cumulative       : 1->2: 5048, 2->3: 50, 2->4: 7, 2->6: 4708, 4->3: 91, 4->5: 3956, 4->10: 51, 5->4: 93, 5->10: 3645, 6->2: 1, 6->4: 4421, 10->3: 43, 10->12: 3188
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=5274, truncated=255
+
+[Episode 9000/10000 | last 100]
+success rate                : 79.0% (cumulative 36.3%)
+failure rate                : 3.0% (cumulative 2.1%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 7900.000
+shaping reward              : 3186.400
+learning reward             : 11086.400
+episode length              : 311.8
+abstract changes / episode  : 98.2
+same abstract-state steps   : 68.5%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 3186.400
+terminal shaping / episode  : -202.150
+DFA transitions / episode   : 5.10
+DFA transitions in window   : 1->2: 93, 2->6: 86, 4->5: 84, 5->3: 1, 5->10: 81, 6->4: 84, 10->3: 2, 10->12: 79
+epsilon (next episode)       : 0.02730
+replay buffer                : 300000 samples [1: 42.7%, 2: 19.6%, 3: 0.0%, 4: 17.2%, 5: 3.5%, 6: 6.0%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 11.0%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 13792, 2: 6602, 3: 3, 4: 5365, 5: 1202, 6: 1726, 7: 0, 8: 0, 9: 0, 10: 2506, 11: 0, 12: 79
+DFA state visits cumulative  : 1: 1565470, 2: 338787, 3: 187, 4: 442130, 5: 77322, 6: 129795, 7: 0, 8: 0, 9: 0, 10: 155864, 11: 0, 12: 3267
+DFA state entries in window  : 1: 100, 2: 93, 3: 3, 4: 84, 5: 84, 6: 86, 7: 0, 8: 0, 9: 0, 10: 81, 11: 0, 12: 79
+DFA state entries cumulative : 1: 9000, 2: 5142, 3: 187, 4: 4605, 5: 4040, 6: 4794, 7: 0, 8: 0, 9: 0, 10: 3777, 11: 0, 12: 3267
+transitions cumulative       : 1->2: 5141, 2->3: 50, 2->4: 7, 2->6: 4794, 4->3: 91, 4->5: 4040, 4->10: 51, 5->3: 1, 5->4: 93, 5->10: 3726, 6->2: 1, 6->4: 4505, 10->3: 45, 10->12: 3267
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=5292, truncated=255
+
+Starting autonomous greedy evaluation at episode 9000 (1000 fixed-seed episodes)...
+[Greedy evaluation at episode 9000 | 1000 fixed-seed episodes]
+success=98.4%, failure=0.1%, task reward=9840.000, length=334.3
+DFA transitions: 1->2: 986, 2->3: 1, 2->6: 985, 4->5: 985, 5->10: 984, 6->4: 985, 10->12: 984
+
+[Episode 9100/10000 | last 100]
+success rate                : 84.0% (cumulative 36.8%)
+failure rate                : 2.0% (cumulative 2.1%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 8400.000
+shaping reward              : 3505.972
+learning reward             : 11905.972
+episode length              : 335.2
+abstract changes / episode  : 103.6
+same abstract-state steps   : 69.1%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 3505.972
+terminal shaping / episode  : -100.549
+DFA transitions / episode   : 5.40
+DFA transitions in window   : 1->2: 96, 2->6: 93, 4->3: 2, 4->5: 87, 5->10: 86, 6->4: 92, 10->12: 84
+epsilon (next episode)       : 0.02623
+replay buffer                : 300000 samples [1: 42.8%, 2: 19.5%, 3: 0.0%, 4: 17.3%, 5: 3.5%, 6: 6.0%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 10.9%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 14130, 2: 6694, 3: 2, 4: 6155, 5: 1139, 6: 2087, 7: 0, 8: 0, 9: 0, 10: 3329, 11: 0, 12: 84
+DFA state visits cumulative  : 1: 1579600, 2: 345481, 3: 189, 4: 448285, 5: 78461, 6: 131882, 7: 0, 8: 0, 9: 0, 10: 159193, 11: 0, 12: 3351
+DFA state entries in window  : 1: 100, 2: 96, 3: 2, 4: 92, 5: 87, 6: 93, 7: 0, 8: 0, 9: 0, 10: 86, 11: 0, 12: 84
+DFA state entries cumulative : 1: 9100, 2: 5238, 3: 189, 4: 4697, 5: 4127, 6: 4887, 7: 0, 8: 0, 9: 0, 10: 3863, 11: 0, 12: 3351
+transitions cumulative       : 1->2: 5237, 2->3: 50, 2->4: 7, 2->6: 4887, 4->3: 93, 4->5: 4127, 4->10: 51, 5->3: 1, 5->4: 93, 5->10: 3812, 6->2: 1, 6->4: 4597, 10->3: 45, 10->12: 3351
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=5306, truncated=255
+
+[Episode 9200/10000 | last 100]
+success rate                : 82.0% (cumulative 37.3%)
+failure rate                : 7.0% (cumulative 2.1%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 8200.000
+shaping reward              : 3060.446
+learning reward             : 11260.446
+episode length              : 311.1
+abstract changes / episode  : 99.2
+same abstract-state steps   : 68.1%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 3060.446
+terminal shaping / episode  : -546.668
+DFA transitions / episode   : 5.36
+DFA transitions in window   : 1->2: 94, 2->3: 1, 2->4: 1, 2->6: 91, 4->3: 6, 4->5: 84, 4->10: 2, 5->10: 84, 6->4: 91, 10->12: 82
+epsilon (next episode)       : 0.02520
+replay buffer                : 300000 samples [1: 42.3%, 2: 19.8%, 3: 0.0%, 4: 17.8%, 5: 3.4%, 6: 6.1%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 10.7%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 11638, 2: 6569, 3: 7, 4: 6509, 5: 577, 6: 2226, 7: 0, 8: 0, 9: 0, 10: 3600, 11: 0, 12: 82
+DFA state visits cumulative  : 1: 1591238, 2: 352050, 3: 196, 4: 454794, 5: 79038, 6: 134108, 7: 0, 8: 0, 9: 0, 10: 162793, 11: 0, 12: 3433
+DFA state entries in window  : 1: 100, 2: 94, 3: 7, 4: 92, 5: 84, 6: 91, 7: 0, 8: 0, 9: 0, 10: 86, 11: 0, 12: 82
+DFA state entries cumulative : 1: 9200, 2: 5332, 3: 196, 4: 4789, 5: 4211, 6: 4978, 7: 0, 8: 0, 9: 0, 10: 3949, 11: 0, 12: 3433
+transitions cumulative       : 1->2: 5331, 2->3: 51, 2->4: 8, 2->6: 4978, 4->3: 99, 4->5: 4211, 4->10: 53, 5->3: 1, 5->4: 93, 5->10: 3896, 6->2: 1, 6->4: 4688, 10->3: 45, 10->12: 3433
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=5316, truncated=256
+
+[Episode 9300/10000 | last 100]
+success rate                : 92.0% (cumulative 37.9%)
+failure rate                : 4.0% (cumulative 2.2%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 9200.000
+shaping reward              : 3599.528
+learning reward             : 12799.528
+episode length              : 320.3
+abstract changes / episode  : 103.1
+same abstract-state steps   : 67.8%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 3599.528
+terminal shaping / episode  : -207.437
+DFA transitions / episode   : 5.70
+DFA transitions in window   : 1->2: 98, 2->3: 4, 2->6: 94, 4->5: 94, 5->10: 94, 6->4: 94, 10->12: 92
+epsilon (next episode)       : 0.02422
+replay buffer                : 300000 samples [1: 42.0%, 2: 19.9%, 3: 0.0%, 4: 18.4%, 5: 3.2%, 6: 6.4%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 10.0%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 12516, 2: 6681, 3: 4, 4: 6626, 5: 848, 6: 2566, 7: 0, 8: 0, 9: 0, 10: 2798, 11: 0, 12: 92
+DFA state visits cumulative  : 1: 1603754, 2: 358731, 3: 200, 4: 461420, 5: 79886, 6: 136674, 7: 0, 8: 0, 9: 0, 10: 165591, 11: 0, 12: 3525
+DFA state entries in window  : 1: 100, 2: 98, 3: 4, 4: 94, 5: 94, 6: 94, 7: 0, 8: 0, 9: 0, 10: 94, 11: 0, 12: 92
+DFA state entries cumulative : 1: 9300, 2: 5430, 3: 200, 4: 4883, 5: 4305, 6: 5072, 7: 0, 8: 0, 9: 0, 10: 4043, 11: 0, 12: 3525
+transitions cumulative       : 1->2: 5429, 2->3: 55, 2->4: 8, 2->6: 5072, 4->3: 99, 4->5: 4305, 4->10: 53, 5->3: 1, 5->4: 93, 5->10: 3990, 6->2: 1, 6->4: 4782, 10->3: 45, 10->12: 3525
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=5320, truncated=256
+
+[Episode 9400/10000 | last 100]
+success rate                : 91.0% (cumulative 38.5%)
+failure rate                : 1.0% (cumulative 2.1%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 9100.000
+shaping reward              : 3697.470
+learning reward             : 12797.470
+episode length              : 317.9
+abstract changes / episode  : 105.2
+same abstract-state steps   : 66.9%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 3697.470
+terminal shaping / episode  : 16.842
+DFA transitions / episode   : 5.58
+DFA transitions in window   : 1->2: 95, 2->3: 1, 2->6: 93, 4->5: 93, 5->10: 92, 6->4: 93, 10->12: 91
+epsilon (next episode)       : 0.02327
+replay buffer                : 300000 samples [1: 42.3%, 2: 20.0%, 3: 0.0%, 4: 18.4%, 5: 3.1%, 6: 6.5%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 9.6%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 12967, 2: 6661, 3: 1, 4: 6383, 5: 885, 6: 2112, 7: 0, 8: 0, 9: 0, 10: 2787, 11: 0, 12: 91
+DFA state visits cumulative  : 1: 1616721, 2: 365392, 3: 201, 4: 467803, 5: 80771, 6: 138786, 7: 0, 8: 0, 9: 0, 10: 168378, 11: 0, 12: 3616
+DFA state entries in window  : 1: 100, 2: 95, 3: 1, 4: 93, 5: 93, 6: 93, 7: 0, 8: 0, 9: 0, 10: 92, 11: 0, 12: 91
+DFA state entries cumulative : 1: 9400, 2: 5525, 3: 201, 4: 4976, 5: 4398, 6: 5165, 7: 0, 8: 0, 9: 0, 10: 4135, 11: 0, 12: 3616
+transitions cumulative       : 1->2: 5524, 2->3: 56, 2->4: 8, 2->6: 5165, 4->3: 99, 4->5: 4398, 4->10: 53, 5->3: 1, 5->4: 93, 5->10: 4082, 6->2: 1, 6->4: 4875, 10->3: 45, 10->12: 3616
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=5327, truncated=257
+
+[Episode 9500/10000 | last 100]
+success rate                : 80.0% (cumulative 38.9%)
+failure rate                : 1.0% (cumulative 2.1%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 8000.000
+shaping reward              : 3462.660
+learning reward             : 11462.660
+episode length              : 344.2
+abstract changes / episode  : 104.5
+same abstract-state steps   : 69.6%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 3462.660
+terminal shaping / episode  : -12.800
+DFA transitions / episode   : 5.28
+DFA transitions in window   : 1->2: 90, 2->6: 90, 4->3: 1, 4->5: 90, 5->4: 1, 5->10: 86, 6->4: 90, 10->12: 80
+epsilon (next episode)       : 0.02235
+replay buffer                : 300000 samples [1: 41.2%, 2: 20.1%, 3: 0.0%, 4: 18.5%, 5: 3.2%, 6: 6.3%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 10.6%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 13008, 2: 6673, 3: 1, 4: 5742, 5: 1175, 6: 1643, 7: 0, 8: 0, 9: 0, 10: 6202, 11: 0, 12: 80
+DFA state visits cumulative  : 1: 1629729, 2: 372065, 3: 202, 4: 473545, 5: 81946, 6: 140429, 7: 0, 8: 0, 9: 0, 10: 174580, 11: 0, 12: 3696
+DFA state entries in window  : 1: 100, 2: 90, 3: 1, 4: 91, 5: 90, 6: 90, 7: 0, 8: 0, 9: 0, 10: 86, 11: 0, 12: 80
+DFA state entries cumulative : 1: 9500, 2: 5615, 3: 202, 4: 5067, 5: 4488, 6: 5255, 7: 0, 8: 0, 9: 0, 10: 4221, 11: 0, 12: 3696
+transitions cumulative       : 1->2: 5614, 2->3: 56, 2->4: 8, 2->6: 5255, 4->3: 100, 4->5: 4488, 4->10: 53, 5->3: 1, 5->4: 94, 5->10: 4168, 6->2: 1, 6->4: 4965, 10->3: 45, 10->12: 3696
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=5341, truncated=262
+
+Starting autonomous greedy evaluation at episode 9500 (1000 fixed-seed episodes)...
+[Greedy evaluation at episode 9500 | 1000 fixed-seed episodes]
+success=95.8%, failure=0.0%, task reward=9580.000, length=318.0
+DFA transitions: 1->2: 966, 2->6: 966, 4->5: 965, 5->10: 963, 6->4: 965, 10->12: 958
+
+[Episode 9600/10000 | last 100]
+success rate                : 88.0% (cumulative 39.4%)
+failure rate                : 0.0% (cumulative 2.1%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 8800.000
+shaping reward              : 3708.228
+learning reward             : 12508.228
+episode length              : 314.1
+abstract changes / episode  : 104.9
+same abstract-state steps   : 66.6%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 3708.228
+terminal shaping / episode  : 88.860
+DFA transitions / episode   : 5.45
+DFA transitions in window   : 1->2: 92, 2->6: 92, 4->5: 90, 4->10: 2, 5->4: 1, 5->10: 88, 6->4: 92, 10->12: 88
+epsilon (next episode)       : 0.02148
+replay buffer                : 300000 samples [1: 40.2%, 2: 20.7%, 3: 0.0%, 4: 19.0%, 5: 3.3%, 6: 6.3%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 10.6%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 12864, 2: 6767, 3: 0, 4: 6013, 5: 951, 6: 1787, 7: 0, 8: 0, 9: 0, 10: 3044, 11: 0, 12: 88
+DFA state visits cumulative  : 1: 1642593, 2: 378832, 3: 202, 4: 479558, 5: 82897, 6: 142216, 7: 0, 8: 0, 9: 0, 10: 177624, 11: 0, 12: 3784
+DFA state entries in window  : 1: 100, 2: 92, 3: 0, 4: 93, 5: 90, 6: 92, 7: 0, 8: 0, 9: 0, 10: 90, 11: 0, 12: 88
+DFA state entries cumulative : 1: 9600, 2: 5707, 3: 202, 4: 5160, 5: 4578, 6: 5347, 7: 0, 8: 0, 9: 0, 10: 4311, 11: 0, 12: 3784
+transitions cumulative       : 1->2: 5706, 2->3: 56, 2->4: 8, 2->6: 5347, 4->3: 100, 4->5: 4578, 4->10: 55, 5->3: 1, 5->4: 95, 5->10: 4256, 6->2: 1, 6->4: 5057, 10->3: 45, 10->12: 3784
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=5353, truncated=262
+
+[Episode 9700/10000 | last 100]
+success rate                : 84.0% (cumulative 39.9%)
+failure rate                : 2.0% (cumulative 2.1%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 8400.000
+shaping reward              : 3422.204
+learning reward             : 11822.204
+episode length              : 348.5
+abstract changes / episode  : 112.8
+same abstract-state steps   : 67.6%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 3422.204
+terminal shaping / episode  : -99.551
+DFA transitions / episode   : 5.24
+DFA transitions in window   : 1->2: 91, 2->6: 91, 4->3: 2, 4->5: 81, 4->10: 6, 5->10: 80, 6->4: 89, 10->12: 84
+epsilon (next episode)       : 0.02063
+replay buffer                : 300000 samples [1: 40.8%, 2: 20.6%, 3: 0.0%, 4: 18.9%, 5: 3.2%, 6: 6.0%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 10.6%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 16315, 2: 6308, 3: 2, 4: 6044, 5: 886, 6: 2005, 7: 0, 8: 0, 9: 0, 10: 3303, 11: 0, 12: 84
+DFA state visits cumulative  : 1: 1658908, 2: 385140, 3: 204, 4: 485602, 5: 83783, 6: 144221, 7: 0, 8: 0, 9: 0, 10: 180927, 11: 0, 12: 3868
+DFA state entries in window  : 1: 100, 2: 91, 3: 2, 4: 89, 5: 81, 6: 91, 7: 0, 8: 0, 9: 0, 10: 86, 11: 0, 12: 84
+DFA state entries cumulative : 1: 9700, 2: 5798, 3: 204, 4: 5249, 5: 4659, 6: 5438, 7: 0, 8: 0, 9: 0, 10: 4397, 11: 0, 12: 3868
+transitions cumulative       : 1->2: 5797, 2->3: 56, 2->4: 8, 2->6: 5438, 4->3: 102, 4->5: 4659, 4->10: 61, 5->3: 1, 5->4: 95, 5->10: 4336, 6->2: 1, 6->4: 5146, 10->3: 45, 10->12: 3868
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=5366, truncated=263
+
+[Episode 9800/10000 | last 100]
+success rate                : 83.0% (cumulative 40.3%)
+failure rate                : 4.0% (cumulative 2.1%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 8300.000
+shaping reward              : 3203.904
+learning reward             : 11503.904
+episode length              : 332.8
+abstract changes / episode  : 107.2
+same abstract-state steps   : 67.8%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 3203.904
+terminal shaping / episode  : -269.352
+DFA transitions / episode   : 5.29
+DFA transitions in window   : 1->2: 91, 2->3: 1, 2->6: 90, 4->3: 3, 4->5: 86, 4->10: 1, 5->4: 1, 5->10: 84, 6->4: 89, 10->12: 83
+epsilon (next episode)       : 0.01983
+replay buffer                : 300000 samples [1: 41.7%, 2: 20.2%, 3: 0.0%, 4: 18.7%, 5: 3.0%, 6: 6.1%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 10.4%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 15815, 2: 6105, 3: 4, 4: 6092, 5: 796, 6: 1796, 7: 0, 8: 0, 9: 0, 10: 2690, 11: 0, 12: 83
+DFA state visits cumulative  : 1: 1674723, 2: 391245, 3: 208, 4: 491694, 5: 84579, 6: 146017, 7: 0, 8: 0, 9: 0, 10: 183617, 11: 0, 12: 3951
+DFA state entries in window  : 1: 100, 2: 91, 3: 4, 4: 90, 5: 86, 6: 90, 7: 0, 8: 0, 9: 0, 10: 85, 11: 0, 12: 83
+DFA state entries cumulative : 1: 9800, 2: 5889, 3: 208, 4: 5339, 5: 4745, 6: 5528, 7: 0, 8: 0, 9: 0, 10: 4482, 11: 0, 12: 3951
+transitions cumulative       : 1->2: 5888, 2->3: 57, 2->4: 8, 2->6: 5528, 4->3: 105, 4->5: 4745, 4->10: 62, 5->3: 1, 5->4: 96, 5->10: 4420, 6->2: 1, 6->4: 5235, 10->3: 45, 10->12: 3951
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=5379, truncated=263
+
+[Episode 9900/10000 | last 100]
+success rate                : 56.0% (cumulative 40.5%)
+failure rate                : 5.0% (cumulative 2.2%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 5600.000
+shaping reward              : 2533.893
+learning reward             : 8133.893
+episode length              : 332.6
+abstract changes / episode  : 102.8
+same abstract-state steps   : 69.1%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 2533.893
+terminal shaping / episode  : -407.030
+DFA transitions / episode   : 4.31
+DFA transitions in window   : 1->2: 83, 2->6: 77, 4->3: 5, 4->5: 67, 4->10: 2, 5->10: 65, 6->4: 76, 10->12: 56
+epsilon (next episode)       : 0.01905
+replay buffer                : 300000 samples [1: 43.0%, 2: 19.6%, 3: 0.0%, 4: 18.3%, 5: 2.8%, 6: 6.1%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 10.3%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 17626, 2: 5621, 3: 5, 4: 4778, 5: 916, 6: 1691, 7: 0, 8: 0, 9: 0, 10: 2663, 11: 0, 12: 56
+DFA state visits cumulative  : 1: 1692349, 2: 396866, 3: 213, 4: 496472, 5: 85495, 6: 147708, 7: 0, 8: 0, 9: 0, 10: 186280, 11: 0, 12: 4007
+DFA state entries in window  : 1: 100, 2: 83, 3: 5, 4: 76, 5: 67, 6: 77, 7: 0, 8: 0, 9: 0, 10: 67, 11: 0, 12: 56
+DFA state entries cumulative : 1: 9900, 2: 5972, 3: 213, 4: 5415, 5: 4812, 6: 5605, 7: 0, 8: 0, 9: 0, 10: 4549, 11: 0, 12: 4007
+transitions cumulative       : 1->2: 5971, 2->3: 57, 2->4: 8, 2->6: 5605, 4->3: 110, 4->5: 4812, 4->10: 64, 5->3: 1, 5->4: 96, 5->10: 4485, 6->2: 1, 6->4: 5311, 10->3: 45, 10->12: 4007
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=5417, truncated=264
+
+[Episode 10000/10000 | last 100]
+success rate                : 61.0% (cumulative 40.7%)
+failure rate                : 0.0% (cumulative 2.1%)
+completed cycles / episode  : 0.000
+synthetic task reward       : 6100.000
+shaping reward              : 2984.921
+learning reward             : 9084.921
+episode length              : 305.1
+abstract changes / episode  : 99.7
+same abstract-state steps   : 67.3%
+same-state shaping / episode: 0.000
+changed-state shaping / ep. : 2984.921
+terminal shaping / episode  : 59.247
+DFA transitions / episode   : 4.49
+DFA transitions in window   : 1->2: 86, 2->6: 81, 4->5: 72, 4->10: 1, 5->4: 1, 5->10: 71, 6->4: 76, 10->12: 61
+epsilon (next episode)       : 0.01830
+replay buffer                : 300000 samples [1: 43.3%, 2: 19.5%, 3: 0.0%, 4: 18.1%, 5: 2.7%, 6: 6.0%, 7: 0.0%, 8: 0.0%, 9: 0.0%, 10: 10.5%, 11: 0.0%, 12: 0.0%]
+DFA state visits in window   : 1: 14407, 2: 5544, 3: 0, 4: 4507, 5: 972, 6: 1731, 7: 0, 8: 0, 9: 0, 10: 3383, 11: 0, 12: 61
+DFA state visits cumulative  : 1: 1706756, 2: 402410, 3: 213, 4: 500979, 5: 86467, 6: 149439, 7: 0, 8: 0, 9: 0, 10: 189663, 11: 0, 12: 4068
+DFA state entries in window  : 1: 100, 2: 86, 3: 0, 4: 77, 5: 72, 6: 81, 7: 0, 8: 0, 9: 0, 10: 72, 11: 0, 12: 61
+DFA state entries cumulative : 1: 10000, 2: 6058, 3: 213, 4: 5492, 5: 4884, 6: 5686, 7: 0, 8: 0, 9: 0, 10: 4621, 11: 0, 12: 4068
+transitions cumulative       : 1->2: 6057, 2->3: 57, 2->4: 8, 2->6: 5686, 4->3: 110, 4->5: 4884, 4->10: 65, 5->3: 1, 5->4: 97, 5->10: 4556, 6->2: 1, 6->4: 5387, 10->3: 45, 10->12: 4068
+accepted directly from s0    : 0
+Gym endings cumulative       : terminated=5456, truncated=264
+
+Starting autonomous greedy evaluation at episode 10000 (1000 fixed-seed episodes)...
+[Greedy evaluation at episode 10000 | 1000 fixed-seed episodes]
+success=91.9%, failure=0.0%, task reward=9190.000, length=306.9
+DFA transitions: 1->2: 924, 2->6: 923, 4->5: 922, 5->10: 922, 6->4: 922, 10->12: 919
+Last policy saved after episode 10000. Best greedy evaluation: episode 4500, mean task reward=9910.000
