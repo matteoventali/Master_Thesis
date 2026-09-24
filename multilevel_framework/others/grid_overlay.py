@@ -244,8 +244,18 @@ def draw_abstract_grid(
                 )
             )
         elif isinstance(region, HalfPlanePredicate):
-            x_min, x_max = OBSERVATION_X_BOUNDS
-            y_min, y_max = OBSERVATION_Y_BOUNDS
+            # Draw continuous half-planes over the whole visible viewport.
+            # The abstract rasterization above intentionally remains clipped
+            # to OBSERVATION_*_BOUNDS, but clipping the continuous patch to
+            # y=[0, 1.5] leaves the terrain portion of the rendered frame
+            # artificially uncoloured even though predicates such as x<c or
+            # y<c remain valid there.
+            visible_x_min, visible_y_max = pixel_to_observation(0.0, 0.0, geometry)
+            visible_x_max, visible_y_min = pixel_to_observation(
+                geometry.viewport_width, geometry.viewport_height, geometry
+            )
+            x_min, x_max = visible_x_min, visible_x_max
+            y_min, y_max = visible_y_min, visible_y_max
             if region.axis == "x":
                 if region.operator in {">", ">="}:
                     x_min = max(x_min, region.threshold)
