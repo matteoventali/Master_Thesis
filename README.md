@@ -1,4 +1,4 @@
-# ✦ Multilevel Temporal-Task Reinforcement Learning
+# 🚀 Multilevel Temporal-Task Reinforcement Learning
 
 A research framework for training reinforcement-learning agents on temporally extended tasks in **Gymnasium's LunarLander-v3** environment. The framework combines finite-state task automata, configurable spatial abstractions, multilevel value functions, and potential-based reward shaping to guide a ground-level learner through complex waypoint missions.
 
@@ -8,7 +8,7 @@ The project accompanies the thesis documents available in [`documents/`](documen
   <img src="assets/framework-presentation.gif" alt="Animated presentation of the multilevel temporal-task reinforcement-learning framework" width="598">
 </p>
 
-## ✧ Features
+## ✨ Features
 
 - **Temporal task specifications** — episodic LTLf formulas are converted to deterministic finite automata with `ltlf2dfa` and MONA.
 - **Continuing tasks** — cyclic waypoint sequences support repeated completion rewards and configurable cycle limits.
@@ -23,7 +23,7 @@ The project accompanies the thesis documents available in [`documents/`](documen
 - **Diagnostics** — automaton diagrams, abstraction heatmaps, learning curves, reward breakdowns, replay-buffer composition, variance plots, and tabular coverage statistics.
 - **Post-processing and evaluation** — regenerate plots from saved metrics and evaluate best or final policies independently.
 
-## ⌁ Repository layout
+## 🗂️ Repository layout
 
 ```text
 .
@@ -56,7 +56,7 @@ The project accompanies the thesis documents available in [`documents/`](documen
 
 Experiment artifacts are created under `multilevel_framework/results/<experiment-name>/` and are ignored by Git.
 
-## ⚙ Requirements
+## ⚙️ Requirements
 
 The supported setup is Docker-based. You need:
 
@@ -67,7 +67,7 @@ The supported setup is Docker-based. You need:
 
 The image is based on Python 3.11 and installs CUDA-enabled PyTorch 2.7.1, Gymnasium with Box2D, NumPy, Matplotlib, pandas, Graphviz, `ltlf2dfa`, and MONA.
 
-## ▶ Quick start
+## ▶️ Quick start
 
 From the repository root:
 
@@ -96,7 +96,7 @@ GPU_ID=0 ./run_experiment.sh --experiment-name gpu-0-run --episodes 10000
 
 `--experiment-name` is required and may contain letters, digits, `.`, `_`, and `-`.
 
-## ◇ Configuring a task
+## 🧭 Configuring a task
 
 Task files describe the temporal objective and its spatial propositions. The default file is [`multilevel_framework/config/trajectory.json`](multilevel_framework/config/trajectory.json).
 
@@ -132,7 +132,7 @@ Pass a custom task file from the host repository through its container path:
   --max-cycles-per-episode 3
 ```
 
-## ▦ Configuring the abstraction hierarchy
+## 🧩 Configuring the abstraction hierarchy
 
 The abstraction file contains an ordered list of grid levels. The first level supplies the coordinates used by the automaton and the potential used by ground training. Additional levels are dependencies whose value functions shape the level below.
 
@@ -180,7 +180,7 @@ Use one of the supplied templates with:
   --episodes 10000
 ```
 
-## ⌘ Useful training options
+## 🛠️ Useful training options
 
 ```text
 --learner {ddqn,tabular}       Ground-level learning algorithm
@@ -204,7 +204,7 @@ docker build -f docker/Dockerfile -t tesi-multilevel .
 docker run --rm --entrypoint python tesi-multilevel /workspace/src/trainer.py --help
 ```
 
-## ◎ Outputs
+## 📊 Outputs
 
 Each run is self-contained:
 
@@ -234,7 +234,7 @@ results/<experiment-name>/
 
 The exact set of plots depends on the learner, number of seeds, evaluation settings, and heatmap options.
 
-## ↻ Post-process an experiment
+## 🔄 Post-process an experiment
 
 Saved numerical data can be used to regenerate plots without retraining:
 
@@ -247,7 +247,7 @@ Saved numerical data can be used to regenerate plots without retraining:
 
 When the default config names are used, post-processing loads the archived task and abstraction snapshots from the experiment directory.
 
-## ✓ Evaluate saved policies
+## ✅ Evaluate saved policies
 
 Evaluate all best and final checkpoints discovered in an experiment:
 
@@ -261,7 +261,7 @@ You can also name particular checkpoints, select a seed, change the rolling wind
 ./run_evaluation.sh --help
 ```
 
-## ⏱ Benchmark value iteration
+## ⏱️ Benchmark value iteration
 
 The benchmark launcher studies value-iteration scaling and writes a CSV file:
 
@@ -272,7 +272,7 @@ docker logs -f traj2-value-iteration-benchmark
 
 Additional arguments are forwarded to `others/benchmark_value_iteration.py` and override the launcher's defaults where supported.
 
-## ◌ Analysis utilities
+## 🔬 Analysis utilities
 
 The [`multilevel_framework/others/`](multilevel_framework/others/) directory contains scripts for:
 
@@ -285,14 +285,14 @@ The [`multilevel_framework/others/`](multilevel_framework/others/) directory con
 
 These are research utilities rather than a single stable CLI, so inspect each script's `--help` output before use.
 
-## ⚠ Notes
+## ⚠️ Notes
 
 - Training scripts assume CUDA is available; `run_experiment.sh` explicitly checks it before starting an experiment.
 - Reusing an experiment name writes into the same output directory. Prefer a new name for independent runs.
 - Neural checkpoints must be evaluated with the same network type used during training.
 - LTLf automaton generation depends on the MONA executable installed in the Docker image.
 
-## ♙ Authors
+## 👤 Authors
 
 **Matteo Ventali** — Student ID: 1985026
 
