@@ -28,6 +28,8 @@ The project accompanies the thesis documents available in [`documents/`](documen
 ```text
 .
 ├── README.md
+├── assets/
+│   └── framework-presentation.gif     # Animated framework overview used in this README
 ├── documents/                         # Thesis PDF files
 ├── templates/
 │   ├── abstractions/                  # Ready-made grid hierarchies
